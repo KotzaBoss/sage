@@ -8,5 +8,6 @@ using namespace std::chrono_literals;
 using namespace std::string_literals;
 
 #include "app.hpp"
+#include "log.hpp"
 #include "entry_point.hpp"
 

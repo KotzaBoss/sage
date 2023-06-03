@@ -14,12 +14,27 @@ endif()
 
 message(STATUS "Configuring ${CMAKE_BUILD_TYPE} build")
 
+
+############################################ Requirements #
+
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(Threads REQUIRED)
+
+include(CTest)
+
+############################################ Dependencies #
+
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+add_subdirectory(spdlog)
+include_directories(${PROJECT_SOURCE_DIR}/spdlog/include)
+
 ############################################ Compiler #
 
-set(EXPECTED_CXX_COMPILER "g++")
 set(EXPECTED_CXX_COMPILER_ID "GNU")
 set(EXPECTED_CXX_COMPILER_VERSION "12.0.0")
-set(EXPECTED_CXX_COMPILER_DEBUG "${EXPECTED_CXX_COMPILER_ID} ${EXPECTED_CXX_COMPILER} ${EXPECTED_CXX_COMPILER_VERSION}") 
+set(EXPECTED_CXX_COMPILER_DEBUG "${EXPECTED_CXX_COMPILER_ID} ${EXPECTED_CXX_COMPILER_VERSION}") 
 
 message(CHECK_START "Confirming compiler as: ${EXPECTED_CXX_COMPILER_DEBUG}")
 if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL ${EXPECTED_CXX_COMPILER_ID})
@@ -28,6 +43,10 @@ elseif(${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS ${EXPECTED_CXX_COMPILER_VERSIO
 	message(FATAL_ERROR "Expected compiler version: ${EXPECTED_CXX_COMPILER_VERSION} found: ${CMAKE_CXX_COMPILER_VERSION}")
 endif()
 message(CHECK_PASS "Ok")
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_EXTENSIONS TRUE)
 
 ############################################ ccache #
 
@@ -44,19 +63,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	endif()
 endif()
 
-############################################ Requirements #
-
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(Threads REQUIRED)
-
-include(CTest)
-
 ############################################ Subdirectories #
 
 add_subdirectory(src)
+include_directories(${PROJECT_SOURCE_DIR}/src)
+
 add_subdirectory(test)
+
+############################################ Summary #
 
 message("==================================================================")
 message("	${PROJECT_NAME} ${PROJECT_VERSION}")

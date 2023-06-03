@@ -9,13 +9,6 @@ foreach (test ${TESTS})
 		PRIVATE
 			${PROJECT_SOURCE_DIR}/src
 		)
-
-	set_target_properties(${bin}
-		PROPERTIES
-			CXX_STANDARD		20
-			CXX_STANDARD_REQUIRED	TRUE
-			CXX_EXTENSIONS		TRUE
-		)
 	
 	target_compile_options(${bin}
 		PRIVATE
@@ -38,6 +31,7 @@ foreach (test ${TESTS})
 	target_link_libraries(${bin}
 		PRIVATE
 			app
+			log
 	#		pthread
 	#		glfw
 	#		GL
