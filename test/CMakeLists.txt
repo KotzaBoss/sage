@@ -1,6 +1,6 @@
 set(TESTS
-	some.cpp
-	event.cpp
+	app.test.cpp
+	event.test.cpp
 	)
 foreach (test ${TESTS})
 	string(REPLACE ".cpp" "" bin ${test})
@@ -24,13 +24,13 @@ foreach (test ${TESTS})
 			-fsanitize=undefined,address
 		)
 	
-	if (${bin} STREQUAL "some")
+	if (${bin} STREQUAL "app.test")
 		target_link_libraries(${bin}
 			PRIVATE
 				app
 				log
 			)
-	elseif (${bin} STREQUAL "event")
+	elseif (${bin} STREQUAL "event.test")
 	endif()
 
 	target_precompile_headers(${bin} REUSE_FROM app)
