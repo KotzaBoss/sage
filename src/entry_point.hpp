@@ -4,8 +4,6 @@
 
 // Headers included in sage.hpp
 
-#include <sys/prctl.h>
-
 auto main() -> int {
 	prctl(PR_SET_NAME, "SAGE entry", 0, 0, 0);
 	sage::Log::init();
