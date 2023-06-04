@@ -29,6 +29,7 @@ include(CTest)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 add_subdirectory(spdlog)
 include_directories(${PROJECT_SOURCE_DIR}/spdlog/include)
+message("${CMAKE_POSITION_INDEPENDENT_CODE}")
 
 ############################################ Compiler #
 

@@ -1,5 +1,6 @@
 set(TESTS
 	some.cpp
+	event.cpp
 	)
 foreach (test ${TESTS})
 	string(REPLACE ".cpp" "" bin ${test})
@@ -23,20 +24,16 @@ foreach (test ${TESTS})
 			-fsanitize=undefined,address
 		)
 	
-	#target_compile_definitions(${bin}
-	#	PRIVATE
-	#		GLEW_STATIC
-	#	)
-	
-	target_link_libraries(${bin}
-		PRIVATE
-			app
-			log
-	#		pthread
-	#		glfw
-	#		GL
-	#		GLEW
-		)
+	if (${bin} STREQUAL "some")
+		target_link_libraries(${bin}
+			PRIVATE
+				app
+				log
+			)
+	elseif (${bin} STREQUAL "event")
+	endif()
+
+	target_precompile_headers(${bin} REUSE_FROM app)
 	
 	add_test(${bin} ${bin})
 endforeach()
