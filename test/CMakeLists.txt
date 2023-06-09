@@ -1,8 +1,8 @@
-set(TESTS
-	app.test.cpp
-	event.test.cpp
+file(GLOB TESTS
+	*.test.cpp
 	)
 foreach (test ${TESTS})
+	cmake_path(GET test FILENAME test)
 	string(REPLACE ".cpp" "" bin ${test})
 	add_executable(${bin} ${test})
 	
@@ -29,8 +29,14 @@ foreach (test ${TESTS})
 			PRIVATE
 				app
 				log
+				linux_window
 			)
 	elseif (${bin} STREQUAL "event.test")
+	elseif (${bin} STREQUAL "linux_window.test")
+		target_link_libraries(${bin}
+			PRIVATE
+				linux_window
+			)
 	endif()
 
 	target_precompile_headers(${bin} REUSE_FROM std)
