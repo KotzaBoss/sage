@@ -128,8 +128,8 @@ section_pass("Ok")
 section_start("Subdirectories")
 
 section_next("src")
-add_subdirectory(src)
 include_directories(${PROJECT_SOURCE_DIR}/src)
+add_subdirectory(src)
 
 section_next("test")
 add_subdirectory(test)

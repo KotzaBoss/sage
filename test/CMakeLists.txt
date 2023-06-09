@@ -33,7 +33,7 @@ foreach (test ${TESTS})
 	elseif (${bin} STREQUAL "event.test")
 	endif()
 
-	target_precompile_headers(${bin} REUSE_FROM app)
+	target_precompile_headers(${bin} REUSE_FROM std)
 	
 	add_test(${bin} ${bin})
 endforeach()
