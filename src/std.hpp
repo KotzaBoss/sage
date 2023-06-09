@@ -72,6 +72,8 @@ using namespace std::string_literals;
 #include <vector>
 #include <iterator>
 #include <ranges>
+namespace rg = std::ranges;
+namespace vw = std::views;
 #include <algorithm>
 #include <bit>
 #include <cfenv>
