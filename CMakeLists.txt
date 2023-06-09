@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.26)
 project(SAGE
 	VERSION 0.0.1
 	DESCRIPTION "Super Advanced Game Engine"
-	LANGUAGES CXX
+	LANGUAGES C CXX
 )
 
 message("==================================================================")
@@ -37,21 +37,27 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 section_pass("${CMAKE_BUILD_TYPE}")
+
 ############################################ ccache #
 section_start("ccache")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+option(CCACHE_ENABLED "Use ccache to speedup subsequent compilations" OFF)
+if (${CCACHE_ENABLED})
+	if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+		message(WARNING "Consider not using ccache for builds other than Debug")
+	endif()
+
 	find_program(CCACHE ccache)
 	if (NOT ${CCACHE} MATCHES ".*NOTFOUND")
+		set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE})
 		set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE})
-		set(CCACHE_ENABLED TRUE)
 		section_pass(${CCACHE})
 	else()
-		set(CCACHE_ENABLED FALSE)
+		set(CCACHE_ENABLED OFF)
 		section_fail("Not found")
 	endif()
 else()
-	section_pass("disabled, build is not Debug")
+	section_pass("disabled")
 endif()
 
 ############################################ Packages #
@@ -65,6 +71,7 @@ find_package(Threads REQUIRED)
 include(CTest)
 
 section_pass("Ok")
+
 ############################################ Dependencies #
 section_start("Dependencies")
 
@@ -78,25 +85,45 @@ add_subdirectory(glfw)
 include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
 
 section_pass("Ok")
-############################################ Compiler #
-section_start("Compiler")
 
-set(EXPECTED_CXX_COMPILER_ID "GNU")
-set(EXPECTED_CXX_COMPILER_VERSION "12.0.0")
-set(EXPECTED_CXX_COMPILER_DEBUG "${EXPECTED_CXX_COMPILER_ID} ${EXPECTED_CXX_COMPILER_VERSION}") 
+############################################ Compilers #
+section_start("Compilers")
 
-section_next("Expecting ${EXPECTED_CXX_COMPILER_DEBUG}")
-if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL ${EXPECTED_CXX_COMPILER_ID})
-	message(FATAL_ERROR "Expected compiler: ${EXPECTED_CXX_COMPILER_ID} found: ${CMAKE_CXX_COMPILER_ID}")
-elseif(${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS ${EXPECTED_CXX_COMPILER_VERSION})
-	message(FATAL_ERROR "Expected compiler version: ${EXPECTED_CXX_COMPILER_VERSION} found: ${CMAKE_CXX_COMPILER_VERSION}")
+# Assertions
+if (NOT DEFINED CMAKE_C_COMPILER)
+	message(FATAL_ERROR "C compiler not defined")
+elseif(NOT DEFINED CMAKE_CXX_COMPILER)
+	message(FATAL_ERROR "CXX compiler not defined")
 endif()
+
+# Expectations
+set(EXPECTED_COMPILER_ID "GNU")
+set(EXPECTED_COMPILER_VERSION "12.0.0")
+set(EXPECTED_COMPILER_DEBUG "${EXPECTED_COMPILER_ID} ${EXPECTED_COMPILER_VERSION}") 
+
+# Checks
+list(APPEND langs	C				CXX)
+list(APPEND compilers	${CMAKE_C_COMPILER}		${CMAKE_CXX_COMPILER})
+list(APPEND ids		${CMAKE_C_COMPILER_ID}		${CMAKE_CXX_COMPILER_ID})
+list(APPEND versions	${CMAKE_C_COMPILER_VERSION}	${CMAKE_CXX_COMPILER_VERSION})
+foreach (lang compiler id version IN ZIP_LISTS langs compilers ids versions)
+	section_next("${lang}")
+	message(CHECK_START "${compiler} ${id} ${version}")
+	if (NOT ${id} STREQUAL ${EXPECTED_COMPILER_ID})
+		message(FATAL_ERROR "Expected compiler: ${EXPECTED_COMPILER_ID} found: ${id}")
+	elseif(${version} VERSION_LESS ${EXPECTED_COMPILER_VERSION})
+		message(FATAL_ERROR "Expected compiler version: ${EXPECTED_COMPILER_VERSION} found: ${version}")
+	else()
+		message(CHECK_PASS "Ok")
+	endif()
+endforeach()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS TRUE)
 
 section_pass("Ok")
+
 ############################################ Subdirectories #
 section_start("Subdirectories")
 
@@ -108,18 +135,20 @@ section_next("test")
 add_subdirectory(test)
 
 section_pass("Ok")
+
 ############################################ Summary #
 
-message("==================================================================")
-message("	${PROJECT_NAME} ${PROJECT_VERSION}")
-message("	${PROJECT_DESCRIPTION}")
-message("..................................................................")
-message("	${CMAKE_BUILD_TYPE}")
-message("	${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "==================================================================")
+message(STATUS "	${PROJECT_NAME} ${PROJECT_VERSION}")
+message(STATUS "	${PROJECT_DESCRIPTION}")
+message(STATUS "..................................................................")
+message(STATUS "	${CMAKE_BUILD_TYPE}")
+message(STATUS "	${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 # TODO: Can we use generator expression here somehow?
 if (${CCACHE_ENABLED})
-	message("	ccache enabled")
+	message(STATUS "	ccache enabled")
 else()
-	message("	ccache disabled")
+	message(STATUS "	ccache disabled")
 endif()
-message("==================================================================")
+message(STATUS "==================================================================")
+
