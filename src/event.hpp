@@ -1,5 +1,7 @@
 #pragma once
 
+#include "std.hpp"
+
 #include "core.hpp"
 
 namespace sage::inline event {

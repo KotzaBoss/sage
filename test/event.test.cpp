@@ -1,5 +1,3 @@
-#include "std.hpp"
-
 #include "event.hpp"
 
 using namespace sage;

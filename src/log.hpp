@@ -1,5 +1,7 @@
 #pragma once
 
+#include "std.hpp"
+
 #ifndef NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #else
