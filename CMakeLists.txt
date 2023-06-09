@@ -127,6 +127,8 @@ section_pass("Ok")
 ############################################ Subdirectories #
 section_start("Subdirectories")
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 section_next("src")
 include_directories(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(src)

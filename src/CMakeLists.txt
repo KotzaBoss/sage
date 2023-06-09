@@ -4,11 +4,12 @@ target_precompile_headers(std
 		"std.hpp"
 	)
 
-set(SRC
-	app.cpp
-	log.cpp
+file(GLOB SRC
+	*.cpp
 	)
+list(FILTER SRC EXCLUDE REGEX ".*/std.cpp") 
 foreach (src ${SRC})
+	cmake_path(GET src FILENAME src)
 	string(REPLACE ".cpp" "" lib ${src})
 	add_library(${lib} SHARED ${src})
 	target_link_libraries(${lib} PRIVATE spdlog::spdlog)
