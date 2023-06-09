@@ -9,6 +9,7 @@
 #endif
 
 #include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h"	// Enable operator<<
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #define SAGE_LOG_TRACE(...)	SPDLOG_LOGGER_TRACE(::sage::Log::logger, __VA_ARGS__)
