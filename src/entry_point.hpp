@@ -6,7 +6,6 @@
 
 auto main() -> int {
 	prctl(PR_SET_NAME, "SAGE entry", 0, 0, 0);
-	sage::Log::init();
 	auto& app = sage::App::make();
 	app.run();
 }

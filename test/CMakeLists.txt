@@ -28,7 +28,6 @@ foreach (test ${TESTS})
 		target_link_libraries(${bin}
 			PRIVATE
 				app
-				log
 				linux_window
 			)
 	elseif (${bin} STREQUAL "event.test")

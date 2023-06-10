@@ -2,11 +2,13 @@
 
 namespace sage::log {
 
-std::shared_ptr<spdlog::logger> Log::logger;
+const Log::Logger Log::logger = spdlog::stderr_color_mt("SAGE");
 
-auto Log::init() -> void {
-	spdlog::set_pattern("%^%-8l (%T) ~%t %n: %v%$");	// log type (time) ~thread logger: message
-	logger = spdlog::stderr_color_mt("SAGE");
+const Log Log::log = Log();
+
+Log::Log() {
+	// log_type (time) ~thread logger: message
+	spdlog::set_pattern("%^%-8l (%T) ~%t %n: %v%$");
 }
 
 }

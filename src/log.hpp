@@ -23,10 +23,16 @@ namespace sage::inline log {
 
 struct Log {
 	using enum spdlog::level::level_enum;
+	using Logger = std::shared_ptr<spdlog::logger>;
 
-	static auto init() -> void;
+public:
+	static const Logger logger;
 
-	static std::shared_ptr<spdlog::logger> logger;
+private:
+	static const Log log;
+
+public:
+	Log();
 };
 
 }
