@@ -2,7 +2,6 @@
 #include "log.hpp"
 #include "core.hpp"
 
-
 namespace sage {
 
 namespace window {
@@ -31,7 +30,24 @@ Window::Window(Properties&& props)
 				nullptr
 				);
 			glfwMakeContextCurrent(glfw);
-			//glfwSetWindowUserPointer(...);
+
+			// User Data
+			glfwSetWindowUserPointer(glfw, this);
+
+			// Callbacks
+
+			// No captures, must be convertible to functon
+			glfwSetWindowCloseCallback(glfw, [] (GLFWwindow* win) {
+				user_pointer_to_this_ref(win)
+					.event_callback(Event::make_window_closed())
+					;
+				});
+
+			glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
+				user_pointer_to_this_ref(win)
+					.event_callback(Event::make_window_resized(Size{width, height}))
+					;
+				});
 		},
 		.update = [this] {
 			glClearColor(1, 0, 1, 1);

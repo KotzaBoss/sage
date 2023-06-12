@@ -6,13 +6,18 @@
 
 namespace sage::oslinux::inline window {
 
-struct Window : sage::Window {
+struct Window final : sage::Window {
 
 private:
 	GLFWwindow* glfw;
 
 public:
 	Window(Properties&& props);
+
+private:
+	inline static auto user_pointer_to_this_ref(GLFWwindow* const win) -> Window& {
+		return *static_cast<Window*>(glfwGetWindowUserPointer(win));
+	}
 
 public:
 	friend auto operator<< (std::ostream& o, const oslinux::Window& w) -> std::ostream& {

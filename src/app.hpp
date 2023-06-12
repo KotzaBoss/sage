@@ -18,6 +18,7 @@ public:
 
 public:
 	auto run() -> void;
+	auto event_callback(const Event& e) -> void;
 };
 
 }// sage

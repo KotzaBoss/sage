@@ -2,6 +2,7 @@
 
 #include "std.hpp"
 
+#include "event.hpp"
 #include "math.hpp"
 
 namespace sage::inline window {
@@ -9,7 +10,7 @@ namespace sage::inline window {
 struct Window {
 	struct Properties {
 		std::string title = "SAGE Window"s;
-		Size size = { .width=1280, .height=720 };
+		Size<size_t> size = { .width=1280, .height=720 };
 	public:
 		friend auto operator<< (std::ostream& o, const Properties& p) -> std::ostream& {
 			return o << "Properties: title=" << std::quoted(p.title) << " size=" << p.size;
@@ -23,6 +24,7 @@ protected:
 
 private:
 	Fn _setup, _update, _teardown;
+	Event::Callback _event_callback;
 
 public:
 	struct Args {
@@ -36,9 +38,11 @@ public:
 	static auto make(Properties&& props) -> Window&;
 
 public:
-	inline auto setup()	-> void { std::invoke(_setup); }
-	inline auto update()	-> void { std::invoke(_update); }
-	inline auto teardown()	-> void { std::invoke(_teardown); }
+	auto setup		(Event::Callback&& cb)	-> void;
+	auto update		()						-> void;
+	auto teardown	()						-> void;
+
+	auto event_callback(const Event& e) -> void;
 
 public:
 	friend auto operator<< (std::ostream& o, const Window& w) -> std::ostream& {
