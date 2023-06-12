@@ -12,9 +12,6 @@ constexpr auto to_underlying(auto e) -> auto {
 }
 #endif
 
-#define SAGE_ASSERT(cond) assert(cond)
-#define SAGE_ASSERT_MSG(cond, msg) assert((msg, cond))
-
 namespace sage::inline core {
 
 template<std::integral I>

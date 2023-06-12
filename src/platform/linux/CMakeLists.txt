@@ -3,11 +3,17 @@ set(SRC
 	)
 foreach (src ${SRC})
 	string(REPLACE ".cpp" "" lib linux_${src})
+
+	message(STATUS "${lib}")
 	add_library(${lib} SHARED ${src})
+
+	message(STATUS "L window")
+	message(STATUS "L glfw")
+	message(STATUS "L GL")
 	target_link_libraries(${lib}
-		PRIVATE
-			log
+		PUBLIC
 			window
+		PRIVATE
 			glfw
 			GL
 	)

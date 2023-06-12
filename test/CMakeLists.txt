@@ -31,6 +31,10 @@ foreach (test ${TESTS})
 				linux_window
 			)
 	elseif (${bin} STREQUAL "event.test")
+		target_link_libraries(${bin}
+			PRIVATE
+				event
+			)
 	elseif (${bin} STREQUAL "linux_window.test")
 		target_link_libraries(${bin}
 			PRIVATE

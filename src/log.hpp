@@ -19,6 +19,17 @@
 #define SAGE_LOG_ERROR(...)	SPDLOG_LOGGER_ERROR(::sage::Log::logger, __VA_ARGS__)
 #define SAGE_LOG_CRITICAL(...)	SPDLOG_LOGGER_CRITICAL(::sage::Log::logger, __VA_ARGS__)
 
+#define SAGE_ASSERT(cond) assert(cond)
+#define SAGE_ASSERT_MSG(_cond_, _msg_)	\
+	{	\
+		const auto _cond_val_ = _cond_;	\
+		if (not _cond_val_) { \
+			SAGE_LOG_CRITICAL("{} -> {}: {}", #_cond_, _cond_val_, _msg_);	\
+		}	\
+		assert(((void)_msg_, _cond_val_));	\
+	}	\
+	(void)0
+
 namespace sage::inline log {
 
 struct Log {

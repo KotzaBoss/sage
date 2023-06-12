@@ -3,6 +3,8 @@
 #include "std.hpp"
 
 #include "core.hpp"
+#include "math.hpp"
+#include "log.hpp"
 
 namespace sage::inline event {
 
@@ -10,32 +12,43 @@ struct Event {
 					// Type
 	enum class Type {
 		None = 0,
-		Key_Pressed, Key_Released,
-	} type;
+		Window_Closed, Window_Resized,
+	};
 	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>();
 
 					// Category
+	// CAUTION: Do not forget to update the operator<< if the enum changes
 	enum class Category : uint8_t {
 		None = 0,
 		Application	= 1 << 0,
 		Input		= 1 << 1,
 		Keyboard	= 1 << 2,
 		Mouse		= 1 << 3
-	} category;
+	};
 	constexpr static inline auto bits_of_Category = bits<std::underlying_type_t<Category>>();
 
-					// Payload
-	using Payload = std::variant<int>;
+					// Payloads
+	using Payload = std::variant<
+		std::monostate,	// No payload
+		Size<int>
+	>;
+	static constexpr auto no_payload = Payload{};
+
+	using Callback = std::function<void(const Event&)>;
+	static constexpr auto uninitialized_callback = [] (const Event&) { SAGE_ASSERT_MSG(false, "Event::Callback is uninitialized"); };
+
+public:
+	Type type;
+	Category category;
 	Payload payload;
 
 public:
-	friend auto operator<< (std::ostream& o, const Event& e) -> std::ostream& {
-		return o
-			<< "Event: "
-			<< "Type:" << bits_of_Type << '=' << std::to_underlying(e.type) << ' '
-			<< "Category:" << bits_of_Category << '=' << std::bitset<bits_of_Category>{std::to_underlying(e.category)}
-			;
-	}
+	static auto make_window_closed	()					-> Event;
+	static auto make_window_resized	(Size<int>&& sz)	-> Event;
+
+public:
+	friend auto operator<< (std::ostream& o, const Category& c) -> std::ostream&;
+	friend auto operator<< (std::ostream& o, const Event& e) -> std::ostream&;
 };
 
 struct Event_Dispatcher {
