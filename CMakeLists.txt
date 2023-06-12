@@ -75,8 +75,13 @@ section_pass("Ok")
 ############################################ Dependencies #
 section_start("Dependencies")
 
-section_next("spdlog")
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
+section_next("fmt")
+add_subdirectory(fmt)
+include_directories(${PROJECT_SOURCE_DIR}/fmt/include)
+
+section_next("spdlog")
 add_subdirectory(spdlog)
 include_directories(${PROJECT_SOURCE_DIR}/spdlog/include)
 
@@ -99,7 +104,7 @@ endif()
 # Expectations
 set(EXPECTED_COMPILER_ID "GNU")
 set(EXPECTED_COMPILER_VERSION "12.0.0")
-set(EXPECTED_COMPILER_DEBUG "${EXPECTED_COMPILER_ID} ${EXPECTED_COMPILER_VERSION}") 
+set(EXPECTED_COMPILER_DEBUG "${EXPECTED_COMPILER_ID} ${EXPECTED_COMPILER_VERSION}")
 
 # Checks
 list(APPEND langs	C				CXX)
