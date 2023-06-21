@@ -1,11 +1,14 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
 #include "window.hpp"
+
 using namespace sage;
 
-auto main() -> int {
+TEST_CASE ("Linux Window") {
 	auto& win = Window::make(Window::Properties{});
-	std::cerr << win << '\n';
+	MESSAGE(win);
 	win.setup([] (const Event& e) {
-			std::cerr << e << '\n';
+			MESSAGE(e);
 		});
 	for (const auto _ : vw::iota(1, 7)) {
 		win.update();

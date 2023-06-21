@@ -1,9 +1,12 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
+
 #include "event.hpp"
 
 using namespace sage;
 
-auto main() -> int {
-	std::cerr << Event::make_window_closed() << '\n';
+TEST_CASE ("Event") {
+	MESSAGE(Event::make_window_closed());
 	for (auto i = 0; i < 10; ++i)
-		std::cerr << Event::make_window_resized(Size<int>{std::rand() % 4000, std::rand() % 4000}) << '\n';
+		MESSAGE(Event::make_window_resized(Size<int>{std::rand() % 4000, std::rand() % 4000}));
 }

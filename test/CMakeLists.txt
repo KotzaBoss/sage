@@ -18,12 +18,17 @@ foreach (test ${TESTS})
 			-Wpedantic
 			-fsanitize=undefined,address
 		)
-	
+
 	target_link_options(${bin}
 		PRIVATE
 			-fsanitize=undefined,address
 		)
-	
+
+	target_link_libraries(${bin}
+		PRIVATE
+			doctest
+		)
+
 	if (${bin} STREQUAL "app.test")
 		target_link_libraries(${bin}
 			PRIVATE

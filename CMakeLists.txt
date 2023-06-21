@@ -85,6 +85,10 @@ section_next("spdlog")
 add_subdirectory(spdlog)
 include_directories(${PROJECT_SOURCE_DIR}/spdlog/include)
 
+section_next("doctest")
+add_subdirectory(doctest)
+include_directories(${PROJECT_SOURCE_DIR}/doctest/doctest)
+
 section_next("glfw")
 add_subdirectory(glfw)
 include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
