@@ -12,3 +12,9 @@ namespace sage {
 	}
 }
 
+TEST_CASE ("App") {
+	auto& app = sage::App::make();
+	app.start();
+	std::this_thread::sleep_for(1s);
+	app.stop();
+}

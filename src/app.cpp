@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "formatter.hpp"
+#include "log.hpp"
 
 namespace sage {
 
@@ -7,13 +8,22 @@ App::App(Window& win)
 	: _window{win}
 {}
 
-auto App::run() -> void {
-	_window.setup([this] (const Event& e) { event_callback(e); });
-	for (const auto _ : vw::iota(1, 10)) {
-		_window.update();
-		std::this_thread::sleep_for(100ms);
-	}
-	_window.teardown();
+App::~App() {
+	SAGE_ASSERT(loop.joinable());
+}
+
+auto App::start() -> void {
+	loop = std::jthread{[this] (const auto stoken) {
+			_window.setup([this] (const Event& e) { event_callback(e); });
+			while (not stoken.stop_requested()) {
+				_window.update();
+			}
+			_window.teardown();
+		}};
+}
+
+auto App::stop() -> void {
+	loop.request_stop();
 }
 
 auto App::event_callback(const Event& e) -> void {

@@ -11,10 +11,6 @@ auto main() -> int {
 	app.run();
 }
 #else
-TEST_CASE ("App") {
-	prctl(PR_SET_NAME, "SAGE entry", 0, 0, 0);
-	auto& app = sage::App::make();
-	app.run();
-}
+#warning You are including the entry_point with Doctest implementing main make sure you add the TEST_CASE in the test executable.
 #endif
 
