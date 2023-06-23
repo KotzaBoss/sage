@@ -78,19 +78,20 @@ section_start("Dependencies")
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 section_next("fmt")
-add_subdirectory(fmt)
+add_subdirectory(fmt EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/fmt/include)
 
 section_next("spdlog")
-add_subdirectory(spdlog)
+set(SPDLOG_FMT_EXTERNAL ON)
+add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/spdlog/include)
 
 section_next("doctest")
-add_subdirectory(doctest)
+add_subdirectory(doctest EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/doctest/doctest)
 
 section_next("glfw")
-add_subdirectory(glfw)
+add_subdirectory(glfw EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
 
 section_pass("Ok")

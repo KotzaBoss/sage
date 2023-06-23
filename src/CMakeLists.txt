@@ -1,9 +1,6 @@
 message(STATUS "std")
 add_library(std std.cpp)
-target_precompile_headers(std
-	PUBLIC
-		"std.hpp"
-	)
+target_precompile_headers(std PUBLIC "std.hpp")
 
 message(STATUS "log")
 add_library(log STATIC log.cpp)
