@@ -6,6 +6,8 @@
 
 namespace sage::oslinux::inline window {
 
+using Size = sage::Size<int>;
+
 struct Window final : sage::Window {
 
 private:

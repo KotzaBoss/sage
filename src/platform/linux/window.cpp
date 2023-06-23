@@ -23,9 +23,9 @@ Window::Window(Properties&& props)
 			SAGE_ASSERT(ok);
 
 			glfw = glfwCreateWindow(
-				properties.size.width,
-				properties.size.height,
-				properties.title.c_str(),
+				_properties.size.width,
+				_properties.size.height,
+				_properties.title.c_str(),
 				nullptr,
 				nullptr
 				);
@@ -44,9 +44,10 @@ Window::Window(Properties&& props)
 				});
 
 			glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
-				user_pointer_to_this_ref(win)
-					.event_callback(Event::make_window_resized(Size{width, height}))
-					;
+					auto& _this = user_pointer_to_this_ref(win);
+
+					_this._properties.size = Size::to<size_t>(Size{width, height});
+					_this.event_callback(Event::make_window_resized(_this._properties.size));
 				});
 		},
 		.update = [this] {

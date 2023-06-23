@@ -20,7 +20,7 @@ struct Window {
 	using Fn = std::function<void()>;
 
 protected:
-	Properties properties;
+	Properties _properties;
 
 private:
 	Fn _setup, _update, _teardown;
@@ -43,6 +43,8 @@ public:
 	auto teardown	()						-> void;
 
 	auto event_callback(const Event& e) -> void;
+
+	inline auto properties() const -> const Properties& { return _properties; }
 
 public:
 	friend auto operator<< (std::ostream& o, const Window& w) -> std::ostream& {
