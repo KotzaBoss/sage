@@ -4,16 +4,16 @@
 namespace sage {
 
 App::App(Window& win)
-	: window{win}
+	: _window{win}
 {}
 
 auto App::run() -> void {
-	window.setup([this] (const Event& e) { event_callback(e); });
+	_window.setup([this] (const Event& e) { event_callback(e); });
 	for (const auto _ : vw::iota(1, 10)) {
-		window.update();
+		_window.update();
 		std::this_thread::sleep_for(100ms);
 	}
-	window.teardown();
+	_window.teardown();
 }
 
 auto App::event_callback(const Event& e) -> void {

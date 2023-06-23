@@ -5,9 +5,9 @@
 
 namespace sage {
 	auto App::make() -> App& {
-		MESSAGE("?");
 		auto& win = Window::make(Window::Properties{});
 		static auto app = App(win);
+		MESSAGE(app);
 		return app;
 	}
 }

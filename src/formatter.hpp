@@ -101,7 +101,7 @@ FMT_FORMATTER(sage::Window::Properties) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::Window::Properties) {
-		return fmt::format_to(ctx.out(), "Properties title={} size={}", obj.title, obj.size);
+		return fmt::format_to(ctx.out(), "Properties title={:?} size={};", obj.title, obj.size);
 	}
 };
 
@@ -110,7 +110,7 @@ FMT_FORMATTER(sage::Window) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::Window) {
-		return fmt::format_to(ctx.out(), "Window: properties={}", obj.properties());
+		return fmt::format_to(ctx.out(), "Window: properties={};", obj.properties());
 	}
 };
 
@@ -122,6 +122,17 @@ FMT_FORMATTER(sage::oslinux::Window) {
 
 	FMT_FORMATTER_FORMAT(sage::oslinux::Window) {
 		return fmt::format_to(ctx.out(), "oslinux::{}", static_cast<const sage::Window&>(obj));
+	}
+};
+
+#include "app.hpp"
+
+template <>
+FMT_FORMATTER(sage::App) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::App) {
+		return fmt::format_to(ctx.out(), "App: window={};", obj.window());
 	}
 };
 
