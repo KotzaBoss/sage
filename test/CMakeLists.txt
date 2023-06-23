@@ -46,6 +46,11 @@ foreach (test ${TESTS})
 			PRIVATE
 				linux_window
 			)
+	elseif (${bin} STREQUAL "layer.test")
+		target_link_libraries(${bin}
+			PRIVATE
+				layer
+			)
 	endif()
 
 	target_precompile_headers(${bin} REUSE_FROM std)

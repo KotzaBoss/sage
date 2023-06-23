@@ -36,6 +36,12 @@ foreach (src ${SRC})
 			PUBLIC
 				event
 			)
+	elseif (${lib} STREQUAL "app")
+		message(STATUS "L layer")
+		target_link_libraries(${lib}
+			PUBLIC
+				layer
+			)
 	endif()
 	
 	target_precompile_headers(${lib} REUSE_FROM std)

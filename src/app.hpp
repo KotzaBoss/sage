@@ -3,6 +3,8 @@
 #include <thread>
 
 #include "window.hpp"
+#include "layer.hpp"
+
 #include "repr.hpp"
 
 namespace sage::inline app {
@@ -11,10 +13,11 @@ struct App {
 
 private:
 	Window& _window;
+	Layers layers;
 	std::jthread loop;
 
 public:
-	App(Window& win);
+	App(Window& win, Layers&& ls);
 	~App();
 
 public:
