@@ -5,6 +5,7 @@
 #include "core.hpp"
 #include "math.hpp"
 #include "log.hpp"
+#include "repr.hpp"
 
 namespace sage::inline event {
 
@@ -15,6 +16,7 @@ struct Event {
 		Window_Closed, Window_Resized,
 	};
 	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>();
+	REPR_DECL(Type);
 
 					// Category
 	// CAUTION: Do not forget to update the operator<< if the enum changes
@@ -26,6 +28,7 @@ struct Event {
 		Mouse		= 1 << 3
 	};
 	constexpr static inline auto bits_of_Category = bits<std::underlying_type_t<Category>>();
+	REPR_DECL(Category);
 
 					// Payloads
 	using Payload = std::variant<
@@ -33,6 +36,7 @@ struct Event {
 		Size<size_t>
 	>;
 	static constexpr auto no_payload = Payload{};
+	REPR_DECL(Payload);
 
 	using Callback = std::function<void(const Event&)>;
 	static constexpr auto uninitialized_callback = [] (const Event&) { SAGE_ASSERT_MSG(false, "Event::Callback is uninitialized"); };
@@ -47,8 +51,7 @@ public:
 	static auto make_window_resized	(const Size<size_t>& sz)	-> Event;
 
 public:
-	friend auto operator<< (std::ostream& o, const Category& c) -> std::ostream&;
-	friend auto operator<< (std::ostream& o, const Event& e) -> std::ostream&;
+	REPR_DECL(Event);
 };
 
 struct Event_Dispatcher {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/window.hpp"
+#include "repr.hpp"
 
 #include "GLFW/glfw3.h"
 
@@ -22,9 +23,7 @@ private:
 	}
 
 public:
-	friend auto operator<< (std::ostream& o, const oslinux::Window& w) -> std::ostream& {
-		return o << static_cast<const sage::Window&>(w);
-	}
+	REPR_DECL(Window);
 };
 
 }// sage::linux::window

@@ -52,9 +52,10 @@ using namespace std::chrono_literals;
 #endif
 #include <cwchar>
 #include <cwctype>
-#ifdef __cpp_lib_format
-	#include <format>
-#endif
+// The library {fmt} shall be used
+//#ifdef __cpp_lib_format
+//	#include <format>
+//#endif
 #include <string>
 #include <string_view>
 using namespace std::string_literals;

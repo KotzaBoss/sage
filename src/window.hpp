@@ -4,17 +4,18 @@
 
 #include "event.hpp"
 #include "math.hpp"
+#include "repr.hpp"
 
 namespace sage::inline window {
 
 struct Window {
 	struct Properties {
+		using Size = sage::Size<size_t>;
+
 		std::string title = "SAGE Window"s;
-		Size<size_t> size = { .width=1280, .height=720 };
+		Size size = { .width=1280, .height=720 };
 	public:
-		friend auto operator<< (std::ostream& o, const Properties& p) -> std::ostream& {
-			return o << "Properties: title=" << std::quoted(p.title) << " size=" << p.size;
-		}
+		REPR_DECL(Window::Properties);
 	};
 
 	using Fn = std::function<void()>;
@@ -47,9 +48,7 @@ public:
 	inline auto properties() const -> const Properties& { return _properties; }
 
 public:
-	friend auto operator<< (std::ostream& o, const Window& w) -> std::ostream& {
-		return o << "Window: " << w.properties;
-	}
+	REPR_DECL(Window);
 };
 
 }// sage::window

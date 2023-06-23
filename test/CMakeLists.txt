@@ -27,6 +27,7 @@ foreach (test ${TESTS})
 	target_link_libraries(${bin}
 		PRIVATE
 			doctest
+			repr
 		)
 
 	if (${bin} STREQUAL "app.test")

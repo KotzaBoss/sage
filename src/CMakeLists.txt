@@ -7,10 +7,14 @@ add_library(log STATIC log.cpp)
 message(STATUS "L spdlog")
 target_link_libraries(log PRIVATE spdlog::spdlog)
 
+message(STATUS "repr")
+add_library(repr STATIC repr.cpp)
+target_link_libraries(repr PRIVATE fmt::fmt)
+
 file(GLOB SRC
 	*.cpp
 	)
-list(FILTER SRC EXCLUDE REGEX ".*/(std|log).cpp")
+list(FILTER SRC EXCLUDE REGEX ".*/(std|log|repr).cpp")
 foreach (src ${SRC})
 	cmake_path(GET src FILENAME src)
 	string(REPLACE ".cpp" "" lib ${src})
@@ -19,9 +23,11 @@ foreach (src ${SRC})
 	add_library(${lib} SHARED ${src})
 
 	message(STATUS "L log")
+	message(STATUS "L repr")
 	target_link_libraries(${lib}
 		PRIVATE
 			log
+			repr
 		)
 
 	if (${lib} STREQUAL "window")
