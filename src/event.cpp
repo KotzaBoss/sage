@@ -10,11 +10,11 @@ auto Event::make_window_closed() -> Event {
 	};
 }
 
-auto Event::make_window_resized(Size<int>&& sz) -> Event {
+auto Event::make_window_resized(const Size<size_t>& sz) -> Event {
 	return {
 		.type = Type::Window_Resized,
 		.category = Category::Input,
-		.payload = std::move(sz)
+		.payload = sz
 	};
 }
 

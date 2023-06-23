@@ -30,7 +30,7 @@ struct Event {
 					// Payloads
 	using Payload = std::variant<
 		std::monostate,	// No payload
-		Size<int>
+		Size<size_t>
 	>;
 	static constexpr auto no_payload = Payload{};
 
@@ -43,8 +43,8 @@ public:
 	Payload payload;
 
 public:
-	static auto make_window_closed	()					-> Event;
-	static auto make_window_resized	(Size<int>&& sz)	-> Event;
+	static auto make_window_closed	()							-> Event;
+	static auto make_window_resized	(const Size<size_t>& sz)	-> Event;
 
 public:
 	friend auto operator<< (std::ostream& o, const Category& c) -> std::ostream&;
