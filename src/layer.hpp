@@ -4,46 +4,34 @@
 
 #include "event.hpp"
 #include "ref_wrapper.hpp"
+#include "polymorphic_tuple_storage.hpp"
 
-namespace sage::inline layer {
+namespace sage::layer {
 
-struct Layer {
-	using Fn = std::function<void()>;
+template <typename Layer>
+concept Concept =
+	requires (Layer l, const Event& event) {
+		{ l.setup() } -> std::same_as<void>;
+		{ l.update() } -> std::same_as<void>;
+		{ l.teardown() } -> std::same_as<void>;
+		{ l.event_callback(event) } -> std::same_as<void>;
+	}
+	;
 
-private:
-	Fn _setup, _update, _teardown;
-	Event::Callback _event_callback;
-
-public:
-	struct Args {
-		Fn&& setup, update, teardown;
-		Event::Callback&& event_callback;
-	};
-	Layer(Args&& args);
-
-public:
-	auto setup() -> void;
-	auto update() -> void;
-	auto teardown() -> void;
-	auto event_callback (const Event&) -> void;
-};
-
-struct Layers {
-	using Stack = std::vector<Ref_Wrapper<Layer>>;
-
-private:
-	Stack stack;
+template <layer::Concept... Ls>
+struct Layers : util::Polymorphic_Tuple_Storage<Ls...> {
 
 public:
-	Layers(auto&... layers)
-		: stack{layers...}
+	Layers(auto&&... layers)
+		: util::Polymorphic_Tuple_Storage<Ls...>{std::move(layers)...}
 	{}
 
 public:
-	auto setup() -> void;
-	auto update() -> void;
-	auto teardown() -> void;
-	auto event_callback(const Event& e) -> void;
+	auto setup()	-> void { this->apply([] (auto& layer) { layer.setup();		}); }
+	auto update()	-> void { this->apply([] (auto& layer) { layer.update();	}); }
+	auto teardown()	-> void { this->apply([] (auto& layer) { layer.teardown();	}); }
+
+	auto event_callback(const Event& e) -> void { apply([&] (auto& layer) { layer.event_callback(e); });}
 };
 
 }// sage::layer

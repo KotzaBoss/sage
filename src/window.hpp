@@ -29,13 +29,6 @@ concept Concept =
 	}
 	;
 
-struct Plumbing {
-	using Fn = std::function<void()>;
-
-	Fn _setup, _update, _teardown;
-	Event::Callback _event_callback;
-};
-
 }// sage::window
 
 template <>
