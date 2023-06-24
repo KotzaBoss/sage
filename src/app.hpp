@@ -14,13 +14,13 @@ template<window::Concept Window>
 struct App {
 
 private:
-	Window _window;
+	Window window;
 	Layers layers;
 	std::jthread loop;
 
 public:
 	App(window::Properties&& properties, Layers&& ls)
-		: _window{std::move(properties)}
+		: window{std::move(properties)}
 		, layers{std::move(ls)}
 	{}
 
@@ -33,18 +33,18 @@ public:
 		loop = std::jthread{[this] (const auto stoken) {
 
 							// Setup
-				_window.setup([this] (const Event& e) { event_callback(e); });
+				window.setup([this] (const Event& e) { event_callback(e); });
 				layers.setup();
 
 							// Update
 				while (not stoken.stop_requested()) {
 					layers.update();
-					_window.update();
+					window.update();
 				}
 
 							// Teardown
 				layers.teardown();
-				_window.teardown();
+				window.teardown();
 			}};
 	}
 	auto stop() -> void {
@@ -58,10 +58,8 @@ public:
 	}
 
 public:
-	auto window() const -> const Window& { return _window; }
-
-public:
 	friend REPR_DEF_FMT(App<Window>)
+	friend FMT_FORMATTER(App<Window>);
 };
 
 }// sage
@@ -71,7 +69,7 @@ FMT_FORMATTER(sage::App<Window>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::App<Window>) {
-		return fmt::format_to(ctx.out(), "App: window={};", obj.window());
+		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tlayers={}\n\t;", obj.window, "LAYERS PLACEHOLDER");
 	}
 };
 
