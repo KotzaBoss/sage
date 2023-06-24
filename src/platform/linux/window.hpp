@@ -2,7 +2,6 @@
 
 #include "src/window.hpp"
 #include "repr.hpp"
-#include "formatter.hpp"
 
 #include "GLFW/glfw3.h"
 

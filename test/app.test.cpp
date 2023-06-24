@@ -36,6 +36,6 @@ TEST_CASE ("App") {
 		);
 	MESSAGE(app);
 	app.start();
-	std::this_thread::sleep_for(1s);
+	std::this_thread::sleep_for(500ms);
 	app.stop();
 }

@@ -1,16 +1,4 @@
-#include "formatter.hpp"
-#include "log.hpp"
 #include "repr.hpp"
-
-
-#include "math.hpp"
-namespace sage::math {
-
-template<sage::Number N>
-REPR_DEF_FMT(sage::Size<N>);
-
-}
-
 
 #include "event.hpp"
 namespace sage::event {
@@ -21,7 +9,6 @@ REPR_DEF_FMT(Event::Payload);
 REPR_DEF_FMT(Event);
 
 }
-
 
 #include "window.hpp"
 namespace sage::window {

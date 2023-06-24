@@ -6,8 +6,6 @@
 #include "math.hpp"
 #include "repr.hpp"
 
-#include "formatter.hpp"
-
 namespace sage::window {
 
 struct Properties {

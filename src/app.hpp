@@ -1,11 +1,11 @@
 #pragma once
 
-#include <thread>
+#include "std.hpp"
 
 #include "window.hpp"
 #include "layer.hpp"
-#include "formatter.hpp"
 
+#include "log.hpp"
 #include "repr.hpp"
 
 namespace sage::inline app {
@@ -61,9 +61,7 @@ public:
 	auto window() const -> const Window& { return _window; }
 
 public:
-	template<window::Concept _Window>
-	friend
-	REPR_DEF_FMT(App<_Window>)
+	friend REPR_DEF_FMT(App<Window>)
 };
 
 }// sage

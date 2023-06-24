@@ -58,4 +58,69 @@ struct Event_Dispatcher {
 	// No clue
 };
 
-}// sage::inline
+}// sage::event
+
+template <>
+FMT_FORMATTER(sage::Event::Type) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::Event::Type) {
+		return fmt::format_to(ctx.out(),
+				"Type: {};",
+				std::invoke([&] {
+					switch (obj) {
+						case sage::Event::Type::Window_Closed:		return "Window_Closed";
+						case sage::Event::Type::Window_Resized:		return "Window_Resized";
+						case sage::Event::Type::None:				return "None";
+						default:
+							return "BAD";
+					}
+				})
+			);
+	}
+};
+
+template <>
+FMT_FORMATTER(sage::Event::Category) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::Event::Category) {
+		return fmt::format_to(ctx.out(),
+				"Category: {};",
+				std::invoke([&] {
+					switch (obj) {
+						case sage::Event::Category::Application:	return "Application";
+						case sage::Event::Category::Input:			return "Input";
+						case sage::Event::Category::Keyboard:		return "Keyboard";
+						case sage::Event::Category::Mouse:			return "Mouse";
+						default:
+							return "BAD";
+					}
+				})
+			);
+	}
+};
+
+template <>
+FMT_FORMATTER(sage::Event::Payload) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::Event::Payload) {
+		return std::visit(
+			[&] (auto&& x) {
+				return fmt::format_to(ctx.out(), "Payload: {};", x);
+			},
+			obj
+		);
+	}
+};
+
+template <>
+FMT_FORMATTER(sage::Event) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::Event) {
+		return fmt::format_to(ctx.out(), "Event:\ttype={}\tcategory={}\tpayload={};", obj.type, obj.category, obj.payload);
+	}
+};
+
