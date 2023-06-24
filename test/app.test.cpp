@@ -3,6 +3,8 @@
 #include "sage.hpp"
 #include "platform/linux/window.hpp"
 
+using namespace sage;
+
 struct Placeholder_Layer : sage::Layer {
 	std::string name;
 
@@ -25,22 +27,14 @@ struct Placeholder_Layer : sage::Layer {
 	{}
 };
 
-namespace sage {
-	auto App::make() -> App& {
-		auto& win = Window::make(Window::Properties{});
-		static auto pl1 = Placeholder_Layer{"PL1"s},
-					pl2 = Placeholder_Layer{"PL2"s};
-		static auto app = App{
-			win,
-			Layers{pl1, pl2}
-		};
-		MESSAGE(app);
-		return app;
-	}
-}
-
 TEST_CASE ("App") {
-	auto& app = sage::App::make();
+	auto pl1 = Placeholder_Layer{"PL1"s},
+		 pl2 = Placeholder_Layer{"PL2"s};
+	auto app = sage::App<oslinux::Window>(
+			window::Properties{},
+			Layers{pl1, pl2}
+		);
+	MESSAGE(app);
 	app.start();
 	std::this_thread::sleep_for(1s);
 	app.stop();

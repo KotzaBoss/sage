@@ -1,11 +1,12 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include "window.hpp"
+#include "platform/linux/window.hpp"
 
 using namespace sage;
 
 TEST_CASE ("Linux Window") {
-	auto& win = Window::make(Window::Properties{});
+	MESSAGE(window::Properties{});
+	auto win = oslinux::Window(window::Properties{});
 	MESSAGE(win);
 	win.setup([] (const Event& e) {
 			MESSAGE(e);

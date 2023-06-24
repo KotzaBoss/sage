@@ -26,6 +26,7 @@ foreach (test ${TESTS})
 
 	target_link_libraries(${bin}
 		PRIVATE
+			log
 			doctest
 			repr
 		)
@@ -33,8 +34,10 @@ foreach (test ${TESTS})
 	if (${bin} STREQUAL "app.test")
 		target_link_libraries(${bin}
 			PRIVATE
-				app
-				linux_window
+				glfw
+				GL
+				event
+				layer
 			)
 	elseif (${bin} STREQUAL "event.test")
 		target_link_libraries(${bin}
@@ -44,7 +47,9 @@ foreach (test ${TESTS})
 	elseif (${bin} STREQUAL "linux_window.test")
 		target_link_libraries(${bin}
 			PRIVATE
-				linux_window
+				glfw
+				GL
+				event
 			)
 	elseif (${bin} STREQUAL "layer.test")
 		target_link_libraries(${bin}

@@ -9,3 +9,6 @@
 #define REPR_DEF_FMT(type)	\
 	REPR_DEF(type) { return os << fmt::format("{}", obj); }
 
+#include "fmt/format.h"
+#include "fmt/std.h"
+#include "fmt/ranges.h"

@@ -6,49 +6,46 @@
 #include "math.hpp"
 #include "repr.hpp"
 
-namespace sage::inline window {
+#include "formatter.hpp"
 
-struct Window {
-	struct Properties {
-		using Size = sage::Size<size_t>;
+namespace sage::window {
 
-		std::string title = "SAGE Window"s;
-		Size size = { .width=1280, .height=720 };
-	public:
-		REPR_DECL(Window::Properties);
-	};
+struct Properties {
+	using Size = sage::Size<size_t>;
 
+	std::string title = "SAGE Window"s;
+	Size size = { .width=1280, .height=720 };
+
+	REPR_DECL(Properties);
+};
+
+template <typename Window>
+concept Concept =
+	requires (Window win, Properties&& properties, Event::Callback&& event_callback, const Event& event) {
+		Window(std::move(properties));	// Constructor
+		{ win.setup(std::move(event_callback)) } -> std::same_as<void>;
+		{ win.update() } -> std::same_as<void>;
+		{ win.teardown() } -> std::same_as<void>;
+		{ win.event_callback(event) } -> std::same_as<void>;
+		{ win.properties() } -> std::same_as<const Properties&>;
+	}
+	;
+
+struct Plumbing {
 	using Fn = std::function<void()>;
 
-protected:
-	Properties _properties;
-
-private:
 	Fn _setup, _update, _teardown;
 	Event::Callback _event_callback;
-
-public:
-	struct Args {
-		Properties&& properties;
-		Fn&& setup, update, teardown;
-	};
-	Window(Args&& args);
-
-public:
-	// Implement all per platfrom
-	static auto make(Properties&& props) -> Window&;
-
-public:
-	auto setup		(Event::Callback&& cb)	-> void;
-	auto update		()						-> void;
-	auto teardown	()						-> void;
-
-	auto event_callback(const Event& e) -> void;
-
-	inline auto properties() const -> const Properties& { return _properties; }
-
-public:
-	REPR_DECL(Window);
 };
 
 }// sage::window
+
+template <>
+FMT_FORMATTER(sage::window::Properties) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::window::Properties) {
+		return fmt::format_to(ctx.out(), "Properties title={:?} size={};", obj.title, obj.size);
+	}
+};
+

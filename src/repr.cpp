@@ -25,24 +25,12 @@ REPR_DEF_FMT(Event);
 
 #include "window.hpp"
 namespace sage::window {
-
-REPR_DEF_FMT(Window::Properties);
-REPR_DEF_FMT(Window);
-
+REPR_DEF_FMT(Properties)
 }
 
 
 #include "platform/linux/window.hpp"
 namespace sage::oslinux::window {
-
-REPR_DEF_FMT(Window);
-
+REPR_DEF_FMT(Window)
 }
 
-#include "app.hpp"
-
-namespace sage::app {
-
-REPR_DEF_FMT(App);
-
-}

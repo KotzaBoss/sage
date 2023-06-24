@@ -1,5 +1,5 @@
 set(SRC
-	window.cpp
+	#window.cpp
 	)
 foreach (src ${SRC})
 	string(REPLACE ".cpp" "" lib linux_${src})

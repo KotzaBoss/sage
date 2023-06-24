@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "fmt/std.h"
 
 #include "log.hpp"
@@ -91,48 +91,6 @@ FMT_FORMATTER(sage::Event) {
 
 	FMT_FORMATTER_FORMAT(sage::Event) {
 		return fmt::format_to(ctx.out(), "Event:\ttype={}\tcategory={}\tpayload={};", obj.type, obj.category, obj.payload);
-	}
-};
-
-#include "window.hpp"
-
-template <>
-FMT_FORMATTER(sage::Window::Properties) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::Window::Properties) {
-		return fmt::format_to(ctx.out(), "Properties title={:?} size={};", obj.title, obj.size);
-	}
-};
-
-template <>
-FMT_FORMATTER(sage::Window) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::Window) {
-		return fmt::format_to(ctx.out(), "Window: properties={};", obj.properties());
-	}
-};
-
-#include "platform/linux/window.hpp"
-
-template <>
-FMT_FORMATTER(sage::oslinux::Window) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::oslinux::Window) {
-		return fmt::format_to(ctx.out(), "oslinux::{}", static_cast<const sage::Window&>(obj));
-	}
-};
-
-#include "app.hpp"
-
-template <>
-FMT_FORMATTER(sage::App) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::App) {
-		return fmt::format_to(ctx.out(), "App: window={};", obj.window());
 	}
 };
 
