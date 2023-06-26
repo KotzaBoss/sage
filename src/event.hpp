@@ -93,6 +93,7 @@ FMT_FORMATTER(sage::Event::Category) {
 						case sage::Event::Category::Input:			return "Input";
 						case sage::Event::Category::Keyboard:		return "Keyboard";
 						case sage::Event::Category::Mouse:			return "Mouse";
+						case sage::Event::Category::None:			return "None";
 						default:
 							return "BAD";
 					}

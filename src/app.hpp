@@ -34,11 +34,18 @@ public:
 		loop = std::jthread{[this] (const auto stoken) {
 
 							// Setup
-				window.setup([this] (const Event& e) { event_callback(e); });
+				window.setup();
 				layers.setup();
 
 							// Update
 				while (not stoken.stop_requested()) {
+					if (const auto event = window.pending_event();
+						event.has_value())
+					{
+						SAGE_LOG_INFO("App.event_callback: {}", event);
+						layers.event_callback(*event);
+					}
+
 					layers.update();
 					window.update();
 				}
@@ -51,11 +58,6 @@ public:
 	auto stop() -> void {
 		loop.request_stop();
 		loop.join();
-	}
-
-	auto event_callback(const Event& e) -> void {
-		SAGE_LOG_INFO("App.event_callback: {}", e);
-		layers.event_callback(e);
 	}
 
 public:

@@ -9,22 +9,18 @@ namespace sage::oslinux::inline window {
 
 using Size = sage::Size<int>;
 
-struct Window {
+struct Window : sage::window::Base {
 
 private:
-	sage::window::Properties _properties;
-	Event::Callback _event_callback;
 	GLFWwindow* glfw;
 
 public:
 	Window(sage::window::Properties&& props)
-		: _properties{std::move(props)}
+		: Base{std::move(props)}
 	{}
 
 public:
-	auto setup(Event::Callback&& cb) -> void {
-		_event_callback = std::move(cb);
-
+	auto setup() -> void {
 		const auto ok = glfwInit();
 		SAGE_ASSERT(ok);
 
@@ -44,16 +40,15 @@ public:
 
 		// No captures, must be convertible to functon
 		glfwSetWindowCloseCallback(glfw, [] (GLFWwindow* win) {
-			user_pointer_to_this_ref(win)
-				.event_callback(Event::make_window_closed())
-				;
+				user_pointer_to_this_ref(win)
+					._pending_event.assign(Event::make_window_closed());
 			});
 
 		glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
 				auto& _this = user_pointer_to_this_ref(win);
 
 				_this._properties.size = Size::to<size_t>(Size{width, height});
-				_this.event_callback(Event::make_window_resized(_this._properties.size));
+				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
 			});
 	}
 
@@ -67,12 +62,6 @@ public:
 	auto teardown() -> void {
 		glfwDestroyWindow(glfw);
 	}
-
-	auto event_callback(const Event& e) -> void {
-		std::invoke(_event_callback, e);
-	}
-
-	auto properties() const -> const sage::window::Properties& { return _properties; }
 
 private:
 	static auto user_pointer_to_this_ref(GLFWwindow* const win) -> Window& {
