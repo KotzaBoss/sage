@@ -37,7 +37,6 @@ foreach (test ${TESTS})
 				glfw
 				GL
 				event
-				layer
 			)
 	elseif (${bin} STREQUAL "event.test")
 		target_link_libraries(${bin}

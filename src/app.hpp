@@ -10,8 +10,9 @@
 
 namespace sage::inline app {
 
-template<window::Concept Window>
+template<window::Concept Window, sage::layer::Concept... Ls>
 struct App {
+	using Layers = sage::layer::Layers<Ls...>;
 
 private:
 	Window window;
@@ -58,18 +59,18 @@ public:
 	}
 
 public:
-	friend REPR_DEF_FMT(App<Window>)
-	friend FMT_FORMATTER(App<Window>);
+	friend REPR_DEF_FMT(App<Window, Ls...>)
+	friend FMT_FORMATTER(App<Window, Ls...>);
 };
 
 }// sage
 
-template <sage::window::Concept Window>
-FMT_FORMATTER(sage::App<Window>) {
+template <sage::window::Concept Window, sage::layer::Concept... Ls>
+FMT_FORMATTER(sage::App<Window, Ls...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
-	FMT_FORMATTER_FORMAT(sage::App<Window>) {
-		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tlayers={}\n\t;", obj.window, "LAYERS PLACEHOLDER");
+	FMT_FORMATTER_FORMAT(sage::App<Window, Ls...>) {
+		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tlayers={}\n\t;", obj.window, obj.layers);
 	}
 };
 

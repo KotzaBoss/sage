@@ -6,6 +6,8 @@
 #include "ref_wrapper.hpp"
 #include "polymorphic_tuple_storage.hpp"
 
+#include "repr.hpp"
+
 namespace sage::layer {
 
 template <typename Layer>
@@ -31,7 +33,23 @@ public:
 	auto update()	-> void { this->apply([] (auto& layer) { layer.update();	}); }
 	auto teardown()	-> void { this->apply([] (auto& layer) { layer.teardown();	}); }
 
-	auto event_callback(const Event& e) -> void { apply([&] (auto& layer) { layer.event_callback(e); });}
+	auto event_callback(const Event& e) -> void { this->apply([&] (auto& layer) { layer.event_callback(e); });}
+
+public:
+	friend REPR_DEF_FMT(Layers<Ls...>)
+	friend FMT_FORMATTER(Layers<Ls...>);
 };
 
 }// sage::layer
+
+template <sage::layer::Concept... Ls>
+FMT_FORMATTER(sage::layer::Layers<Ls...>) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::layer::Layers<Ls...>) {
+		fmt::format_to(ctx.out(), "Layers: ");
+		obj.const_apply([&] (const auto& layer) { fmt::format_to(ctx.out(), "\n\t{}", layer); });
+		return fmt::format_to(ctx.out(), "\n\t;");
+	}
+};
+

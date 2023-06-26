@@ -3,39 +3,30 @@
 #include "sage.hpp"
 #include "platform/linux/window.hpp"
 
+#include "placeholder_layers.hpp"
+
 using namespace sage;
 
-struct Placeholder_Layer : sage::Layer {
-	std::string name;
-
-	Placeholder_Layer(std::string&& n)
-		: sage::Layer{{
-			.setup = [this, n = std::move(n)] {
-					name = std::move(n);
-					MESSAGE("Setting up ", name);
-			},
-			.update = [this] {
-					MESSAGE("Updating ", name);
-			},
-			.teardown = [this] {
-					MESSAGE("Tearing down ", name);
-			},
-			.event_callback = [this] (const auto& event) {
-					MESSAGE("Layer '", name, "' got Event ", event);
-			}
-		}}
-	{}
-};
-
 TEST_CASE ("App") {
-	auto pl1 = Placeholder_Layer{"PL1"s},
-		 pl2 = Placeholder_Layer{"PL2"s};
-	auto app = sage::App<oslinux::Window>(
+	auto app = sage::App<oslinux::Window, Dump_Layer, Other_Layer, Last_Layer>(
 			window::Properties{},
-			Layers{pl1, pl2}
+			{
+				Last_Layer{9},
+				Dump_Layer{1},
+				Dump_Layer{2},
+				Last_Layer{10},
+				Last_Layer{11},
+				Other_Layer{6},
+				Dump_Layer{3},
+				Dump_Layer{4},
+				Other_Layer{7},
+				Other_Layer{8},
+				Last_Layer{12},
+				Dump_Layer{5},
+				}
 		);
 	MESSAGE(app);
 	app.start();
-	std::this_thread::sleep_for(500ms);
+	std::this_thread::sleep_for(50ms);
 	app.stop();
 }

@@ -2,10 +2,12 @@
 
 #include "std.hpp"
 
+#include "repr.hpp"
+
 namespace sage::inline util {
 
 template <typename Needle, typename... Haystack>
-concept same_as_any = (... or std::same_as<Needle, Haystack>);
+concept same_as_any = (std::same_as<Needle, Haystack> or ...);
 
 template <typename... Ts>
 struct Polymorphic_Tuple_Storage {
@@ -30,12 +32,36 @@ public:
 		_store(std::move(x));
 	}
 
+	template <same_as_any<Ts...> T> auto get() const	-> const Vector<T>&	{ return std::get<T>(storage); }
+	template <same_as_any<Ts...> T> auto get()			-> Vector<T>&		{ return std::get<T>(storage); }
+
+	auto size() const -> size_t {
+		return std::apply(
+				[] (const auto&... vec) {
+					return (vec.size() + ...);
+				},
+				storage
+			);
+	}
+
 	template <typename Fn>
-		requires (... and std::invocable<Fn, Ts&>)
-	auto apply(Fn&& fn) -> void {
+		requires (std::invocable<Fn, Ts&> and ...)
+	auto apply(const Fn& fn) -> void {
 		std::apply(
 				[&] (auto&... vec) {
-					(rg::for_each(vec, [&] (auto& t) { fn(t); }), ...);
+					(rg::for_each(vec, [&] (auto& t) { std::invoke(fn, t); }), ...);
+				},
+				storage
+			);
+	}
+
+	// FIXME: Had to rename the const overload because the fmt::formatter doesnt work otherwise. fix?
+	template <typename Fn>
+		requires (std::invocable<Fn, const Ts&> and ...)
+	auto const_apply(const Fn& fn) const -> void {
+		std::apply(
+				[&] (const auto&... vec) {
+					(rg::for_each(vec, [&] (const auto& t) { std::invoke(fn, t); }), ...);
 				},
 				storage
 			);
@@ -48,6 +74,11 @@ private:
 			.push_back(std::move(x));
 	}
 
+public:
+	friend REPR_DEF_FMT(Polymorphic_Tuple_Storage<Ts...>);
+	friend FMT_FORMATTER(Polymorphic_Tuple_Storage<Ts...>);
 };
 
-}
+}// util
+
+

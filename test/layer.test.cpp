@@ -3,65 +3,48 @@
 
 #include "std.hpp"
 
+#include "placeholder_layers.hpp"
 #include "layer.hpp"
 
-using namespace sage;
-
-struct Dump_Layer {
-	size_t id;
-
-	Dump_Layer(const size_t _id)
-		: id{_id}
-	{}
-
-	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
-	auto update() -> void { MESSAGE("DUMP Updating ", id); }
-	auto teardown() -> void { MESSAGE("DUMP Tearing down ", id); }
-	auto event_callback(const auto& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
-};
-
-struct Other_Layer {
-	size_t id;
-
-	Other_Layer(const size_t _id)
-		: id{_id}
-	{}
-
-	auto setup() -> void { MESSAGE("OTHER Setting up ", id); }
-	auto update() -> void { MESSAGE("OTHER Updating ", id); }
-	auto teardown() -> void { MESSAGE("OTHER Tearing down ", id); }
-	auto event_callback(const auto& event) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
-};
-
-struct Last_Layer {
-	size_t id;
-
-	Last_Layer(const size_t _id)
-		: id{_id}
-	{}
-
-	auto setup() -> void { MESSAGE("LAST Setting up ", id); }
-	auto update() -> void { MESSAGE("LAST Updating ", id); }
-	auto teardown() -> void { MESSAGE("LAST Tearing down ", id); }
-	auto event_callback(const auto& event) -> void { MESSAGE("LAST Layer \"", id, "\" got Event ", event); }
-};
-
 TEST_CASE ("Layer") {
-
+	// Layers are added as follows (example):
+	//
+	// Layers<A, B, C> { ... }
+	// A1, A2, ... AN,
+	// B1, B2, ... BN,
+	// C1, C2, ... CN
+	//
+	// To confirm that make sure the layer ids are such that the above is satisfied.
+	// Order of Layers in the constructor doesnt matter, but the ids per object must be
+	// correct.
 	auto layers = sage::layer::Layers<Dump_Layer, Other_Layer, Last_Layer>{
-		Last_Layer{0},
+		Last_Layer{9},
 		Dump_Layer{1},
 		Dump_Layer{2},
-		Last_Layer{1},
-		Last_Layer{2},
-		Other_Layer{0},
+		Last_Layer{10},
+		Last_Layer{11},
+		Other_Layer{6},
 		Dump_Layer{3},
 		Dump_Layer{4},
-		Other_Layer{1},
-		Other_Layer{2},
-		Last_Layer{3},
+		Other_Layer{7},
+		Other_Layer{8},
+		Last_Layer{12},
 		Dump_Layer{5},
 	};
+
+	MESSAGE(layers);
+
+	SUBCASE ("Layer access sequence") {
+		auto ids = std::vector<size_t>{};
+		ids.reserve(layers.size());
+
+		layers.const_apply([&] (const auto& layer) {
+				ids.push_back(layer.id);
+			});
+
+		INFO(fmt::format("{}", ids));
+		REQUIRE(rg::is_sorted(ids));
+	}
 
 	layers.setup();
 
