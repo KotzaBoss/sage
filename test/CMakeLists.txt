@@ -5,12 +5,12 @@ foreach (test ${TESTS})
 	cmake_path(GET test FILENAME test)
 	string(REPLACE ".cpp" "" bin ${test})
 	add_executable(${bin} ${test})
-	
+
 	target_include_directories(${bin}
 		PRIVATE
 			${PROJECT_SOURCE_DIR}/src
 		)
-	
+
 	target_compile_options(${bin}
 		PRIVATE
 			-Wall
@@ -53,6 +53,6 @@ foreach (test ${TESTS})
 	endif()
 
 	target_precompile_headers(${bin} REUSE_FROM std)
-	
+
 	add_test(${bin} ${bin})
 endforeach()
