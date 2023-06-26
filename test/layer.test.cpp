@@ -9,7 +9,7 @@
 TEST_CASE ("Layer") {
 	// Layers are added as follows (example):
 	//
-	// Layers<A, B, C> { ... }
+	// layer::Storage<A, B, C> { ... }
 	// A1, A2, ... AN,
 	// B1, B2, ... BN,
 	// C1, C2, ... CN
@@ -17,7 +17,7 @@ TEST_CASE ("Layer") {
 	// To confirm that make sure the layer ids are such that the above is satisfied.
 	// Order of Layers in the constructor doesnt matter, but the ids per object must be
 	// correct.
-	auto layers = sage::layer::Layers<Dump_Layer, Other_Layer, Last_Layer>{
+	auto layers = sage::layer::Storage<Dump_Layer, Other_Layer, Last_Layer>{
 		Last_Layer{9},
 		Dump_Layer{1},
 		Dump_Layer{2},

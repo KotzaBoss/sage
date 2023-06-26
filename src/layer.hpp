@@ -4,7 +4,7 @@
 
 #include "event.hpp"
 #include "ref_wrapper.hpp"
-#include "polymorphic_tuple_storage.hpp"
+#include "util.hpp"
 
 #include "repr.hpp"
 
@@ -20,12 +20,13 @@ concept Concept =
 	}
 	;
 
+
 template <layer::Concept... Ls>
-struct Layers : util::Polymorphic_Tuple_Storage<Ls...> {
+struct Storage : util::Polymorphic_Storage<Ls...> {
 
 public:
-	Layers(auto&&... layers)
-		: util::Polymorphic_Tuple_Storage<Ls...>{std::move(layers)...}
+	Storage(auto&&... layers)
+		: util::Polymorphic_Storage<Ls...>{std::move(layers)...}
 	{}
 
 public:
@@ -36,18 +37,18 @@ public:
 	auto event_callback(const Event& e) -> void { this->apply([&] (auto& layer) { layer.event_callback(e); });}
 
 public:
-	friend REPR_DEF_FMT(Layers<Ls...>)
-	friend FMT_FORMATTER(Layers<Ls...>);
+	friend REPR_DEF_FMT(Storage<Ls...>)
+	friend FMT_FORMATTER(Storage<Ls...>);
 };
 
 }// sage::layer
 
 template <sage::layer::Concept... Ls>
-FMT_FORMATTER(sage::layer::Layers<Ls...>) {
+FMT_FORMATTER(sage::layer::Storage<Ls...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
-	FMT_FORMATTER_FORMAT(sage::layer::Layers<Ls...>) {
-		fmt::format_to(ctx.out(), "Layers: ");
+	FMT_FORMATTER_FORMAT(sage::layer::Storage<Ls...>) {
+		fmt::format_to(ctx.out(), "layer::Storage: ");
 		obj.const_apply([&] (const auto& layer) { fmt::format_to(ctx.out(), "\n\t{}", layer); });
 		return fmt::format_to(ctx.out(), "\n\t;");
 	}

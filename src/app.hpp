@@ -12,7 +12,7 @@ namespace sage::inline app {
 
 template<window::Concept Window, sage::layer::Concept... Ls>
 struct App {
-	using Layers = sage::layer::Layers<Ls...>;
+	using Layers = sage::layer::Storage<Ls...>;
 
 private:
 	Window window;

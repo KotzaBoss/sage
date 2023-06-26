@@ -10,7 +10,7 @@ template <typename Needle, typename... Haystack>
 concept same_as_any = (std::same_as<Needle, Haystack> or ...);
 
 template <typename... Ts>
-struct Polymorphic_Tuple_Storage {
+struct Polymorphic_Storage {
 	template <typename Q>
 	using Vector = std::vector<Q>;
 
@@ -20,9 +20,9 @@ protected:
 	Storage storage;
 
 public:
-	Polymorphic_Tuple_Storage() = default;
+	Polymorphic_Storage() = default;
 
-	Polymorphic_Tuple_Storage(same_as_any<Ts...> auto&&... xs) {
+	Polymorphic_Storage(same_as_any<Ts...> auto&&... xs) {
 			(_store(std::move(xs)), ...);
 		}
 
@@ -75,8 +75,8 @@ private:
 	}
 
 public:
-	friend REPR_DEF_FMT(Polymorphic_Tuple_Storage<Ts...>);
-	friend FMT_FORMATTER(Polymorphic_Tuple_Storage<Ts...>);
+	friend REPR_DEF_FMT(Polymorphic_Storage<Ts...>);
+	friend FMT_FORMATTER(Polymorphic_Storage<Ts...>);
 };
 
 }// util
