@@ -161,6 +161,12 @@ add_subdirectory(src)
 section_next("test")
 add_subdirectory(test)
 
+section_next("sandbox")
+option(BUILD_SANDBOX "Build the sandbox executable found in the sandbox directory" ON)
+if (${BUILD_SANDBOX})
+	add_subdirectory(sandbox)
+endif()
+
 section_pass("Ok")
 
 ############################################ Summary #
