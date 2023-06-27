@@ -58,6 +58,24 @@ public:
 				_this._properties.size = Size::to<size_t>(Size{width, height});
 				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
 			});
+
+		glfwSetMouseButtonCallback(_glfw, [] (GLFWwindow* win, int button, int action, int mods) {
+				user_pointer_to_this_ref(win)
+					._pending_event.assign(Event::make_mouse_button({
+						.type = std::invoke([&] { switch (action) {
+								case GLFW_PRESS:	return Event::Type::Mouse_Button_Pressed;
+								case GLFW_RELEASE:	return Event::Type::Mouse_Button_Released;
+								default:			return Event::Type::None;
+						}}),
+						.mouse_button = std::invoke([&] { switch (button) {
+								case GLFW_MOUSE_BUTTON_LEFT:	return Event::Mouse_Button::Left;
+								case GLFW_MOUSE_BUTTON_RIGHT:	return Event::Mouse_Button::Right;
+								case GLFW_MOUSE_BUTTON_MIDDLE:	return Event::Mouse_Button::Middle;
+								default:						return Event::Mouse_Button::None;
+						}})
+					})
+				);
+			});
 	}
 
 	auto update() -> void {

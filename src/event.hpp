@@ -14,6 +14,7 @@ struct Event {
 	enum class Type {
 		None = 0,
 		Window_Closed, Window_Resized,
+		Mouse_Button_Pressed, Mouse_Button_Released, Mouse_Moved, Mouse_Scrolled,
 	};
 	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>();
 	REPR_DECL(Type);
@@ -31,9 +32,13 @@ struct Event {
 	REPR_DECL(Category);
 
 					// Payloads
+	enum class Mouse_Button {
+		None = -1, Left = 0, Right = 1, Middle = 2,
+	};
 	using Payload = std::variant<
 		std::monostate,	// No payload
-		Size<size_t>
+		Size<size_t>,
+		Mouse_Button
 	>;
 	static constexpr auto no_payload = Payload{};
 	REPR_DECL(Payload);
@@ -49,6 +54,12 @@ public:
 public:
 	static auto make_window_closed	()							-> Event;
 	static auto make_window_resized	(const Size<size_t>& sz)	-> Event;
+
+	struct Make_Mouse_Button_Args {
+		Type&& type;
+		Mouse_Button&& mouse_button;
+	};
+	static auto make_mouse_button	(const Make_Mouse_Button_Args& args) -> Event;
 
 public:
 	REPR_DECL(Event);
@@ -69,9 +80,11 @@ FMT_FORMATTER(sage::Event::Type) {
 				"Type: {};",
 				std::invoke([&] {
 					switch (obj) {
-						case sage::Event::Type::Window_Closed:		return "Window_Closed";
-						case sage::Event::Type::Window_Resized:		return "Window_Resized";
-						case sage::Event::Type::None:				return "None";
+						case sage::Event::Type::Window_Closed:			return "Window_Closed";
+						case sage::Event::Type::Window_Resized:			return "Window_Resized";
+						case sage::Event::Type::Mouse_Button_Pressed:	return "Mouse_Button_Pressed";
+						case sage::Event::Type::Mouse_Button_Released:	return "Mouse_Button_Released";
+						case sage::Event::Type::None:					return "None";
 						default:
 							return "BAD";
 					}
@@ -94,6 +107,26 @@ FMT_FORMATTER(sage::Event::Category) {
 						case sage::Event::Category::Keyboard:		return "Keyboard";
 						case sage::Event::Category::Mouse:			return "Mouse";
 						case sage::Event::Category::None:			return "None";
+						default:
+							return "BAD";
+					}
+				})
+			);
+	}
+};
+
+template <>
+FMT_FORMATTER(sage::Event::Mouse_Button) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::Event::Mouse_Button) {
+		return fmt::format_to(ctx.out(),
+				"Mouse_Button: {};",
+				std::invoke([&] {
+					switch (obj) {
+						case sage::Event::Mouse_Button::Left:	return "Left";
+						case sage::Event::Mouse_Button::Right:	return "Right";
+						case sage::Event::Mouse_Button::Middle:	return "Middle";
 						default:
 							return "BAD";
 					}

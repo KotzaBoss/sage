@@ -67,7 +67,60 @@ public:
 		::ImGui::DestroyContext();
 	}
 
-	auto event_callback(const Event& e) -> void {}
+	auto event_callback(const Event& e) -> void {
+		using namespace sage;
+
+		static constexpr int sage_to_imgui_mouse_buttons[] = {
+				[std::to_underlying(Event::Mouse_Button::Left)] = ::ImGuiMouseButton_Left,
+				[std::to_underlying(Event::Mouse_Button::Right)] = ::ImGuiMouseButton_Right,
+				[std::to_underlying(Event::Mouse_Button::Middle)] = ::ImGuiMouseButton_Middle,
+			};
+
+		SAGE_LOG_INFO("layer::ImGui.event_callback: {}", e);
+
+		switch (e.type) {
+
+			case Event::Type::Mouse_Button_Pressed: {
+				SAGE_ASSERT(std::holds_alternative<Event::Mouse_Button>(e.payload));
+
+				const auto button = std::get<Event::Mouse_Button>(e.payload);
+				const auto button_idx = std::to_underlying(button);
+				SAGE_ASSERT_MSG(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
+						fmt::format("Index for mouse button {} is out of bounds", button)
+					);
+
+				::ImGui::GetIO()
+					.AddMouseButtonEvent(sage_to_imgui_mouse_buttons[button_idx], true);
+
+				return;
+			}
+
+			case Event::Type::Mouse_Button_Released: {
+				SAGE_ASSERT(std::holds_alternative<Event::Mouse_Button>(e.payload));
+
+				const auto button = std::get<Event::Mouse_Button>(e.payload);
+				const auto button_idx = std::to_underlying(button);
+				SAGE_ASSERT_MSG(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
+						fmt::format("Index for mouse button {} is out of bounds", button)
+					);
+
+				::ImGui::GetIO()
+					.AddMouseButtonEvent(sage_to_imgui_mouse_buttons[button_idx], false);
+
+				return;
+			}
+
+			case Event::Type::Window_Closed: {
+				SAGE_LOG_INFO("layer::ImGui raising SIGINT");
+				std::raise(SIGINT);
+				return;
+			}
+
+			default:
+				SAGE_LOG_WARN("Unexpected event type {}", e.type);
+				SAGE_ASSERT(false);
+		}
+	}
 
 public:
 	REPR_DECL(ImGui);
