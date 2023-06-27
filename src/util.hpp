@@ -19,6 +19,10 @@ protected:
 	mutable std::mutex m;
 
 public:
+	Monitor(Monitor&& other)
+		: obj{std::move(other.obj)}
+	{}
+
 	template<typename... Args>
 	Monitor(Args&&... args)
 		: obj(std::forward<Args>(args)...)

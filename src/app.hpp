@@ -20,8 +20,8 @@ private:
 	std::jthread loop;
 
 public:
-	App(window::Properties&& properties, Layers&& ls)
-		: window{std::move(properties)}
+	App(Window&& w, Layers&& ls)
+		: window{std::move(w)}
 		, layers{std::move(ls)}
 	{}
 

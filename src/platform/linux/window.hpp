@@ -13,26 +13,28 @@ using Size = sage::Size<int>;
 struct Window : sage::window::Base {
 
 private:
-	GLFWwindow* glfw;
+	GLFWwindow* _glfw;
 
 public:
 	Window(sage::window::Properties&& props)
 		: Base{std::move(props)}
-	{}
-
-public:
-	auto setup() -> void {
+	{
 		const auto ok = glfwInit();
 		SAGE_ASSERT(ok);
 
-		glfw = glfwCreateWindow(
+		_glfw = glfwCreateWindow(
 			_properties.size.width,
 			_properties.size.height,
 			_properties.title.c_str(),
 			nullptr,
 			nullptr
 			);
-		glfwMakeContextCurrent(glfw);
+		SAGE_ASSERT(_glfw);
+	}
+
+public:
+	auto setup() -> void {
+		glfwMakeContextCurrent(_glfw);
 
 		const auto version = gladLoadGL(glfwGetProcAddress);
 		SAGE_ASSERT(version);
@@ -40,17 +42,17 @@ public:
 		SAGE_LOG_INFO("Loaded OpenGL {}.{}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
 		// User Data
-		glfwSetWindowUserPointer(glfw, this);
+		glfwSetWindowUserPointer(_glfw, this);
 
 		// Callbacks
 
 		// No captures, must be convertible to functon
-		glfwSetWindowCloseCallback(glfw, [] (GLFWwindow* win) {
+		glfwSetWindowCloseCallback(_glfw, [] (GLFWwindow* win) {
 				user_pointer_to_this_ref(win)
 					._pending_event.assign(Event::make_window_closed());
 			});
 
-		glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
+		glfwSetWindowSizeCallback(_glfw, [] (GLFWwindow* win, int width, int height) {
 				auto& _this = user_pointer_to_this_ref(win);
 
 				_this._properties.size = Size::to<size_t>(Size{width, height});
@@ -59,14 +61,17 @@ public:
 	}
 
 	auto update() -> void {
-		glClearColor(1, 0, 1, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
 		glfwPollEvents();
-		glfwSwapBuffers(glfw);
+		glfwSwapBuffers(_glfw);
 	}
 
 	auto teardown() -> void {
-		glfwDestroyWindow(glfw);
+		glfwDestroyWindow(_glfw);
+		glfwTerminate();
+	}
+
+	auto glfw() const -> GLFWwindow* {
+		return _glfw;
 	}
 
 private:

@@ -34,6 +34,7 @@ foreach (test ${TESTS})
 	if (${bin} STREQUAL "app.test")
 		target_link_libraries(${bin}
 			PRIVATE
+				layer_imgui
 				linux_window
 				event
 			)
@@ -45,6 +46,13 @@ foreach (test ${TESTS})
 	elseif (${bin} STREQUAL "linux_window.test")
 		target_link_libraries(${bin}
 			PRIVATE
+				linux_window
+				event
+			)
+	elseif (${bin} STREQUAL "layer_imgui.test")
+		target_link_libraries(${bin}
+			PRIVATE
+				layer_imgui
 				linux_window
 				event
 			)

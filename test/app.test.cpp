@@ -3,30 +3,48 @@
 #include "sage.hpp"
 #include "platform/linux/window.hpp"
 
+#include "layer_imgui.hpp"
 #include "placeholder_layers.hpp"
 
 using namespace sage;
 
+struct Instrumented_ImGui : layer::ImGui {
+	using layer::ImGui::ImGui;
+
+	auto event_callback(const Event& e) -> void {
+		MESSAGE(e);
+	}
+
+	REPR_DECL(Instrumented_ImGui);
+};
+
+template<>
+FMT_FORMATTER(Instrumented_ImGui) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(Instrumented_ImGui) {
+		return fmt::format_to(ctx.out(), "Instrumented_ImGui");
+	}
+};
+
+REPR_DEF_FMT(Instrumented_ImGui);
+
+
 TEST_CASE ("App") {
-	auto app = sage::App<oslinux::Window, Dump_Layer, Other_Layer, Last_Layer>(
-			window::Properties{},
+	auto win = oslinux::Window{window::Properties{}};
+	auto imgui = Instrumented_ImGui{win.glfw()};
+	auto app = sage::App<oslinux::Window, Instrumented_ImGui, Other_Layer, Last_Layer>(
+			std::move(win),
 			{
-				Last_Layer{9},
-				Dump_Layer{1},
-				Dump_Layer{2},
-				Last_Layer{10},
-				Last_Layer{11},
-				Other_Layer{6},
-				Dump_Layer{3},
-				Dump_Layer{4},
-				Other_Layer{7},
-				Other_Layer{8},
-				Last_Layer{12},
-				Dump_Layer{5},
+				std::move(imgui),
+				Last_Layer{3},
+				Other_Layer{1},
+				Other_Layer{2},
+				Last_Layer{4},
 				}
 		);
 	MESSAGE(app);
 	app.start();
-	std::this_thread::sleep_for(2s);
+	std::this_thread::sleep_for(3s);
 	app.stop();
 }

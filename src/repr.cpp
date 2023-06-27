@@ -10,6 +10,12 @@ REPR_DEF_FMT(Event);
 
 }
 
+#include "layer_imgui.hpp"
+namespace sage::layer {
+REPR_DEF_FMT(ImGui);
+}
+
+
 #include "window.hpp"
 namespace sage::window {
 REPR_DEF_FMT(Properties)

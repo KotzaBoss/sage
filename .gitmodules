@@ -13,3 +13,6 @@
 [submodule "glad"]
 	path = glad
 	url = git@github.com:Dav1dde/glad.git
+[submodule "imgui"]
+	path = imgui
+	url = git@github.com:ocornut/imgui.git

@@ -103,6 +103,10 @@ section_next("glfw")
 add_subdirectory(glfw EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
 
+section_next("imgui")
+include_directories(${PROJECT_SOURCE_DIR}/imgui)
+include_directories(${PROJECT_SOURCE_DIR}/imgui/backends)
+
 section_pass("Ok")
 
 ############################################ Compilers #

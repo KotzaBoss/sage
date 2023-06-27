@@ -36,6 +36,8 @@ protected:
 	Monitor<std::optional<Event>> _pending_event;
 
 public:
+	Base(Base&&) = default;
+
 	Base(Properties&& ps)
 		: _properties{std::move(ps)}
 	{}
