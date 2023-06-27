@@ -9,7 +9,7 @@ TEST_CASE ("Linux Window") {
 	auto win = oslinux::Window(window::Properties{});
 	MESSAGE(win);
 	win.setup();
-	for (const auto _ : vw::iota(1, 7)) {
+	for (auto i = 0; i < 5; ++i) {
 		win.update();
 		std::this_thread::sleep_for(1s);
 	}
