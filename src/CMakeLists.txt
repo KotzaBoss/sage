@@ -5,11 +5,19 @@ target_precompile_headers(std PUBLIC "std.hpp")
 message(STATUS "log")
 add_library(log STATIC log.cpp)
 message(STATUS "L spdlog")
-target_link_libraries(log PRIVATE spdlog::spdlog)
+target_link_libraries(log
+	PRIVATE
+		spdlog::spdlog
+		linux_window
+	)
 
 message(STATUS "repr")
 add_library(repr STATIC repr.cpp)
-target_link_libraries(repr PRIVATE fmt::fmt)
+target_link_libraries(repr
+	PRIVATE
+		fmt::fmt
+		linux_window
+	)
 
 file(GLOB SRC
 	*.cpp

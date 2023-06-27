@@ -90,6 +90,15 @@ section_next("doctest")
 add_subdirectory(doctest EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/doctest/doctest)
 
+section_next("glad")
+add_subdirectory(glad/cmake EXCLUDE_FROM_ALL)
+glad_add_library(glad
+	STATIC
+	LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad/sources
+	API gl:core=4.5
+	)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/glad/sources/include)
+
 section_next("glfw")
 add_subdirectory(glfw EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/glfw/include)

@@ -3,6 +3,7 @@
 #include "src/window.hpp"
 #include "repr.hpp"
 
+#include "glad/gl.h"
 #include "GLFW/glfw3.h"
 
 namespace sage::oslinux::inline window {
@@ -32,6 +33,11 @@ public:
 			nullptr
 			);
 		glfwMakeContextCurrent(glfw);
+
+		const auto version = gladLoadGL(glfwGetProcAddress);
+		SAGE_ASSERT(version);
+
+		SAGE_LOG_INFO("Loaded OpenGL {}.{}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
 		// User Data
 		glfwSetWindowUserPointer(glfw, this);

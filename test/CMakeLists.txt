@@ -34,8 +34,7 @@ foreach (test ${TESTS})
 	if (${bin} STREQUAL "app.test")
 		target_link_libraries(${bin}
 			PRIVATE
-				glfw
-				GL
+				linux_window
 				event
 			)
 	elseif (${bin} STREQUAL "event.test")
@@ -46,8 +45,7 @@ foreach (test ${TESTS})
 	elseif (${bin} STREQUAL "linux_window.test")
 		target_link_libraries(${bin}
 			PRIVATE
-				glfw
-				GL
+				linux_window
 				event
 			)
 	endif()
