@@ -27,6 +27,7 @@ concept Concept =
 		{ win.teardown() } -> std::same_as<void>;
 		{ win.pending_event() } -> std::same_as<std::optional<Event>>;
 		{ win.properties() } -> std::same_as<const Properties&>;
+		{ win.native_handle() } -> std::convertible_to<void*>;	// Each concrete provides its own pointer type
 	}
 	;
 

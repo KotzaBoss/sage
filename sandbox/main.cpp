@@ -30,7 +30,7 @@ REPR_DEF_FMT(Instrumented_ImGui);
 
 TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
-	auto imgui = Instrumented_ImGui{win.glfw()};
+	auto imgui = Instrumented_ImGui{win.native_handle()};
 	auto app = sage::App<oslinux::Window, Instrumented_ImGui>(
 			std::move(win),
 			{

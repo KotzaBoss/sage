@@ -88,7 +88,7 @@ public:
 		glfwTerminate();
 	}
 
-	auto glfw() const -> GLFWwindow* {
+	auto native_handle() const -> GLFWwindow* {
 		return _glfw;
 	}
 

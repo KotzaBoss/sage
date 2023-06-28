@@ -9,7 +9,7 @@ using namespace sage;
 TEST_CASE ("ImGui Layer") {
 
 	auto win = oslinux::Window(sage::window::Properties{});
-	auto imgui = layer::ImGui(win.glfw());
+	auto imgui = layer::ImGui(win.native_handle());
 
 	MESSAGE(imgui);
 
