@@ -27,3 +27,8 @@ namespace sage::oslinux::window {
 REPR_DEF_FMT(Window)
 }
 
+#include "input.hpp"
+namespace sage::input {
+REPR_DEF_FMT(Mouse::Pos);
+}
+

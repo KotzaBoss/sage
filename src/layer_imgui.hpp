@@ -71,9 +71,9 @@ public:
 		using namespace sage;
 
 		static constexpr int sage_to_imgui_mouse_buttons[] = {
-				[std::to_underlying(Event::Mouse_Button::Left)] = ::ImGuiMouseButton_Left,
-				[std::to_underlying(Event::Mouse_Button::Right)] = ::ImGuiMouseButton_Right,
-				[std::to_underlying(Event::Mouse_Button::Middle)] = ::ImGuiMouseButton_Middle,
+				[std::to_underlying(input::Mouse::Button::Left)] = ::ImGuiMouseButton_Left,
+				[std::to_underlying(input::Mouse::Button::Right)] = ::ImGuiMouseButton_Right,
+				[std::to_underlying(input::Mouse::Button::Middle)] = ::ImGuiMouseButton_Middle,
 			};
 
 		SAGE_LOG_INFO("layer::ImGui.event_callback: {}", e);
@@ -81,9 +81,9 @@ public:
 		switch (e.type) {
 
 			case Event::Type::Mouse_Button_Pressed: {
-				SAGE_ASSERT(std::holds_alternative<Event::Mouse_Button>(e.payload));
+				SAGE_ASSERT(std::holds_alternative<input::Mouse::Button>(e.payload));
 
-				const auto button = std::get<Event::Mouse_Button>(e.payload);
+				const auto button = std::get<input::Mouse::Button>(e.payload);
 				const auto button_idx = std::to_underlying(button);
 				SAGE_ASSERT_MSG(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
 						fmt::format("Index for mouse button {} is out of bounds", button)
@@ -96,9 +96,9 @@ public:
 			}
 
 			case Event::Type::Mouse_Button_Released: {
-				SAGE_ASSERT(std::holds_alternative<Event::Mouse_Button>(e.payload));
+				SAGE_ASSERT(std::holds_alternative<input::Mouse::Button>(e.payload));
 
-				const auto button = std::get<Event::Mouse_Button>(e.payload);
+				const auto button = std::get<input::Mouse::Button>(e.payload);
 				const auto button_idx = std::to_underlying(button);
 				SAGE_ASSERT_MSG(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
 						fmt::format("Index for mouse button {} is out of bounds", button)

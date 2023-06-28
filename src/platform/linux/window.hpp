@@ -1,6 +1,8 @@
 #pragma once
 
 #include "src/window.hpp"
+#include "src/input.hpp"
+
 #include "repr.hpp"
 
 #include "glad/gl.h"
@@ -68,10 +70,10 @@ public:
 								default:			return Event::Type::None;
 						}}),
 						.mouse_button = std::invoke([&] { switch (button) {
-								case GLFW_MOUSE_BUTTON_LEFT:	return Event::Mouse_Button::Left;
-								case GLFW_MOUSE_BUTTON_RIGHT:	return Event::Mouse_Button::Right;
-								case GLFW_MOUSE_BUTTON_MIDDLE:	return Event::Mouse_Button::Middle;
-								default:						return Event::Mouse_Button::None;
+								case GLFW_MOUSE_BUTTON_LEFT:	return input::Mouse::Button::Left;
+								case GLFW_MOUSE_BUTTON_RIGHT:	return input::Mouse::Button::Right;
+								case GLFW_MOUSE_BUTTON_MIDDLE:	return input::Mouse::Button::Middle;
+								default:						return input::Mouse::Button::None;
 						}})
 					})
 				);

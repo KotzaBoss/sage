@@ -3,6 +3,7 @@
 #include "std.hpp"
 
 #include "core.hpp"
+#include "input.hpp"
 #include "math.hpp"
 #include "log.hpp"
 #include "repr.hpp"
@@ -32,13 +33,10 @@ struct Event {
 	REPR_DECL(Category);
 
 					// Payloads
-	enum class Mouse_Button {
-		None = -1, Left = 0, Right = 1, Middle = 2,
-	};
 	using Payload = std::variant<
 		std::monostate,	// No payload
 		Size<size_t>,
-		Mouse_Button
+		input::Mouse::Button
 	>;
 	static constexpr auto no_payload = Payload{};
 	REPR_DECL(Payload);
@@ -57,7 +55,7 @@ public:
 
 	struct Make_Mouse_Button_Args {
 		Type&& type;
-		Mouse_Button&& mouse_button;
+		input::Mouse::Button&& mouse_button;
 	};
 	static auto make_mouse_button	(const Make_Mouse_Button_Args& args) -> Event;
 
@@ -115,25 +113,6 @@ FMT_FORMATTER(sage::Event::Category) {
 	}
 };
 
-template <>
-FMT_FORMATTER(sage::Event::Mouse_Button) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::Event::Mouse_Button) {
-		return fmt::format_to(ctx.out(),
-				"Mouse_Button: {};",
-				std::invoke([&] {
-					switch (obj) {
-						case sage::Event::Mouse_Button::Left:	return "Left";
-						case sage::Event::Mouse_Button::Right:	return "Right";
-						case sage::Event::Mouse_Button::Middle:	return "Middle";
-						default:
-							return "BAD";
-					}
-				})
-			);
-	}
-};
 
 template <>
 FMT_FORMATTER(sage::Event::Payload) {
