@@ -2,9 +2,22 @@
 
 #include "std.hpp"
 
+#ifndef __cpp_lib_to_underlying
+namespace std {
+constexpr auto to_underlying(auto e) -> auto {
+	return static_cast<std::underlying_type_t<decltype(e)>>(e);
+}
+}// std
+#endif
+
 #include "repr.hpp"
 
 namespace sage::inline util {
+
+template<std::integral I>
+consteval auto bits() -> size_t {
+	return sizeof(I) * 8;
+}
 
 #define LOCK_GUARD(mutex) const auto _ = std::lock_guard{m}
 
