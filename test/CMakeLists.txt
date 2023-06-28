@@ -4,6 +4,8 @@ file(GLOB TESTS
 foreach (test ${TESTS})
 	cmake_path(GET test FILENAME test)
 	string(REPLACE ".cpp" "" bin ${test})
+
+	message(STATUS "${bin}")
 	add_executable(${bin} ${test})
 
 	target_include_directories(${bin}
