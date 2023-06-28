@@ -23,6 +23,7 @@ FMT_FORMATTER(Instrumented_ImGui) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(Instrumented_ImGui) {
+		(void)obj;
 		return fmt::format_to(ctx.out(), "Instrumented_ImGui");
 	}
 };

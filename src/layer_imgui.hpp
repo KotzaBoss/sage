@@ -70,11 +70,14 @@ public:
 	auto event_callback(const Event& e) -> void {
 		using namespace sage;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 		static constexpr int sage_to_imgui_mouse_buttons[] = {
 				[std::to_underlying(input::Mouse::Button::Left)] = ::ImGuiMouseButton_Left,
 				[std::to_underlying(input::Mouse::Button::Right)] = ::ImGuiMouseButton_Right,
 				[std::to_underlying(input::Mouse::Button::Middle)] = ::ImGuiMouseButton_Middle,
 			};
+#pragma GCC diagnostic pop
 
 		SAGE_LOG_INFO("layer::ImGui.event_callback: {}", e);
 
@@ -134,6 +137,7 @@ FMT_FORMATTER(sage::layer::ImGui) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::layer::ImGui) {
+		(void)obj;
 		return fmt::format_to(ctx.out(), "layer::ImGui: ");
 	}
 };

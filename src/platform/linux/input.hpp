@@ -12,6 +12,8 @@ struct Input {
 	using Key = sage::input::Key;
 	using Mouse = sage::input::Mouse;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 	static constexpr int key_map[] = {
 			[std::to_underlying(Key::Left_Ctrl)] = GLFW_KEY_LEFT_CONTROL,
 		};
@@ -21,6 +23,7 @@ struct Input {
 			[std::to_underlying(Mouse::Button::Right)] = GLFW_MOUSE_BUTTON_RIGHT,
 			[std::to_underlying(Mouse::Button::Middle)] = GLFW_MOUSE_BUTTON_MIDDLE,
 		};
+#pragma GCC diagnostic pop
 
 private:
 	GLFWwindow* glfw;

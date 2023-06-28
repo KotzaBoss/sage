@@ -61,7 +61,7 @@ public:
 				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
 			});
 
-		glfwSetMouseButtonCallback(_glfw, [] (GLFWwindow* win, int button, int action, int mods) {
+		glfwSetMouseButtonCallback(_glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
 				user_pointer_to_this_ref(win)
 					._pending_event.assign(Event::make_mouse_button({
 						.type = std::invoke([&] { switch (action) {
