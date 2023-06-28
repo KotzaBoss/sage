@@ -2,6 +2,7 @@
 #include "doctest.h"
 #include "sage.hpp"
 #include "platform/linux/window.hpp"
+#include "platform/linux/input.hpp"
 
 #include "layer_imgui.hpp"
 
@@ -30,9 +31,11 @@ REPR_DEF_FMT(Instrumented_ImGui);
 
 TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
+	auto input = oslinux::Input{win.native_handle()};
 	auto imgui = Instrumented_ImGui{win.native_handle()};
-	auto app = sage::App<oslinux::Window, Instrumented_ImGui>(
+	auto app = sage::App<oslinux::Window, oslinux::Input, Instrumented_ImGui>(
 			std::move(win),
+			std::move(input),
 			{
 				std::move(imgui),
 			}
