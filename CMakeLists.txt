@@ -107,6 +107,10 @@ section_next("imgui")
 include_directories(${PROJECT_SOURCE_DIR}/imgui)
 include_directories(${PROJECT_SOURCE_DIR}/imgui/backends)
 
+section_next("glm")
+add_subdirectory(glm)
+include_directories(${PROJECT_SOURCE_DIR}/glm)
+
 section_pass("Ok")
 
 ############################################ Compilers #
