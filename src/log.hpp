@@ -2,13 +2,14 @@
 
 #include "std.hpp"
 
-#ifndef NDEBUG
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include "fmt/format.h"
+
+#ifdef NDEBUG
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
 #else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_WARN
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #endif
 
-#include "fmt/format.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 

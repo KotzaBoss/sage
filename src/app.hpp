@@ -42,7 +42,7 @@ public:
 
 							// Update
 				while (not stoken.stop_requested()) {
-					SAGE_LOG_INFO(input.mouse_pos());
+					SAGE_LOG_TRACE(input.mouse_pos());
 
 					if (const auto event = window.pending_event();
 						event.has_value())
