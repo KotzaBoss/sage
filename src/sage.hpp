@@ -4,5 +4,7 @@
 
 #include "app.hpp"
 #include "log.hpp"
-#include "entry_point.hpp"
+#include "layer.hpp"
+#include "input.hpp"
+#include "window.hpp"
 
