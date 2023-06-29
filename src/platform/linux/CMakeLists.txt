@@ -1,7 +1,3 @@
-message(STATUS "linux_window")
-message(STATUS "L glad")
-message(STATUS "L glfw")
-message(STATUS "L GL")
 add_library(linux_window INTERFACE window.hpp)
 add_dependencies(linux_window glad)
 target_link_libraries(linux_window
@@ -10,4 +6,5 @@ target_link_libraries(linux_window
 		glfw
 		GL
 	)
+cmake_print_properties(TARGETS linux_window PROPERTIES SOURCES LINK_DIRECTORIES)
 

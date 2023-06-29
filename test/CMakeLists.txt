@@ -5,7 +5,6 @@ foreach (test ${TESTS})
 	cmake_path(GET test FILENAME test)
 	string(REPLACE ".cpp" "" bin ${test})
 
-	message(STATUS "${bin}")
 	add_executable(${bin} ${test})
 
 	target_include_directories(${bin}
@@ -60,6 +59,8 @@ foreach (test ${TESTS})
 	endif()
 
 	target_precompile_headers(${bin} REUSE_FROM std)
+
+	cmake_print_properties(TARGETS ${bin} PROPERTIES SOURCES LINK_DIRECTORIES)
 
 	add_test(${bin} ${bin})
 endforeach()

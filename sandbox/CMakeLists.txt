@@ -18,3 +18,4 @@ target_link_libraries(sandbox
 
 target_precompile_headers(sandbox REUSE_FROM std)
 
+cmake_print_properties(TARGETS sandbox PROPERTIES SOURCES LINK_LIBRARIES)

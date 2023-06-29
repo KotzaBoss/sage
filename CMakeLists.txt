@@ -42,12 +42,12 @@ section_pass("${CMAKE_BUILD_TYPE}")
 section_start("ccache")
 
 option(CCACHE_ENABLED "Use ccache to speedup subsequent compilations" OFF)
+find_program(CCACHE ccache)
 if (${CCACHE_ENABLED})
 	if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 		message(WARNING "Consider not using ccache for builds other than Debug")
 	endif()
 
-	find_program(CCACHE ccache)
 	if (NOT ${CCACHE} MATCHES ".*NOTFOUND")
 		set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE})
 		set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE})
@@ -69,6 +69,7 @@ section_start("Packages")
 find_package(Threads REQUIRED)
 
 include(CTest)
+include(CMakePrintHelpers)
 
 section_pass("Ok")
 
@@ -176,18 +177,27 @@ endif()
 section_pass("Ok")
 
 ############################################ Summary #
-
-message(STATUS "==================================================================")
+message(STATUS "▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜")
 message(STATUS "	${PROJECT_NAME} ${PROJECT_VERSION}")
 message(STATUS "	${PROJECT_DESCRIPTION}")
 message(STATUS "..................................................................")
-message(STATUS "	${CMAKE_BUILD_TYPE}")
-message(STATUS "	${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
-# TODO: Can we use generator expression here somehow?
-if (${CCACHE_ENABLED})
-	message(STATUS "	ccache enabled")
-else()
-	message(STATUS "	ccache disabled")
-endif()
-message(STATUS "==================================================================")
-
+cmake_print_variables(CCACHE_ENABLED CCACHE)
+cmake_print_variables(BUILD_SANDBOX)
+message(STATUS "..................................................................")
+cmake_print_variables(CMAKE_BUILD_TYPE)
+cmake_print_variables(CMAKE_CXX_COMPILER_ID)
+cmake_print_variables(CMAKE_CXX_COMPILER)
+cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
+cmake_print_variables(CMAKE_CXX_COMPILER_LAUNCHER)
+cmake_print_variables(CMAKE_CXX_STANDARD)
+cmake_print_variables(CMAKE_CXX_EXTENSIONS)
+cmake_print_variables(CMAKE_CXX_STANDARD)
+cmake_print_properties(DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
+		PROPERTIES
+			COMPILE_OPTIONS
+			COMPILE_DEFINITIONS
+			INCLUDE_DIRECTORIES
+			LINK_DIRECTORIES
+			SUBDIRECTORIES
+	)
+message(STATUS "▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟")
