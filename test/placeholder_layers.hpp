@@ -1,4 +1,7 @@
 #include "repr.hpp"
+#include "event.hpp"
+
+#include "imgui.h"
 
 struct Dump_Layer {
 	size_t id;
@@ -9,8 +12,42 @@ struct Dump_Layer {
 
 	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
 	auto update() -> void { MESSAGE("DUMP Updating ", id); }
+	auto imgui_prepare() -> void {
+		// Create a window called "My First Tool", with a menu bar.
+		static auto my_tool_active = true;
+		ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
+		if (ImGui::BeginMenuBar())
+		{
+		    if (ImGui::BeginMenu("File"))
+		    {
+		        if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
+		        if (ImGui::MenuItem("Save", "Ctrl+S"))   { /* Do stuff */ }
+		        if (ImGui::MenuItem("Close", "Ctrl+W"))  { my_tool_active = false; }
+		        ImGui::EndMenu();
+		    }
+		    ImGui::EndMenuBar();
+		}
+
+		// Edit a color stored as 4 floats
+		float my_color[] = { 1.f, 2.f, 3.f, 4.f };
+		ImGui::ColorEdit4("Color", my_color);
+
+		// Generate samples and plot them
+		float samples[100];
+		for (int n = 0; n < 100; n++)
+		    samples[n] = sinf(n * 0.2f + ImGui::GetTime() * 1.5f);
+		ImGui::PlotLines("Samples", samples, 100);
+
+		// Display contents in a scrolling region
+		ImGui::TextColored(ImVec4(1,1,0,1), "Important Stuff");
+		ImGui::BeginChild("Scrolling");
+		for (int n = 0; n < 50; n++)
+		    ImGui::Text("%04d: Some text", n);
+		ImGui::EndChild();
+		ImGui::End();
+	}
 	auto teardown() -> void { MESSAGE("DUMP Tearing down ", id); }
-	auto event_callback(const auto& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
+	auto event_callback(const sage::Event& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Dump_Layer);
 };
@@ -35,8 +72,17 @@ struct Other_Layer {
 
 	auto setup() -> void { MESSAGE("OTHER Setting up ", id); }
 	auto update() -> void { MESSAGE("OTHER Updating ", id); }
+	auto imgui_prepare() -> void {
+		ImGui::Text("Hello, world %d", 123);
+		if (ImGui::Button("Save"))
+		    SAGE_LOG_INFO("Saving");
+		std::string buf{10};
+		ImGui::InputText("string", buf.data(), buf.size());
+		float f;
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+	}
 	auto teardown() -> void { MESSAGE("OTHER Tearing down ", id); }
-	auto event_callback(const auto& event) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
+	auto event_callback(const sage::Event& event) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
 
 	REPR_DECL(Other_Layer);
 };
@@ -59,10 +105,13 @@ struct Last_Layer {
 		: id{_id}
 	{}
 
-	auto setup() -> void { MESSAGE("LAST Setting up ", id); }
-	auto update() -> void { MESSAGE("LAST Updating ", id); }
-	auto teardown() -> void { MESSAGE("LAST Tearing down ", id); }
-	auto event_callback(const auto& event) -> void { MESSAGE("LAST Layer \"", id, "\" got Event ", event); }
+	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
+	auto update() -> void { MESSAGE("DUMP Updating ", id); }
+	auto imgui_prepare() -> void {
+		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
+	}
+	auto teardown() -> void { MESSAGE("DUMP Tearing down ", id); }
+	auto event_callback(const sage::Event& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Last_Layer);
 };

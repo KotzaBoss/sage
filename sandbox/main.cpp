@@ -8,38 +8,39 @@
 
 using namespace sage;
 
-struct Instrumented_ImGui : layer::ImGui {
-	using layer::ImGui::ImGui;
+struct Some_Layer {
+	std::string text;
 
-	auto event_callback(const Event& e) -> void {
-		layer::ImGui::event_callback(e);
+	auto setup() {}
+	auto update() {}
+	auto imgui_prepare() -> void {
+		ImGui::Text(text.c_str());
 	}
+	auto teardown() {}
+	auto event_callback(const Event&) {}
 
-	REPR_DECL(Instrumented_ImGui);
+	REPR_DECL(Some_Layer);
 };
 
-template<>
-FMT_FORMATTER(Instrumented_ImGui) {
+template <>
+FMT_FORMATTER(Some_Layer) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
-	FMT_FORMATTER_FORMAT(Instrumented_ImGui) {
-		(void)obj;
-		return fmt::format_to(ctx.out(), "Instrumented_ImGui");
+	FMT_FORMATTER_FORMAT(Some_Layer) {
+		return fmt::format_to(ctx.out(), "Some_Layer {}", obj.text);
 	}
 };
 
-REPR_DEF_FMT(Instrumented_ImGui);
+REPR_DEF_FMT(Some_Layer);
 
 TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
-	auto imgui = Instrumented_ImGui{win.native_handle()};
-	auto app = sage::App<oslinux::Window, oslinux::Input, Instrumented_ImGui>(
+	auto app = sage::App<oslinux::Window, oslinux::Input, Some_Layer>(
 			std::move(win),
 			std::move(input),
-			{
-				std::move(imgui),
-			}
+			Some_Layer{"blah"},
+			Some_Layer{"bleh"}
 		);
 	SAGE_LOG_INFO(app);
 

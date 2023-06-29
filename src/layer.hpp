@@ -15,7 +15,11 @@ concept Concept =
 	requires (Layer l, const Event& event) {
 		{ l.setup() } -> std::same_as<void>;
 		{ l.update() } -> std::same_as<void>;
+		{ l.imgui_prepare() } -> std::same_as<void>;
 		{ l.teardown() } -> std::same_as<void>;
+		// TODO: Maybe pass optional<Event> to allow for functional chaining?
+		// layers.event_callback(window.pending_event());
+		// instead of checking the pending_event first.
 		{ l.event_callback(event) } -> std::same_as<void>;
 	}
 	;
@@ -30,9 +34,10 @@ public:
 	{}
 
 public:
-	auto setup()	-> void { this->apply([] (auto& layer) { layer.setup();		}); }
-	auto update()	-> void { this->apply([] (auto& layer) { layer.update();	}); }
-	auto teardown()	-> void { this->apply([] (auto& layer) { layer.teardown();	}); }
+	auto setup()			-> void { this->apply([] (auto& layer) { layer.setup();			}); }
+	auto update()			-> void { this->apply([] (auto& layer) { layer.update();		}); }
+	auto imgui_prepare()	-> void { this->apply([] (auto& layer) { layer.imgui_prepare();	}); }
+	auto teardown()			-> void { this->apply([] (auto& layer) { layer.teardown();		}); }
 
 	auto event_callback(const Event& e) -> void { this->apply([&] (auto& layer) { layer.event_callback(e); });}
 

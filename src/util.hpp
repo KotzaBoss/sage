@@ -110,6 +110,10 @@ public:
 			);
 	}
 
+	auto front() -> std::tuple_element_t<0, Storage>::reference {
+		return std::get<0>(storage).front();
+	}
+
 	template <typename Fn>
 		requires (std::invocable<Fn, Ts&> and ...)
 	auto apply(const Fn& fn) -> void {

@@ -9,43 +9,16 @@
 
 using namespace sage;
 
-struct Instrumented_ImGui : layer::ImGui {
-	using layer::ImGui::ImGui;
-
-	auto event_callback(const Event& e) -> void {
-		MESSAGE(e);
-	}
-
-	REPR_DECL(Instrumented_ImGui);
-};
-
-template<>
-FMT_FORMATTER(Instrumented_ImGui) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(Instrumented_ImGui) {
-		(void)obj;
-		return fmt::format_to(ctx.out(), "Instrumented_ImGui");
-	}
-};
-
-REPR_DEF_FMT(Instrumented_ImGui);
-
-
 TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
-	auto imgui = Instrumented_ImGui{win.native_handle()};
-	auto app = sage::App<oslinux::Window, oslinux::Input, Instrumented_ImGui, Other_Layer, Last_Layer>(
+	auto app = sage::App<oslinux::Window, oslinux::Input, Other_Layer, Dump_Layer>(
 			std::move(win),
 			std::move(input),
-			{
-				std::move(imgui),
-				Last_Layer{3},
-				Other_Layer{1},
-				Other_Layer{2},
-				Last_Layer{4},
-				}
+			Dump_Layer{3},
+			Other_Layer{1},
+			Other_Layer{2},
+			Dump_Layer{4}
 		);
 	MESSAGE(app);
 	app.start();

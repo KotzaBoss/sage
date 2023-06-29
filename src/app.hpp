@@ -5,6 +5,7 @@
 #include "window.hpp"
 #include "input.hpp"
 #include "layer.hpp"
+#include "layer_imgui.hpp"
 
 #include "log.hpp"
 #include "repr.hpp"
@@ -12,20 +13,28 @@
 namespace sage::inline app {
 
 template<window::Concept Window, input::Concept Input, sage::layer::Concept... Ls>
+	requires (not same_as_any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
 struct App {
-	using Layers = sage::layer::Storage<Ls...>;
+	using Layers = sage::layer::Storage<layer::ImGui, Ls...>;
 
 private:
 	Window window;
 	Input input;
 	Layers layers;
+	// We wont be moving the ImGui vector in the tuple so its ok to reference.
+	// If something more complex is needed in the future, we should prefer an Iterator
+	// which is re-assigned if we tweak the ImGui vector (dont forget vector iterators can get
+	// invalidated).
+	layer::ImGui& imgui;
+
 	std::jthread loop;
 
 public:
-	App(Window&& w, Input&& i, Layers&& ls)
+	App(Window&& w, Input&& i, same_as_any<Ls...>auto &&... ls)
 		: window{std::move(w)}
 		, input{std::move(i)}
-		, layers{std::move(ls)}
+		, layers{layer::ImGui{window}, std::move(ls)...}
+		, imgui{layers.front()}
 	{}
 
 	~App() {
@@ -37,6 +46,7 @@ public:
 		loop = std::jthread{[this] (const auto stoken) {
 
 							// Setup
+							// TODO: Move setup/teardown into constructors?
 				window.setup();
 				layers.setup();
 
@@ -47,11 +57,15 @@ public:
 					if (const auto event = window.pending_event();
 						event.has_value())
 					{
-						SAGE_LOG_INFO("App.event_callback: {}", event);
 						layers.event_callback(*event);
 					}
 
 					layers.update();
+
+					imgui.new_frame([&] {
+							layers.imgui_prepare();
+						});
+
 					window.update();
 				}
 

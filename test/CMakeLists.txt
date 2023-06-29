@@ -57,6 +57,12 @@ foreach (test ${TESTS})
 				linux_window
 				event
 			)
+	elseif (${bin} STREQUAL "layer.test")
+		target_link_libraries(${bin}
+			PRIVATE
+				layer_imgui
+				event
+			)
 	elseif (${bin} STREQUAL "layer_imgui.test")
 		target_link_libraries(${bin}
 			PRIVATE

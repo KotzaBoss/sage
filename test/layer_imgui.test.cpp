@@ -9,7 +9,7 @@ using namespace sage;
 TEST_CASE ("ImGui Layer") {
 
 	auto win = oslinux::Window(sage::window::Properties{});
-	auto imgui = layer::ImGui(win.native_handle());
+	auto imgui = layer::ImGui(win);
 
 	MESSAGE(imgui);
 
@@ -18,6 +18,9 @@ TEST_CASE ("ImGui Layer") {
 
 	for (auto i = 0; i < 3; ++i) {
 		imgui.update();
+		imgui.new_frame([&] {
+				imgui.imgui_prepare();
+			});
 		win.update();
 		std::this_thread::sleep_for(1s);
 	}

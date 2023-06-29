@@ -15,50 +15,59 @@ struct ImGui {
 
 private:
 	float time = 0.0f;
-	GLFWwindow* glfw;
+	oslinux::Window& window;
 
 public:
-	ImGui(GLFWwindow* w)
-		: glfw{w}
-	{
-		SAGE_ASSERT(glfw);
-	}
+	ImGui(oslinux::Window& w)
+		: window{w}
+	{}
 
 	auto setup() -> void {
+		::IMGUI_CHECKVERSION();		// 9000 IQ
 		::ImGui::CreateContext();
-		::ImGui::StyleColorsDark();
 
 		auto& io = ::ImGui::GetIO();
-		io.BackendFlags |=
-			ImGuiBackendFlags_HasMouseCursors
-			| ImGuiBackendFlags_HasSetMousePos
+		io.ConfigFlags |=
+			ImGuiConfigFlags_NavEnableKeyboard
+			| ImGuiConfigFlags_DockingEnable
+			| ImGuiConfigFlags_ViewportsEnable
 			;
 
-		ImGui_ImplGlfw_InitForOpenGL(glfw, true);
+		::ImGui::StyleColorsDark();
+
+		if (auto& style = ::ImGui::GetStyle();
+			io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
+		ImGui_ImplGlfw_InitForOpenGL(window.native_handle(), true);
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
 	auto update() -> void {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		::ImGui::NewFrame();
+		// TODO: noop?
+		//ImGui_ImplOpenGL3_NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
+		//::ImGui::NewFrame();
 
-		auto& io = ::ImGui::GetIO();
-		io.DisplaySize = ImVec2(1024, 768);
+		//auto& io = ::ImGui::GetIO();
+		//io.DisplaySize = ImVec2(1024, 768);
 
-		// FIXME: Find a way to pass "sage context information" to the layer starting
-		// here in the update function
-		//
+		//// FIXME: Find a way to pass "sage context information" to the layer starting
+		//// here in the update function
+		////
 
-		auto now = glfwGetTime();
-		io.DeltaTime = time > 0.0f ? (now - time) : (1.0f / 60.0f);
-		time = now;
+		//auto now = glfwGetTime();
+		//io.DeltaTime = time > 0.0f ? (now - time) : (1.0f / 60.0f);
+		//time = now;
 
-		static auto show = true;
-		::ImGui::ShowDemoWindow(&show);
+		//static auto show = true;
+		//::ImGui::ShowDemoWindow(&show);
 
-		::ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
+		//::ImGui::Render();
+		//ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
 	}
 
 	auto teardown() -> void {
@@ -119,10 +128,45 @@ public:
 				return;
 			}
 
+			case Event::Type::Window_Resized:
+				return;
+
 			default:
 				SAGE_LOG_WARN("Unexpected event type {}", e.type);
 				SAGE_ASSERT(false);
 		}
+	}
+
+	// There can be different inputs as the engine proceeds, for example
+	// a view so that it can be created by filtering etc.
+	auto new_frame(const std::invocable auto& frame_work) -> void {
+		// New Frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		::ImGui::NewFrame();
+
+		// Other objects imgui work
+		frame_work();
+
+		// Render
+		auto& io = ::ImGui::GetIO();
+		const auto win_size = window.properties().size;
+		io.DisplaySize = ImVec2(win_size.width, win_size.height);
+
+		::ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			const auto context = glfwGetCurrentContext();
+			::ImGui::UpdatePlatformWindows();
+			::ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(context);
+		}
+	}
+
+	auto imgui_prepare() {
+		static auto show = true;
+		::ImGui::ShowDemoWindow(&show);
 	}
 
 public:
