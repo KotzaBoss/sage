@@ -13,19 +13,6 @@ foreach (test ${TESTS})
 			${PROJECT_SOURCE_DIR}/src
 		)
 
-	target_compile_options(${bin}
-		PRIVATE
-			-Wall
-			-Wextra
-			-Wpedantic
-			-fsanitize=undefined,address
-		)
-
-	target_link_options(${bin}
-		PRIVATE
-			-fsanitize=undefined,address
-		)
-
 	target_link_libraries(${bin}
 		PRIVATE
 			log

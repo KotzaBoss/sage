@@ -75,8 +75,6 @@ section_pass("Ok")
 ############################################ Dependencies #
 section_start("Dependencies")
 
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
 section_next("fmt")
 add_subdirectory(fmt EXCLUDE_FROM_ALL)
 include_directories(${PROJECT_SOURCE_DIR}/fmt/include)
@@ -150,6 +148,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS TRUE)
 
 add_compile_options(-Wall -Wextra -Wpedantic -pthread)
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+	add_compile_options(-fsanitize=undefined,address)
+	add_link_options(-fsanitize=undefined,address)
+endif()
 
 section_pass("Ok")
 

@@ -6,19 +6,6 @@ target_include_directories(sandbox
 		${PROJECT_SOURCE_DIR}/src
 	)
 
-target_link_options(sandbox
-	PRIVATE
-		-fsanitize=undefined,address
-	)
-
-target_compile_options(sandbox
-	PRIVATE
-		-Wall
-		-Wextra
-		-Wpedantic
-		-fsanitize=undefined,address
-	)
-
 target_link_libraries(sandbox
 	PRIVATE
 		doctest
