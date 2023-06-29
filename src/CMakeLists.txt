@@ -43,7 +43,7 @@ foreach (src ${SRC})
 	string(REPLACE ".cpp" "" lib ${src})
 	message(STATUS "${lib}")
 
-	add_library(${lib} SHARED ${src})
+	add_library(${lib} STATIC ${src})
 
 	message(STATUS "L log")
 	message(STATUS "L repr")
