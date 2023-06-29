@@ -5,7 +5,8 @@
 
 #include "repr.hpp"
 
-#include "glad/gl.h"
+#include "graphics.hpp"
+
 #include "GLFW/glfw3.h"
 
 namespace sage::oslinux::inline window {
@@ -15,53 +16,50 @@ using Size = sage::Size<int>;
 struct Window : sage::window::Base {
 
 private:
-	GLFWwindow* _glfw;
+	GLFWwindow* glfw;
+	OpenGL_Context context;
 
 public:
 	Window(sage::window::Properties&& props)
 		: Base{std::move(props)}
+		, context{&glfw}
 	{
 		const auto ok = glfwInit();
 		SAGE_ASSERT(ok);
 
-		_glfw = glfwCreateWindow(
+		glfw = glfwCreateWindow(
 			_properties.size.width,
 			_properties.size.height,
 			_properties.title.c_str(),
 			nullptr,
 			nullptr
 			);
-		SAGE_ASSERT(_glfw);
+		SAGE_ASSERT(glfw);
 	}
 
 public:
 	auto setup() -> void {
-		glfwMakeContextCurrent(_glfw);
-
-		const auto version = gladLoadGL(glfwGetProcAddress);
-		SAGE_ASSERT(version);
-
-		SAGE_LOG_INFO("Loaded OpenGL {}.{}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+		context.setup();
 
 		// User Data
-		glfwSetWindowUserPointer(_glfw, this);
+		glfwSetWindowUserPointer(glfw, this);
 
 		// Callbacks
 
 		// No captures, must be convertible to functon
-		glfwSetWindowCloseCallback(_glfw, [] (GLFWwindow* win) {
+		glfwSetWindowCloseCallback(glfw, [] (GLFWwindow* win) {
 				user_pointer_to_this_ref(win)
 					._pending_event.assign(Event::make_window_closed());
 			});
 
-		glfwSetWindowSizeCallback(_glfw, [] (GLFWwindow* win, int width, int height) {
+		glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
 				auto& _this = user_pointer_to_this_ref(win);
 
 				_this._properties.size = Size::to<size_t>(Size{width, height});
 				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
 			});
 
-		glfwSetMouseButtonCallback(_glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
+		glfwSetMouseButtonCallback(glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
 				user_pointer_to_this_ref(win)
 					._pending_event.assign(Event::make_mouse_button({
 						.type = std::invoke([&] { switch (action) {
@@ -82,16 +80,16 @@ public:
 
 	auto update() -> void {
 		glfwPollEvents();
-		glfwSwapBuffers(_glfw);
+		context.swap_buffers();
 	}
 
 	auto teardown() -> void {
-		glfwDestroyWindow(_glfw);
+		glfwDestroyWindow(glfw);
 		glfwTerminate();
 	}
 
 	auto native_handle() const -> GLFWwindow* {
-		return _glfw;
+		return glfw;
 	}
 
 private:
