@@ -4,6 +4,7 @@
 
 #include "glm/glm.hpp"
 
+#include "camera.hpp"
 #include "repr.hpp"
 
 namespace sage::graphics {
@@ -209,11 +210,12 @@ namespace shader {
 
 template <typename S>
 concept Concept =
-	requires (S s, const std::string& vertex_src, const std::string& fragment_src) {
+	requires (S s, const std::string& vertex_src, const std::string& fragment_src, const glm::mat4& uniform, const std::string& uniform_name) {
 		{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
 		{ s.teardown() } -> std::same_as<void>;
 		{ s.bind() } -> std::same_as<void>;
 		{ s.unbind() } -> std::same_as<void>;
+		{ s.upload_uniform_mat4(uniform_name, uniform) } -> std::same_as<void>;
 	}
 	;
 
@@ -221,16 +223,54 @@ concept Concept =
 
 namespace renderer {
 
-template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer>
+template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
 concept Concept =
-	array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
-	and requires (R r, const std::function<void()>& submissions, const glm::vec4& color, const Vertex_Array& va) {
-		{ r.scene(submissions) } -> std::same_as<void>;
-		{ r.submit(va) } -> std::same_as<void>;
+	shader::Concept<Shader>
+	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
+	and requires (R r, camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const Vertex_Array& va) {
+		{ r.scene(cam, submissions) } -> std::same_as<void>;
+		{ r.submit(shader, va) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;
 		{ r.set_clear_color(color) } -> std::same_as<void>;
 	}
 	;
+
+template <shader::Concept Shader, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer>
+	requires array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
+struct Base {
+	struct Scene_Data {
+		glm::mat4 view_proj_mat;
+	};
+
+protected:
+	std::optional<Scene_Data> scene_data;
+
+public:
+	auto scene(camera::Orthographic& cam, const std::function<void()>& submissions) -> void {
+		SAGE_ASSERT(not scene_data.has_value());
+
+		scene_data = Scene_Data{};
+		scene_data->view_proj_mat = cam.view_proj_mat();
+
+		submissions();
+
+		scene_data = std::nullopt;
+	}
+
+protected:	// Does not count as part of the concept, hence protected
+	auto submit(const Shader& shader, const Vertex_Array& va, const std::function<void()>& impl) -> void {
+		SAGE_ASSERT(not va.vertex_buffer().layout().elements().empty());
+		SAGE_ASSERT(not va.index_buffer().indeces().empty());
+		SAGE_ASSERT_MSG(scene_data.has_value(), "Renderer::submit() must be called in the submissions function passed to Renderer::scene()");
+
+		shader.bind();
+		shader.upload_uniform_mat4("u_ViewProjection", scene_data->view_proj_mat);
+
+		va.bind();
+
+		impl();
+	}
+};
 
 }// renderer
 

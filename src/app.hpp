@@ -6,6 +6,7 @@
 #include "input.hpp"
 #include "layer.hpp"
 #include "layer_imgui.hpp"
+#include "camera.hpp"
 
 #include "log.hpp"
 #include "repr.hpp"
@@ -22,7 +23,7 @@ template <
 	>
 	requires
 		graphics::array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
-		and graphics::renderer::Concept<Renderer, Vertex_Array, Vertex_Buffer, Index_Buffer>
+		and graphics::renderer::Concept<Renderer, Vertex_Array, Vertex_Buffer, Index_Buffer, Shader>
 		and (not same_as_any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
 struct App {
 	using Layers = sage::layer::Storage<layer::ImGui, Ls...>;
@@ -30,6 +31,7 @@ struct App {
 private:
 	Window window;
 	Input input;
+
 	Layers layers;
 	// We wont be moving the ImGui vector in the tuple so its ok to reference.
 	// If something more complex is needed in the future, we should prefer an Iterator
@@ -44,13 +46,17 @@ private:
 
 	Shader shader, square_shader;
 
+	camera::Orthographic& camera;
 public:
-	App(Window&& w, Input&& i, same_as_any<Ls...>auto &&... ls)
+	App(Window&& w, Input&& i, camera::Orthographic& c, same_as_any<Ls...>auto &&... ls)
 		: window{std::move(w)}
 		, input{std::move(i)}
 		, layers{layer::ImGui{window}, std::move(ls)...}
 		, imgui{layers.front()}
-	{}
+		, camera{c}
+	{
+		SAGE_LOG_DEBUG(*this);
+	}
 
 	~App() {
 		SAGE_ASSERT_MSG(not loop.joinable(), "Make sure you have both start and stop in place");
@@ -98,13 +104,15 @@ public:
 						layout(location = 0) in vec3 a_Position;
 						layout(location = 1) in vec4 a_Color;
 
+						uniform mat4 u_ViewProjection;
+
 						out vec3 v_Position;
 						out vec4 v_Color;
 
 						void main() {
 							v_Position = a_Position;
 							v_Color = a_Color;
-							gl_Position = vec4(a_Position, 1.0);
+							gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 						}
 					)",
 					R"(
@@ -155,11 +163,13 @@ public:
 
 							layout(location = 0) in vec3 a_Position;
 
+							uniform mat4 u_ViewProjection;
+
 							out vec3 v_Position;
 
 							void main() {
 								v_Position = a_Position;
-								gl_Position = vec4(a_Position, 1.0);
+								gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 							}
 						)",
 						R"(
@@ -177,22 +187,19 @@ public:
 
 							// Update
 				while (not stoken.stop_requested()) {
-					renderer.set_clear_color({0.2f, 0.2f, 0.2f, 0.2f});
-					renderer.clear();
-
-					renderer.scene([&] {
-							square_shader.bind();
-							renderer.submit(square_vertex_array);
-
-							shader.bind();
-							renderer.submit(vertex_array);
-						});
-
 					if (const auto event = window.pending_event();
 						event.has_value())
 					{
 						layers.event_callback(*event);
 					}
+
+					renderer.set_clear_color({0.2f, 0.2f, 0.2f, 0.2f});
+					renderer.clear();
+
+					renderer.scene(camera, [&] {
+							renderer.submit(square_shader, square_vertex_array);
+							renderer.submit(shader, vertex_array);
+						});
 
 					layers.update();
 
@@ -228,7 +235,7 @@ FMT_FORMATTER(sage::App<Ts...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::App<Ts...>) {
-		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tlayers={}\n\t;", obj.window, obj.layers);
+		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tcamera={}\n\tlayers={}\n\t;", obj.window, obj.camera, obj.layers);
 	}
 };
 

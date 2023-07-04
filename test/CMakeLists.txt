@@ -19,14 +19,7 @@ foreach (test ${TESTS})
 			repr
 		)
 
-	if (${bin} STREQUAL "app.test")
-		target_link_libraries(${bin}
-			PRIVATE
-				layer_imgui
-				linux_window
-				event
-			)
-	elseif (${bin} STREQUAL "event.test")
+	if (${bin} STREQUAL "event.test")
 		target_link_libraries(${bin}
 			PRIVATE
 				event

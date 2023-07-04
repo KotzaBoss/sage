@@ -2,6 +2,8 @@
 
 #include "src/graphics.hpp"
 
+#include "glm/gtc/type_ptr.hpp"
+
 #include "glad/gl.h"
 #include "GLFW/glfw3.h"
 
@@ -354,24 +356,32 @@ public:
 	auto bind() const -> void {
 		glUseProgram(renderer_id);
 	}
+
 	auto unbind() const -> void {
 		glUseProgram(0);
 	}
+
+	auto upload_uniform_mat4(const std::string& name, const glm::mat4& u) const -> void {
+		const auto loc = glGetUniformLocation(renderer_id, name.c_str());
+		SAGE_ASSERT(loc != -1);
+
+		glUniformMatrix4fv(
+				loc,
+				1,
+				GL_FALSE,
+				glm::value_ptr(u)
+			);
+	}
 };
 
-struct Renderer {
-	auto scene(const std::function<void()>& submissions) -> void {
-		// TODO: Setup environment
+using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;
+struct Renderer : Renderer_Base {
 
-		submissions();
-	}
-
-	auto submit(const Vertex_Array& va) -> void {
-		SAGE_ASSERT(not va.vertex_buffer().layout().elements().empty());
-		SAGE_ASSERT(not va.index_buffer().indeces().empty());
-
-		va.bind();
-		glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
+public:
+	auto submit(const Shader& shader, const Vertex_Array& va) -> void {
+		Renderer_Base::submit(shader, va, [&] {
+				glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
+			});
 	}
 
 	auto clear() -> void {
