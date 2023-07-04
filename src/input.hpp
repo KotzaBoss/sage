@@ -2,12 +2,14 @@
 
 #include "std.hpp"
 
+#include "log.hpp"
 #include "repr.hpp"
 
 namespace sage::input {
 
 enum class Key {
 	None = -1, Left_Ctrl,
+	Up, Down, Left, Right,
 };
 
 struct Mouse {
@@ -34,6 +36,25 @@ concept Concept =
 
 } //sage::input
 
+template <>
+FMT_FORMATTER(sage::input::Key) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::input::Key) {
+		return fmt::format_to(ctx.out(),
+				"input::Key: {};",
+				std::invoke([&] {
+					switch (obj) {
+						case sage::input::Key::Up:		return "Up";
+						case sage::input::Key::Down:	return "Down";
+						case sage::input::Key::Left:	return "Left";
+						case sage::input::Key::Right:	return "Right";
+						default: return "BAD input::Key";
+					}
+				})
+			);
+	}
+};
 
 template <>
 FMT_FORMATTER(sage::input::Mouse::Button) {

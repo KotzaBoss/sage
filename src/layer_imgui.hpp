@@ -132,8 +132,8 @@ public:
 				return;
 
 			default:
-				SAGE_LOG_WARN("Unexpected event type {}", e.type);
-				SAGE_ASSERT(false);
+				SAGE_LOG_WARN("layer::ImGui: Unexpected event type {}", e.type);
+				return;
 		}
 	}
 

@@ -30,4 +30,17 @@ auto Event::make_mouse_button(const Make_Mouse_Button_Args& args) -> Event {
 	};
 }
 
+auto Event::make_key(const Make_Key_Args& args) -> Event {
+	SAGE_ASSERT(
+			args.type == Event::Type::Key_Pressed
+			or args.type == Event::Type::Key_Repeated
+			or args.type == Event::Type::Key_Released
+		);
+	return {
+		.type = args.type,
+		.category = Category::Keyboard,
+		.payload = args.key
+	};
 }
+
+}// sage::event

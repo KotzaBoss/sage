@@ -16,6 +16,7 @@ struct Event {
 		None = 0,
 		Window_Closed, Window_Resized,
 		Mouse_Button_Pressed, Mouse_Button_Released, Mouse_Moved, Mouse_Scrolled,
+		Key_Pressed, Key_Repeated, Key_Released,
 	};
 	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>();
 	REPR_DECL(Type);
@@ -36,7 +37,8 @@ struct Event {
 	using Payload = std::variant<
 		std::monostate,	// No payload
 		Size<size_t>,
-		input::Mouse::Button
+		input::Mouse::Button,
+		input::Key
 	>;
 	static constexpr auto no_payload = Payload{};
 	REPR_DECL(Payload);
@@ -58,6 +60,12 @@ public:
 		input::Mouse::Button&& mouse_button;
 	};
 	static auto make_mouse_button	(const Make_Mouse_Button_Args& args) -> Event;
+
+	struct Make_Key_Args {
+		Type&& type;
+		input::Key&& key;
+	};
+	static auto make_key	(const Make_Key_Args& args) -> Event;
 
 public:
 	REPR_DECL(Event);
@@ -82,6 +90,9 @@ FMT_FORMATTER(sage::Event::Type) {
 						case sage::Event::Type::Window_Resized:			return "Window_Resized";
 						case sage::Event::Type::Mouse_Button_Pressed:	return "Mouse_Button_Pressed";
 						case sage::Event::Type::Mouse_Button_Released:	return "Mouse_Button_Released";
+						case sage::Event::Type::Key_Pressed:			return "Key_Pressed";
+						case sage::Event::Type::Key_Repeated:			return "Key_Repeated";
+						case sage::Event::Type::Key_Released:			return "Key_Released";
 						case sage::Event::Type::None:					return "None";
 						default:
 							return "BAD";

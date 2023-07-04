@@ -80,6 +80,28 @@ public:
 					})
 				);
 			});
+
+		glfwSetKeyCallback(glfw, [] (GLFWwindow* win, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
+				user_pointer_to_this_ref(win)
+					._pending_event.assign(Event::make_key({
+									.type = std::invoke([&] {switch (action) {
+											case GLFW_PRESS:	return Event::Type::Key_Pressed;
+											case GLFW_REPEAT:	return Event::Type::Key_Repeated;
+											case GLFW_RELEASE:	return Event::Type::Key_Released;
+											default:			return Event::Type::None;
+										}}),
+									.key = std::invoke([&] { switch (key) {
+											case GLFW_KEY_UP:		return input::Key::Up;
+											case GLFW_KEY_DOWN:		return input::Key::Down;
+											case GLFW_KEY_LEFT:		return input::Key::Left;
+											case GLFW_KEY_RIGHT:	return input::Key::Right;
+											default:
+												SAGE_LOG_DEBUG("oslinux::Window::glfwSetKeyCallback: Unexpected key {}", key);
+												return input::Key::None;
+										}}),
+								})
+					);
+			});
 	}
 
 	auto update() -> void {
