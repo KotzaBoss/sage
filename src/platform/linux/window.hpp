@@ -11,7 +11,7 @@
 
 namespace sage::oslinux::inline window {
 
-using Size = sage::Size<int>;
+using Size = math::Size<int>;
 
 struct Window : sage::window::Base {
 
@@ -26,6 +26,10 @@ public:
 	{
 		const auto ok = glfwInit();
 		SAGE_ASSERT(ok);
+
+		glfwSetErrorCallback([] (int err, const char* msg) {
+				SAGE_LOG_ERROR("{} ({:#}): {}", err, err, msg);
+			});
 
 		glfw = glfwCreateWindow(
 			_properties.size.width,

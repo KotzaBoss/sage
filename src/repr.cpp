@@ -27,8 +27,18 @@ namespace sage::oslinux::window {
 REPR_DEF_FMT(Window)
 }
 
+#include "platform/linux/graphics.hpp"
+namespace sage::oslinux::graphics {
+REPR_DEF_FMT(Vertex_Buffer)
+}
+
 #include "input.hpp"
 namespace sage::input {
 REPR_DEF_FMT(Mouse::Pos);
+}
+
+#include "graphics.hpp"
+namespace sage::graphics::buffer {
+REPR_DEF_FMT(Element);
 }
 

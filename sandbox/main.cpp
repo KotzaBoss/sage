@@ -3,6 +3,7 @@
 #include "sage.hpp"
 #include "platform/linux/window.hpp"
 #include "platform/linux/input.hpp"
+#include "platform/linux/graphics.hpp"
 
 #include "layer_imgui.hpp"
 
@@ -36,12 +37,20 @@ REPR_DEF_FMT(Some_Layer);
 TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
-	auto app = sage::App<oslinux::Window, oslinux::Input, Some_Layer>(
+	using App = sage::App<
+			oslinux::Window,
+			oslinux::Input,
+			oslinux::Vertex_Array, oslinux::Vertex_Buffer, oslinux::Index_Buffer,
+			oslinux::Renderer,
+			oslinux::Shader,
+			Some_Layer
+		>;
+	auto app = App {
 			std::move(win),
 			std::move(input),
 			Some_Layer{"blah"},
 			Some_Layer{"bleh"}
-		);
+		};
 	SAGE_LOG_INFO(app);
 
 	app.start();

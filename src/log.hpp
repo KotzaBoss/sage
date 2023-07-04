@@ -26,7 +26,7 @@
 	{	\
 		const auto cond_val = cond;	\
 		if (not cond_val) { \
-			SAGE_LOG_CRITICAL("{} -> {}: {}", #cond, cond_val, msg);	\
+			SAGE_LOG_CRITICAL("{} == {}: {}", #cond, cond_val, msg);	\
 		}	\
 		assert(((void)msg, cond_val));	\
 	}	\

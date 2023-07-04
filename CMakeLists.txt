@@ -29,6 +29,15 @@ macro(section_fail msg)
 	message(CHECK_FAIL ${msg})
 endmacro()
 
+############################################ Convenience Targets #
+
+add_custom_target(run_sandbox
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMAND clear
+		COMMAND make -j11 sandbox
+		COMMAND ./sandbox/sandbox
+	)
+
 ############################################ Build Type #
 section_start("Build type")
 
@@ -180,10 +189,19 @@ section_pass("Ok")
 message(STATUS "▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜")
 message(STATUS "	${PROJECT_NAME} ${PROJECT_VERSION}")
 message(STATUS "	${PROJECT_DESCRIPTION}")
-message(STATUS "..................................................................")
+message(STATUS "")
+message(STATUS "Convinience targets: .............................................")
+message(STATUS "")
+message(STATUS "make -C build run_sandbox")
+message(STATUS "make -C build test")
+message(STATUS "")
+message(STATUS "Custom Details: ..................................................")
+message(STATUS "")
 cmake_print_variables(CCACHE_ENABLED CCACHE)
 cmake_print_variables(BUILD_SANDBOX)
-message(STATUS "..................................................................")
+message(STATUS "")
+message(STATUS "CMake Details: ...................................................")
+message(STATUS "")
 cmake_print_variables(CMAKE_BUILD_TYPE)
 cmake_print_variables(CMAKE_CXX_COMPILER_ID)
 cmake_print_variables(CMAKE_CXX_COMPILER)
