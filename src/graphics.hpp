@@ -19,6 +19,17 @@ concept Context =
 
 namespace shader {
 
+template <typename S>
+concept Concept =
+	requires (S s, const std::string& vertex_src, const std::string& fragment_src, const glm::mat4& uniform, const std::string& uniform_name) {
+		{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
+		{ s.teardown() } -> std::same_as<void>;
+		{ s.bind() } -> std::same_as<void>;
+		{ s.unbind() } -> std::same_as<void>;
+		{ s.upload_uniform_mat4(uniform_name, uniform) } -> std::same_as<void>;
+	}
+	;
+
 namespace data {
 
 enum class Type {
@@ -205,21 +216,6 @@ concept Concept =
 	;
 
 }// array::vertex
-
-namespace shader {
-
-template <typename S>
-concept Concept =
-	requires (S s, const std::string& vertex_src, const std::string& fragment_src, const glm::mat4& uniform, const std::string& uniform_name) {
-		{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
-		{ s.teardown() } -> std::same_as<void>;
-		{ s.bind() } -> std::same_as<void>;
-		{ s.unbind() } -> std::same_as<void>;
-		{ s.upload_uniform_mat4(uniform_name, uniform) } -> std::same_as<void>;
-	}
-	;
-
-}// shader
 
 namespace renderer {
 
