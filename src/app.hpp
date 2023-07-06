@@ -47,6 +47,7 @@ private:
 	Shader shader, square_shader;
 
 	camera::Orthographic& camera;
+
 public:
 	App(Window&& w, Input&& i, camera::Orthographic& c, same_as_any<Ls...>auto &&... ls)
 		: window{std::move(w)}
@@ -54,9 +55,7 @@ public:
 		, layers{layer::ImGui{window}, std::move(ls)...}
 		, imgui{layers.front()}
 		, camera{c}
-	{
-		SAGE_LOG_DEBUG(*this);
-	}
+	{}
 
 	~App() {
 		SAGE_ASSERT_MSG(not loop.joinable(), "Make sure you have both start and stop in place");
@@ -66,126 +65,8 @@ public:
 	auto start() -> void {
 		loop = std::jthread{[this] (const auto stoken) {
 
-							// Setup
-							// TODO: Move setup/teardown into constructors?
-				window.setup();
-				layers.setup();
+				setup();
 
-				auto vertex_buffer = Vertex_Buffer{};
-				vertex_buffer.setup(
-						{
-							-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.f,
-							 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.f,
-							 0.0f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.f,
-						},
-						graphics::buffer::Layout{
-							graphics::buffer::Element{{
-									.name = "a_Position",
-									.type = graphics::shader::data::Type::Float3
-								}},
-							graphics::buffer::Element{{
-									.name = "a_Color",
-									.type = graphics::shader::data::Type::Float4
-							}},
-						}
-					);
-
-				auto index_buffer = Index_Buffer{};
-				index_buffer.setup({0u, 1u, 2u});
-
-				vertex_array.setup(std::move(vertex_buffer), std::move(index_buffer));
-
-				SAGE_LOG_DEBUG(vertex_array);
-
-				shader.setup(
-					R"(
-						#version 330 core
-
-						layout(location = 0) in vec3 a_Position;
-						layout(location = 1) in vec4 a_Color;
-
-						uniform mat4 u_ViewProjection;
-
-						out vec3 v_Position;
-						out vec4 v_Color;
-
-						void main() {
-							v_Position = a_Position;
-							v_Color = a_Color;
-							gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
-						}
-					)",
-					R"(
-						#version 330 core
-
-						layout(location = 0) out vec4 color;
-
-						in vec3 v_Position;
-						in vec4 v_Color;
-
-						void main() {
-							color = vec4(v_Position, 1.0);
-							color = v_Color;
-						}
-					)"
-				);
-
-				////////////////////////////////////////////////////////////////
-				////////////////////////////////////////////////////////////////
-				////////////////////////////////////////////////////////////////
-
-				auto square_vertex_buffer = Vertex_Buffer{};
-				square_vertex_buffer.setup(
-						{
-							-0.75f, -0.75f, 0.0f,
-							 0.75f, -0.75f, 0.0f,
-							 0.75f,  0.75f, 0.0f,
-							-0.75f,  0.75f, 0.0f,
-						},
-						graphics::buffer::Layout{
-							graphics::buffer::Element{{
-									.name = "a_Position",
-									.type = graphics::shader::data::Type::Float3
-								}},
-						}
-					);
-
-				auto square_index_buffer = Index_Buffer{};
-				square_index_buffer.setup({0, 1, 2, 2, 3, 0});
-
-				square_vertex_array.setup(std::move(square_vertex_buffer), std::move(square_index_buffer));
-
-				SAGE_LOG_DEBUG(square_vertex_array);
-
-				square_shader.setup(
-						R"(
-							#version 330 core
-
-							layout(location = 0) in vec3 a_Position;
-
-							uniform mat4 u_ViewProjection;
-
-							out vec3 v_Position;
-
-							void main() {
-								v_Position = a_Position;
-								gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
-							}
-						)",
-						R"(
-							#version 330 core
-
-							layout(location = 0) out vec4 color;
-
-							in vec3 v_Position;
-
-							void main() {
-								color = vec4(v_Position, 1.0);
-							}
-						)"
-					);
-
-							// Update
 				while (not stoken.stop_requested()) {
 					if (const auto event = window.pending_event();
 						event.has_value())
@@ -193,7 +74,6 @@ public:
 						layers.event_callback(*event);
 					}
 
-					renderer.set_clear_color({0.2f, 0.2f, 0.2f, 0.2f});
 					renderer.clear();
 
 					renderer.scene(camera, [&] {
@@ -210,17 +90,142 @@ public:
 					window.update();
 				}
 
-							// Teardown
-				layers.teardown();
-				window.teardown();
-				vertex_array.teardown();
-				square_vertex_array.teardown();
-				shader.teardown();
+				teardown();
+
 			}};
 	}
 	auto stop() -> void {
 		loop.request_stop();
 		loop.join();
+	}
+
+private:
+	auto setup() -> void {
+					// TODO: Move setup/teardown into constructors?
+		window.setup();
+		layers.setup();
+
+		auto vertex_buffer = Vertex_Buffer{};
+		vertex_buffer.setup(
+				{
+					-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.f,
+					 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.f,
+					 0.0f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.f,
+				},
+				graphics::buffer::Layout{
+					graphics::buffer::Element{{
+							.name = "a_Position",
+							.type = graphics::shader::data::Type::Float3
+						}},
+					graphics::buffer::Element{{
+							.name = "a_Color",
+							.type = graphics::shader::data::Type::Float4
+					}},
+				}
+			);
+
+		auto index_buffer = Index_Buffer{};
+		index_buffer.setup({0u, 1u, 2u});
+
+		vertex_array.setup(std::move(vertex_buffer), std::move(index_buffer));
+
+		shader.setup(
+			R"(
+				#version 330 core
+
+				layout(location = 0) in vec3 a_Position;
+				layout(location = 1) in vec4 a_Color;
+
+				uniform mat4 u_ViewProjection;
+
+				out vec3 v_Position;
+				out vec4 v_Color;
+
+				void main() {
+					v_Position = a_Position;
+					v_Color = a_Color;
+					gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+				}
+			)",
+			R"(
+				#version 330 core
+
+				layout(location = 0) out vec4 color;
+
+				in vec3 v_Position;
+				in vec4 v_Color;
+
+				void main() {
+					color = vec4(v_Position, 1.0);
+					color = v_Color;
+				}
+			)"
+		);
+
+		////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////
+
+		auto square_vertex_buffer = Vertex_Buffer{};
+		square_vertex_buffer.setup(
+				{
+					-0.75f, -0.75f, 0.0f,
+					 0.75f, -0.75f, 0.0f,
+					 0.75f,  0.75f, 0.0f,
+					-0.75f,  0.75f, 0.0f,
+				},
+				graphics::buffer::Layout{
+					graphics::buffer::Element{{
+							.name = "a_Position",
+							.type = graphics::shader::data::Type::Float3
+						}},
+				}
+			);
+
+		auto square_index_buffer = Index_Buffer{};
+		square_index_buffer.setup({0, 1, 2, 2, 3, 0});
+
+		square_vertex_array.setup(std::move(square_vertex_buffer), std::move(square_index_buffer));
+
+		renderer.set_clear_color({0.2f, 0.2f, 0.2f, 0.2f});
+
+		square_shader.setup(
+				R"(
+					#version 330 core
+
+					layout(location = 0) in vec3 a_Position;
+
+					uniform mat4 u_ViewProjection;
+
+					out vec3 v_Position;
+
+					void main() {
+						v_Position = a_Position;
+						gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+					}
+				)",
+				R"(
+					#version 330 core
+
+					layout(location = 0) out vec4 color;
+
+					in vec3 v_Position;
+
+					void main() {
+						color = vec4(v_Position, 1.0);
+					}
+				)"
+			);
+
+		SAGE_LOG_DEBUG(*this);
+	}
+
+	auto teardown() -> void {
+		layers.teardown();
+		window.teardown();
+		vertex_array.teardown();
+		square_vertex_array.teardown();
+		shader.teardown();
 	}
 
 public:

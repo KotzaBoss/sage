@@ -8,8 +8,8 @@ inline const Log::Logger Log::logger = spdlog::stderr_color_mt("SAGE");
 inline const Log Log::log = Log();
 
 Log::Log() {
-	// log_type (time) ~thread logger: message
-	spdlog::set_pattern("%^%-8l (%T) ~%t %n: %v%$");
+	// log_type (time) ~thread logger file:line:function: message
+	spdlog::set_pattern("%^%-8l (%T) ~%t %n %s:%#::%-10!!: %v%$");
 #ifdef NDEBUG
 	spdlog::set_level(spdlog::level::info);
 #else
