@@ -223,9 +223,9 @@ template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename In
 concept Concept =
 	shader::Concept<Shader>
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
-	and requires (R r, camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const Vertex_Array& va) {
+	and requires (R r, camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const Vertex_Array& va, const glm::mat4& transform) {
 		{ r.scene(cam, submissions) } -> std::same_as<void>;
-		{ r.submit(shader, va) } -> std::same_as<void>;
+		{ r.submit(shader, va, transform) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;
 		{ r.set_clear_color(color) } -> std::same_as<void>;
 	}
@@ -253,15 +253,31 @@ public:
 		scene_data = std::nullopt;
 	}
 
-protected:	// Does not count as part of the concept, hence protected
-	auto submit(const Shader& shader, const Vertex_Array& va, const std::function<void()>& impl) -> void {
+protected:	// Does not count as part of the concept just shares the same name to make the mental link, hence protected
+	// Usage:
+	//
+	// struct OpenGL_Renderer : sage::graphics::renderer::Base {
+	//
+	//		auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform) -> void {
+	// 			Renderer_Base::submit(
+	//					// Forward the "stuff" we need to render
+	//					shader, va, transform,
+	//					// Wrap the specifics of the draw call
+	//					[&] {
+	//						glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
+	//					}
+	// 			);
+	// 		}
+	//
+	// };
+	auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform, const std::function<void()>& impl) -> void {
 		SAGE_ASSERT(not va.vertex_buffer().layout().elements().empty());
 		SAGE_ASSERT(not va.index_buffer().indeces().empty());
 		SAGE_ASSERT_MSG(scene_data.has_value(), "Renderer::submit() must be called in the submissions function passed to Renderer::scene()");
 
 		shader.bind();
 		shader.upload_uniform_mat4("u_ViewProjection", scene_data->view_proj_mat);
-
+		shader.upload_uniform_mat4("u_Transform", transform);
 		va.bind();
 
 		impl();

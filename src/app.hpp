@@ -80,8 +80,14 @@ public:
 					renderer.clear();
 
 					renderer.scene(camera, [&] {
-							renderer.submit(square_shader, square_vertex_array);
 							renderer.submit(shader, vertex_array);
+							const auto scale = glm::scale(glm::mat4{1}, glm::vec3{0.1f});
+							for (auto y = 0; y < 20; ++y) {
+								for (auto x = 0; x < 20; ++x) {
+									const auto transform = glm::translate(glm::mat4{1}, glm::vec3{x * 0.11f, y * 0.11f, 0}) * scale;
+									renderer.submit(square_shader, square_vertex_array, transform);
+								}
+							}
 						});
 
 					layers.update(delta);
@@ -145,6 +151,7 @@ private:
 				layout(location = 1) in vec4 a_Color;
 
 				uniform mat4 u_ViewProjection;
+				uniform mat4 u_Transform;
 
 				out vec3 v_Position;
 				out vec4 v_Color;
@@ -152,7 +159,7 @@ private:
 				void main() {
 					v_Position = a_Position;
 					v_Color = a_Color;
-					gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+					gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
 				}
 			)",
 			R"(
@@ -177,10 +184,10 @@ private:
 		auto square_vertex_buffer = Vertex_Buffer{};
 		square_vertex_buffer.setup(
 				{
-					-0.75f, -0.75f, 0.0f,
-					 0.75f, -0.75f, 0.0f,
-					 0.75f,  0.75f, 0.0f,
-					-0.75f,  0.75f, 0.0f,
+					-0.5f, -0.5f, 0.0f,
+					 0.5f, -0.5f, 0.0f,
+					 0.5f,  0.5f, 0.0f,
+					-0.5f,  0.5f, 0.0f,
 				},
 				graphics::buffer::Layout{
 					graphics::buffer::Element{{
@@ -204,12 +211,13 @@ private:
 					layout(location = 0) in vec3 a_Position;
 
 					uniform mat4 u_ViewProjection;
+					uniform mat4 u_Transform;
 
 					out vec3 v_Position;
 
 					void main() {
 						v_Position = a_Position;
-						gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+						gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
 					}
 				)",
 				R"(

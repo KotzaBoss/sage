@@ -378,8 +378,8 @@ using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Verte
 struct Renderer : Renderer_Base {
 
 public:
-	auto submit(const Shader& shader, const Vertex_Array& va) -> void {
-		Renderer_Base::submit(shader, va, [&] {
+	auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform = glm::mat4{1.f}) -> void {
+		Renderer_Base::submit(shader, va, transform, [&] {
 				glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
 			});
 	}
