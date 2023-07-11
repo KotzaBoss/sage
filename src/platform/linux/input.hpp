@@ -16,7 +16,17 @@ struct Input {
 #pragma GCC diagnostic ignored "-Wpedantic"
 	static constexpr int key_map[] = {
 			[std::to_underlying(Key::Left_Ctrl)] = GLFW_KEY_LEFT_CONTROL,
+			[std::to_underlying(Key::Up)] = GLFW_KEY_UP,
+			[std::to_underlying(Key::Down)] = GLFW_KEY_DOWN,
+			[std::to_underlying(Key::Left)] = GLFW_KEY_LEFT,
+			[std::to_underlying(Key::Right)] = GLFW_KEY_RIGHT,
 		};
+
+	static auto is_in_key_map(const Key k) -> bool {
+		const auto x = std::to_underlying(k);
+		return 0 <= x and static_cast<size_t>(x) < sizeof(key_map);
+	}
+
 
 	static constexpr int mouse_button_map[] = {
 			[std::to_underlying(Mouse::Button::Left)] = GLFW_MOUSE_BUTTON_LEFT,
@@ -35,6 +45,7 @@ public:
 
 public:
 	auto is_key_pressed(const Key& k) -> bool {
+		SAGE_ASSERT(is_in_key_map(k));
 		const auto state = glfwGetKey(glfw, key_map[std::to_underlying(k)]);
 		// TODO: Check error
 		return state == GLFW_PRESS or state == GLFW_REPEAT;

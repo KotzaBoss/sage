@@ -11,7 +11,7 @@ struct Dump_Layer {
 	{}
 
 	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
-	auto update() -> void { MESSAGE("DUMP Updating ", id); }
+	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("DUMP Updating {}", id, delta); }
 	auto imgui_prepare() -> void {
 		// Create a window called "My First Tool", with a menu bar.
 		static auto my_tool_active = true;
@@ -71,7 +71,7 @@ struct Other_Layer {
 	{}
 
 	auto setup() -> void { MESSAGE("OTHER Setting up ", id); }
-	auto update() -> void { MESSAGE("OTHER Updating ", id); }
+	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("OTHER Updating {}", id, delta); }
 	auto imgui_prepare() -> void {
 		ImGui::Text("Hello, world %d", 123);
 		if (ImGui::Button("Save"))
@@ -106,7 +106,7 @@ struct Last_Layer {
 	{}
 
 	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
-	auto update() -> void { MESSAGE("DUMP Updating ", id); }
+	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("LAST Updating {}", id, delta); }
 	auto imgui_prepare() -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}

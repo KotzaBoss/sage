@@ -3,6 +3,7 @@
 #include "std.hpp"
 
 #include "fmt/format.h"
+#include "fmt/chrono.h"
 
 #ifdef NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO

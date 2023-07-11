@@ -46,7 +46,7 @@ public:
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
-	auto update() -> void {
+	auto update(const std::chrono::milliseconds) -> void {
 		// TODO: noop?
 		//ImGui_ImplOpenGL3_NewFrame();
 		//ImGui_ImplGlfw_NewFrame();

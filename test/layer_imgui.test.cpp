@@ -2,6 +2,7 @@
 #include "doctest.h"
 
 #include "layer_imgui.hpp"
+#include "time.hpp"
 #include "platform/linux/window.hpp"
 
 using namespace sage;
@@ -16,8 +17,9 @@ TEST_CASE ("ImGui Layer") {
 	win.setup();
 	imgui.setup();
 
-	for (auto i = 0; i < 3; ++i) {
-		imgui.update();
+	const auto start = std::chrono::steady_clock::now();
+	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
+		imgui.update(tick());
 		imgui.new_frame([&] {
 				imgui.imgui_prepare();
 			});

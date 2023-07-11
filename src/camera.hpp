@@ -19,7 +19,7 @@ private:
 	glm::mat4 _view_mat;
 	glm::mat4 _view_proj_mat;	// Cached
 	glm::vec3 _position;
-	float _rotation;
+	float _rotation;			// In degrees TODO: Make a separete unit::Degrees struct?
 
 public:
 	struct Args {

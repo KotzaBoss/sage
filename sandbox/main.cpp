@@ -13,37 +13,31 @@ using namespace sage;
 
 struct Camera_Layer {
 	camera::Orthographic& camera;
+	oslinux::Input& input;
 
-	Camera_Layer(camera::Orthographic& c)
+	Camera_Layer(camera::Orthographic& c, oslinux::Input& i)
 		: camera{c}
+		, input{i}
 	{}
 
 	auto setup() {}
-	auto update() {}
+	auto update(const std::chrono::milliseconds dt) {
+		constexpr auto movement = 5.f;
+		const auto coeff = std::chrono::duration<float, std::chrono::seconds::period>{dt}.count();
+		const auto pos_step = coeff * movement;
+
+		auto pos = camera.position();
+		if (input.is_key_pressed(input::Key::Up))			pos.y += pos_step;
+		else if (input.is_key_pressed(input::Key::Down))	pos.y -= pos_step;
+		else if (input.is_key_pressed(input::Key::Right))	pos.x += pos_step;
+
+		if (input.is_key_pressed(input::Key::Left))	camera.set_rotation(camera.rotation() + coeff * 180.f);
+
+		camera.set_position(pos);
+	}
 	auto imgui_prepare() -> void {}
 	auto teardown() {}
-	auto event_callback(const Event& e) {
-		switch (e.type) {
-			case Event::Type::Key_Pressed:	[[fallthrough]];
-			case Event::Type::Key_Repeated:	{
-				SAGE_LOG_DEBUG("Camera_Layer.event_callback: {}", e);
-				SAGE_LOG_DEBUG("Camera_Layer.event_callback: {}", camera);
-				auto pos = camera.position();
-				switch (std::get<input::Key>(e.payload)) {
-					case input::Key::Up:	pos.y += 0.1f; break;
-					case input::Key::Down:	pos.y -= 0.1f; break;
-					case input::Key::Left:	pos.x -= 0.1f; break;
-					case input::Key::Right:	pos.x += 0.1f; break;
-					default:
-						return;
-				}
-				camera.set_position(pos);
-				return;
-			}
-			default:
-				return;
-		}
-	}
+	auto event_callback(const Event&) {}
 
 	REPR_DECL(Camera_Layer);
 };
@@ -63,7 +57,7 @@ TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
 	auto camera = camera::Orthographic{{ .left=-1.6f, .right=1.6f, .bottom=-0.9f, .top=0.9f }};
-	auto camera_layer = Camera_Layer{camera};
+	auto camera_layer = Camera_Layer{camera, input};
 	using App = sage::App<
 			oslinux::Window,
 			oslinux::Input,

@@ -7,6 +7,7 @@
 #include "layer.hpp"
 #include "layer_imgui.hpp"
 #include "camera.hpp"
+#include "time.hpp"
 
 #include "log.hpp"
 #include "repr.hpp"
@@ -27,6 +28,7 @@ template <
 		and (not same_as_any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
 struct App {
 	using Layers = sage::layer::Storage<layer::ImGui, Ls...>;
+	using Clock = std::chrono::steady_clock;
 
 private:
 	Window window;
@@ -64,10 +66,11 @@ public:
 public:
 	auto start() -> void {
 		loop = std::jthread{[this] (const auto stoken) {
-
 				setup();
 
-				while (not stoken.stop_requested()) {
+				for (auto tick = time::Tick{}; not stoken.stop_requested(); ) {
+					const auto delta = tick();
+
 					if (const auto event = window.pending_event();
 						event.has_value())
 					{
@@ -81,13 +84,18 @@ public:
 							renderer.submit(shader, vertex_array);
 						});
 
-					layers.update();
+					layers.update(delta);
 
 					imgui.new_frame([&] {
 							layers.imgui_prepare();
 						});
 
 					window.update();
+
+					// TODO: Fixed rate updates how to? Hardcode to 144fps for now.
+					// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep
+					constexpr auto frame_duration = 1000ms / 144;
+					std::this_thread::sleep_until(tick.current_time_point() + frame_duration);
 				}
 
 				teardown();

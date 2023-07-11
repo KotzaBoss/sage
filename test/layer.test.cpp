@@ -5,6 +5,7 @@
 
 #include "placeholder_layers.hpp"
 #include "layer.hpp"
+#include "time.hpp"
 
 TEST_CASE ("Layer") {
 	// Layers are added as follows (example):
@@ -48,9 +49,9 @@ TEST_CASE ("Layer") {
 
 	layers.setup();
 
-	for (auto i = 0; i < 5; ++i) {
-		MESSAGE("Update ", i, " =========================");
-		layers.update();
+	const auto start = std::chrono::steady_clock::now();
+	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
+		layers.update(tick());
 	}
 
 	layers.teardown();

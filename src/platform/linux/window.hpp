@@ -45,6 +45,8 @@ public:
 	auto setup() -> void {
 		context.setup();
 
+		glfwSwapInterval(1);	// vsync on
+
 		// User Data
 		glfwSetWindowUserPointer(glfw, this);
 

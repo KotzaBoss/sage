@@ -12,9 +12,9 @@ namespace sage::layer {
 
 template <typename Layer>
 concept Concept =
-	requires (Layer l, const Event& event) {
+	requires (Layer l, const Event& event, const std::chrono::milliseconds delta) {
 		{ l.setup() } -> std::same_as<void>;
-		{ l.update() } -> std::same_as<void>;
+		{ l.update(delta) } -> std::same_as<void>;
 		{ l.imgui_prepare() } -> std::same_as<void>;
 		{ l.teardown() } -> std::same_as<void>;
 		// TODO: Maybe pass optional<Event> to allow for functional chaining?
@@ -34,10 +34,10 @@ public:
 	{}
 
 public:
-	auto setup()			-> void { this->apply([] (auto& layer) { layer.setup();			}); }
-	auto update()			-> void { this->apply([] (auto& layer) { layer.update();		}); }
-	auto imgui_prepare()	-> void { this->apply([] (auto& layer) { layer.imgui_prepare();	}); }
-	auto teardown()			-> void { this->apply([] (auto& layer) { layer.teardown();		}); }
+	auto setup()										-> void { this->apply([] (auto& layer)	{ layer.setup();			}); }
+	auto update(const std::chrono::milliseconds delta)	-> void { this->apply([=] (auto& layer)	{ layer.update(delta);		}); }
+	auto imgui_prepare()								-> void { this->apply([] (auto& layer)	{ layer.imgui_prepare();	}); }
+	auto teardown()										-> void { this->apply([] (auto& layer)	{ layer.teardown();			}); }
 
 	auto event_callback(const Event& e) -> void { this->apply([&] (auto& layer) { layer.event_callback(e); });}
 
