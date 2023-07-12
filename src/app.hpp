@@ -12,6 +12,8 @@
 #include "log.hpp"
 #include "repr.hpp"
 
+#include "platform/linux/graphics.hpp"
+
 namespace sage::inline app {
 
 template <
@@ -46,8 +48,9 @@ private:
 	Vertex_Array vertex_array, square_vertex_array;
 	Renderer renderer;
 
-	Shader shader, square_shader;
+	Shader shader, square_shader, texture_shader;
 	glm::vec3 square_color;
+	oslinux::Texture2D tex;
 
 	camera::Orthographic& camera;
 
@@ -81,7 +84,6 @@ public:
 					renderer.clear();
 
 					renderer.scene(camera, [&] {
-							renderer.submit(shader, vertex_array);
 							const auto scale = glm::scale(glm::mat4{1}, glm::vec3{0.1f});
 							for (auto y = 0; y < 20; ++y) {
 								for (auto x = 0; x < 20; ++x) {
@@ -95,6 +97,9 @@ public:
 									renderer.submit(square_shader, square_vertex_array, transform);
 								}
 							}
+
+							tex.bind();
+							renderer.submit(texture_shader, square_vertex_array, glm::scale(glm::mat4{1}, glm::vec3{1.5f}));
 						});
 
 					layers.update(delta);
@@ -194,16 +199,20 @@ private:
 		auto square_vertex_buffer = Vertex_Buffer{};
 		square_vertex_buffer.setup(
 				{
-					-0.5f, -0.5f, 0.0f,
-					 0.5f, -0.5f, 0.0f,
-					 0.5f,  0.5f, 0.0f,
-					-0.5f,  0.5f, 0.0f,
+					-0.5f, -0.5f, 0.0f, 0, 0,	// low left		black
+					 0.5f, -0.5f, 0.0f,	1, 0,	// low right	red
+					 0.5f,  0.5f, 0.0f,	1, 1,	// top right	yellow
+					-0.5f,  0.5f, 0.0f, 0, 1,	// top left		green
 				},
 				graphics::buffer::Layout{
 					graphics::buffer::Element{{
 							.name = "a_Position",
 							.type = graphics::shader::data::Type::Float3
 						}},
+					graphics::buffer::Element{{
+							.name = "a_TexCoord",
+							.type = graphics::shader::data::Type::Float2
+						}}
 				}
 			);
 
@@ -244,6 +253,42 @@ private:
 					}
 				)"
 			);
+
+		texture_shader.setup(
+				R"(
+					#version 330 core
+
+					layout(location = 0) in vec3 a_Position;
+					layout(location = 1) in vec2 a_TexCoord;
+
+					uniform mat4 u_ViewProjection;
+					uniform mat4 u_Transform;
+
+					out vec2 v_TexCoord;
+
+					void main() {
+						v_TexCoord = a_TexCoord;
+						gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+					}
+				)",
+				R"(
+					#version 330 core
+
+					layout(location = 0) out vec4 color;
+
+					in vec2 v_TexCoord;
+
+					uniform sampler2D u_Texture;
+
+					void main() {
+						color = texture(u_Texture, v_TexCoord);
+					}
+				)"
+			);
+		texture_shader.bind();
+		texture_shader.upload_uniform("u_Texture", 0);
+
+		tex.setup(fs::path{"/home/__alias__/git/sage/asset/texture/owl.png"});
 
 		SAGE_LOG_DEBUG(*this);
 	}

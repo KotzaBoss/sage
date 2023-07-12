@@ -5,6 +5,7 @@ target_link_libraries(linux_window
 		glad
 		glfw
 		GL
+		stb
 	)
 cmake_print_properties(TARGETS linux_window PROPERTIES SOURCES LINK_DIRECTORIES)
 

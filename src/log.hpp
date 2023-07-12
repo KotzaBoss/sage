@@ -4,6 +4,7 @@
 
 #include "fmt/format.h"
 #include "fmt/chrono.h"
+#include "fmt/std.h"
 
 #ifdef NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
@@ -23,13 +24,13 @@
 
 #define SAGE_ASSERT(cond) assert(cond)
 
-#define SAGE_ASSERT_MSG(cond, msg)	\
+#define SAGE_ASSERT_MSG(cond, ...)	\
 	{	\
-		const auto cond_val = cond;	\
+		const auto cond_val = sage::truth(cond);	\
 		if (not cond_val) { \
-			SAGE_LOG_CRITICAL("{} == {}: {}", #cond, cond_val, msg);	\
+			SAGE_LOG_CRITICAL("{} == {}: {}", #cond, cond_val, __VA_ARGS__);	\
 		}	\
-		assert(((void)msg, cond_val));	\
+		assert(cond_val);	\
 	}	\
 	(void)0
 

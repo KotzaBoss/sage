@@ -228,6 +228,22 @@ concept Concept =
 
 }// array::vertex
 
+namespace texture {
+
+template <typename T>
+concept Concept =
+	requires (T t, const fs::path& path, const size_t slot) {
+		{ t.setup(path) } -> std::same_as<void>;
+		{ t.teardown() } -> std::same_as<void>;
+		{ t.width() } -> std::same_as<size_t>;
+		{ t.height() } -> std::same_as<size_t>;
+		{ t.bind(slot) } -> std::same_as<void>;
+		{ t.unbind() } -> std::same_as<void>;
+	}
+	;
+
+}// texture
+
 namespace renderer {
 
 template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>

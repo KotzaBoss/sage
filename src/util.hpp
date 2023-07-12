@@ -14,6 +14,10 @@ constexpr auto to_underlying(auto e) -> auto {
 
 namespace sage::inline util {
 
+constexpr auto truth(const auto& x) -> bool {
+	return x;
+}
+
 template<std::integral I>
 consteval auto bits() -> size_t {
 	return sizeof(I) * 8;

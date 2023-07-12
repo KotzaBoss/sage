@@ -7,6 +7,8 @@
 #include "glad/gl.h"
 #include "GLFW/glfw3.h"
 
+#include "stb_image.h"
+
 namespace sage::oslinux::inline graphics {
 
 inline auto shader_data_type_to_opengl(const sage::graphics::shader::data::Type& t)  -> auto{
@@ -408,6 +410,64 @@ public:
 				uniform
 			);
 	}
+};
+
+struct Texture2D {
+private:
+	fs::path path;
+	size_t _width,
+		   _height;
+	uint32_t renderer_id = 0;
+
+public:
+	auto setup(const fs::path& p) -> void {
+		SAGE_ASSERT(fs::exists(p));
+		path = p;
+
+		stbi_set_flip_vertically_on_load(1);
+
+		int width, height, channels;
+		const auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		SAGE_ASSERT_MSG(data, "stbi could not load from: {}", path.c_str());
+
+		_width = width;
+		_height = height;
+		SAGE_ASSERT(channels == 3 or channels == 4);
+		const auto internal_format = channels == 3 ? GL_RGB8 : GL_RGBA8;
+		const auto data_format = channels == 3 ? GL_RGB : GL_RGBA;
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id);
+		glTextureStorage2D(renderer_id, 1, internal_format, _width, _height);
+
+		glTextureParameteri(renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(renderer_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTextureSubImage2D(renderer_id,
+				0,
+				0, 0,
+				_width, _height,
+				data_format,
+				GL_UNSIGNED_BYTE,
+				data
+			);
+
+		stbi_image_free(data);
+	}
+
+	auto teardown() -> void {
+		glDeleteTextures(1, &renderer_id);
+	}
+
+public:
+	auto width() const -> size_t { return _width; }
+	auto height() const -> size_t { return _height; }
+
+public:
+	auto bind(const size_t slot = 0) const -> void {
+		SAGE_ASSERT(renderer_id);
+		glBindTextureUnit(slot, renderer_id);
+	}
+	auto unbind() const -> void {}
 };
 
 using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;

@@ -119,6 +119,10 @@ section_next("glm")
 add_subdirectory(glm)
 include_directories(${PROJECT_SOURCE_DIR}/glm)
 
+section_next("stb")
+add_subdirectory(stb)
+include_directories(${PROJECT_SOURCE_DIR}/stb)
+
 section_pass("Ok")
 
 ############################################ Compilers #

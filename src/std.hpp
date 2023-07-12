@@ -105,6 +105,7 @@ namespace vw = std::views;
 	#include <syncstream>
 #endif
 #include <filesystem>
+namespace fs = std::filesystem;
 #include <regex>
 #include <atomic>
 #ifdef __cpp_lib_barrier

@@ -19,3 +19,6 @@
 [submodule "glm"]
 	path = glm
 	url = git@github.com:g-truc/glm.git
+[submodule "stb"]
+	path = stb
+	url = git@github.com:KotzaBoss/stb.git
