@@ -19,14 +19,25 @@ concept Context =
 
 namespace shader {
 
+// FIXME: Is the uniform different from the shader::data::Types?
+using Uniform = std::variant<
+		int,
+		float,
+		glm::vec2,
+		glm::vec3,
+		glm::vec4,
+		glm::mat3,
+		glm::mat4
+	>;
+
 template <typename S>
 concept Concept =
-	requires (S s, const std::string& vertex_src, const std::string& fragment_src, const glm::mat4& uniform, const std::string& uniform_name) {
+	requires (S s, const std::string& vertex_src, const std::string& fragment_src, const Uniform& uniform, const std::string& uniform_name) {
 		{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
 		{ s.teardown() } -> std::same_as<void>;
 		{ s.bind() } -> std::same_as<void>;
 		{ s.unbind() } -> std::same_as<void>;
-		{ s.upload_uniform_mat4(uniform_name, uniform) } -> std::same_as<void>;
+		{ s.upload_uniform(uniform_name, uniform) } -> std::same_as<void>;
 	}
 	;
 
@@ -276,8 +287,8 @@ protected:	// Does not count as part of the concept just shares the same name to
 		SAGE_ASSERT_MSG(scene_data.has_value(), "Renderer::submit() must be called in the submissions function passed to Renderer::scene()");
 
 		shader.bind();
-		shader.upload_uniform_mat4("u_ViewProjection", scene_data->view_proj_mat);
-		shader.upload_uniform_mat4("u_Transform", transform);
+		shader.upload_uniform("u_ViewProjection", scene_data->view_proj_mat);
+		shader.upload_uniform("u_Transform", transform);
 		va.bind();
 
 		impl();

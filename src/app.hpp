@@ -47,6 +47,7 @@ private:
 	Renderer renderer;
 
 	Shader shader, square_shader;
+	glm::vec3 square_color;
 
 	camera::Orthographic& camera;
 
@@ -85,6 +86,12 @@ public:
 							for (auto y = 0; y < 20; ++y) {
 								for (auto x = 0; x < 20; ++x) {
 									const auto transform = glm::translate(glm::mat4{1}, glm::vec3{x * 0.11f, y * 0.11f, 0}) * scale;
+
+									if (x % 2 and y % 2)
+										square_shader.upload_uniform("u_Color", square_color);
+									else
+										square_shader.upload_uniform("u_Color", glm::vec4{1, 1, 1, 1});
+
 									renderer.submit(square_shader, square_vertex_array, transform);
 								}
 							}
@@ -92,8 +99,11 @@ public:
 
 					layers.update(delta);
 
-					imgui.new_frame([&] {
+					imgui.new_frame([this] {
 							layers.imgui_prepare();
+							ImGui::Begin("Settings");
+							ImGui::ColorEdit3("Square color", glm::value_ptr(square_color));
+							ImGui::End();
 						});
 
 					window.update();
@@ -225,10 +235,12 @@ private:
 
 					layout(location = 0) out vec4 color;
 
+					uniform vec3 u_Color;
+
 					in vec3 v_Position;
 
 					void main() {
-						color = vec4(v_Position, 1.0);
+						color = vec4(u_Color, 1); //vec4(v_Position, 1.0);
 					}
 				)"
 			);
