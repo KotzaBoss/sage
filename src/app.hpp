@@ -221,7 +221,8 @@ private:
 
 		square_vertex_array.setup(std::move(square_vertex_buffer), std::move(square_index_buffer));
 
-		renderer.set_clear_color({0.2f, 0.2f, 0.2f, 0.2f});
+		renderer.set_clear_color({0.5f, 0.5f, 0.5f, 1.f});
+		renderer.setup();
 
 		square_shader.setup(
 				R"(
@@ -288,7 +289,7 @@ private:
 		texture_shader.bind();
 		texture_shader.upload_uniform("u_Texture", 0);
 
-		tex.setup(fs::path{"/home/__alias__/git/sage/asset/texture/owl.png"});
+		tex.setup(fs::path{"asset/texture/owl.png"});
 
 		SAGE_LOG_DEBUG(*this);
 	}

@@ -251,6 +251,7 @@ concept Concept =
 	shader::Concept<Shader>
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
 	and requires (R r, camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const Vertex_Array& va, const glm::mat4& transform) {
+		{ r.setup() } -> std::same_as<void>;
 		{ r.scene(cam, submissions) } -> std::same_as<void>;
 		{ r.submit(shader, va, transform) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;

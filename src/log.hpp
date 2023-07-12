@@ -28,7 +28,8 @@
 	{	\
 		const auto cond_val = sage::truth(cond);	\
 		if (not cond_val) { \
-			SAGE_LOG_CRITICAL("{} == {}: {}", #cond, cond_val, __VA_ARGS__);	\
+			SAGE_LOG_CRITICAL("{} : {}", #cond, cond_val);	\
+			SAGE_LOG_CRITICAL(__VA_ARGS__);	\
 		}	\
 		assert(cond_val);	\
 	}	\

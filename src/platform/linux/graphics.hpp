@@ -421,7 +421,7 @@ private:
 
 public:
 	auto setup(const fs::path& p) -> void {
-		SAGE_ASSERT(fs::exists(p));
+		SAGE_ASSERT_MSG(fs::exists(p), "Current: {}; Requested: {}", fs::current_path(), p);
 		path = p;
 
 		stbi_set_flip_vertically_on_load(1);
@@ -471,9 +471,15 @@ public:
 };
 
 using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;
+
 struct Renderer : Renderer_Base {
 
 public:
+	auto setup() -> void {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
 	auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform = glm::mat4{1.f}) -> void {
 		Renderer_Base::submit(shader, va, transform, [&] {
 				glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
