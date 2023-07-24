@@ -35,6 +35,18 @@
 	}	\
 	(void)0
 
+#define SAGE_ASSERT_PATH_EXISTS(path)	SAGE_ASSERT_MSG(fs::exists(path), "{}", fs::current_path()/path);
+
+// Check potential errors when reading the file_size of path
+#define SAGE_ASSERT_PATH_READABLE(path)	\
+	{	\
+		SAGE_ASSERT_PATH_EXISTS(path);	\
+		auto err = std::error_code{};	\
+		[[maybe_unused]] const auto _ = fs::file_size(path, err);	\
+		SAGE_ASSERT_MSG(not err, "{}: {}", path, err.message());	\
+	}	\
+	(void)0
+
 namespace sage::inline log {
 
 struct Log {

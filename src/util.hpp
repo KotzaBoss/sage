@@ -14,6 +14,24 @@ constexpr auto to_underlying(auto e) -> auto {
 
 namespace sage::inline util {
 
+namespace string {
+// Modified with ranges from: https://_stackoverflow.com/questions/216823/how-to-trim-an-stdstring
+constexpr auto trim(std::string& s, const char to_trim = ' ') -> void {
+	// Left trim
+	s.erase(
+			s.begin(),
+			rg::find_if_not(s, [=] (const auto c) { return c == to_trim; })
+		);
+	// Right trim
+	// Note the .base() of the reverse iterator
+	s.erase(
+			rg::find_if_not(s | vw::reverse, [=] (const auto c) { return c == to_trim; })
+				.base(),
+			s.end()
+		);
+}
+} // sage::util::string
+
 constexpr auto truth(const auto& x) -> bool {
 	return x;
 }
