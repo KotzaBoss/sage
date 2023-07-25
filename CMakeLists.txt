@@ -163,7 +163,7 @@ set(CMAKE_CXX_EXTENSIONS TRUE)
 
 add_compile_options(-Wall -Wextra -Wpedantic -pthread)
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-	add_compile_options(-fsanitize=undefined,address)
+	add_compile_options(-fsanitize=undefined,address -fconcepts-diagnostics-depth=5)
 	add_link_options(-fsanitize=undefined,address)
 endif()
 
