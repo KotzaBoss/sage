@@ -8,7 +8,6 @@
 #include <any>
 #include <bitset>
 #include <chrono>
-using namespace std::chrono_literals;
 #include <compare>
 #include <csetjmp>
 #include <csignal>
@@ -58,7 +57,6 @@ using namespace std::chrono_literals;
 //#endif
 #include <string>
 #include <string_view>
-using namespace std::string_literals;
 #include <array>
 #include <deque>
 #include <forward_list>
@@ -128,4 +126,6 @@ namespace fs = std::filesystem;
 #include <iso646.h>
 
 #include <sys/prctl.h>
+
+using namespace std::literals;
 
