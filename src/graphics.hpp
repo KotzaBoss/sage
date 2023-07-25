@@ -32,8 +32,16 @@ using Uniform = std::variant<
 
 template <typename S>
 concept Concept =
-	requires (S s, const std::string& vertex_src, const std::string& fragment_src, const Uniform& uniform, const std::string& uniform_name) {
-		{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
+	// requires s.setup(...)
+	(
+		requires (S s, const fs::path& src) {
+			{ s.setup(src) } -> std::same_as<void>;
+		}
+		or requires (S s, const std::string& vertex_src, const std::string& fragment_src) {
+			{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
+		}
+	)
+	and requires (S s, const Uniform& uniform, const std::string& uniform_name) {
 		{ s.teardown() } -> std::same_as<void>;
 		{ s.bind() } -> std::same_as<void>;
 		{ s.unbind() } -> std::same_as<void>;

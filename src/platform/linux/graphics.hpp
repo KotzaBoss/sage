@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/graphics.hpp"
+#include "src/filesystem.hpp"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -241,12 +242,29 @@ public:
 	friend FMT_FORMATTER(Vertex_Array);
 };
 
+// When setting up the shader from file do not try to manually read the contents of the file
+// and pass them to the setup(string, string) method. Instead use the setup(fs::path) overload.
+//
+// See those methods for details.
 struct Shader {
 
 private:
 	uint32_t renderer_id = 0;
 
 public:
+	// The shader file sources are expected to have at least one line at the top of the file:
+	// #type XXX
+	// where XXX is the supported shader type (generally: vertex, fragment).
+	// Subsequent shaders are delimitated by another "#type XXX" line.
+	// Empty lines do not matter.
+	//
+	// For details on the parsing of the shader sources see parse_shaders() method.
+	auto setup(const fs::path& src) -> void {
+		const auto shaders = parse_shaders(sage::read_file(src));
+		SAGE_LOG_DEBUG("Parsed shaders from {}:\n===== Vertex\n{}\n===== Fragment\n{}", src, shaders.vertex, shaders.fragment);
+		setup(std::move(shaders.vertex), std::move(shaders.fragment));
+	}
+
 	auto setup(const std::string& vertex_src, const std::string& fragment_src) -> void {
 		SAGE_ASSERT(not renderer_id);
 
@@ -409,6 +427,44 @@ public:
 				},
 				uniform
 			);
+	}
+
+private:
+	struct Parsed_Shaders {
+		std::string vertex, fragment;
+	};
+
+	static auto parse_shaders(const std::string& src) -> Parsed_Shaders {
+		constexpr auto type_token = "#type "sv;		// Note the convenient space
+
+		// Supported shaders
+		enum Shader_Type { None = -1,					Vertex=0,	Fragment=1		};	// Keep values such that they can be used as array indexes
+		constexpr auto supported_shaders = std::array{	"vertex",	"fragment"		};
+		SAGE_ASSERT_MSG(src.find(type_token) != std::string::npos, "At least one #type of shader must exist. Supported: {}", supported_shaders);
+
+		// Process src
+		auto ostreams = std::array<std::ostringstream, 2>{};
+		{
+			auto line = std::string{};
+			auto shader = None;
+			for (auto istream = std::istringstream{src}; std::getline(istream, line); ) {
+				string::trim(line);
+				if (line.starts_with(type_token)) {
+					const auto shader_i = rg::find_if(supported_shaders, [&] (const auto& shader) { return line.ends_with(shader); });
+					SAGE_ASSERT(shader_i != supported_shaders.cend());
+					shader = static_cast<Shader_Type>(std::distance(supported_shaders.cbegin(), shader_i));	// Distance (index) should match the enum value
+				}
+				else {
+					SAGE_ASSERT_MSG(shader != None, "Make sure there that the first line of the file has some shader #type");
+					ostreams[shader] << line << '\n';
+				}
+			}
+		}
+
+		return {
+			.vertex = ostreams[Vertex].str(),
+			.fragment = ostreams[Fragment].str()
+		};
 	}
 };
 

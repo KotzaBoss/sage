@@ -158,39 +158,7 @@ private:
 
 		vertex_array.setup(std::move(vertex_buffer), std::move(index_buffer));
 
-		shader.setup(
-			R"(
-				#version 330 core
-
-				layout(location = 0) in vec3 a_Position;
-				layout(location = 1) in vec4 a_Color;
-
-				uniform mat4 u_ViewProjection;
-				uniform mat4 u_Transform;
-
-				out vec3 v_Position;
-				out vec4 v_Color;
-
-				void main() {
-					v_Position = a_Position;
-					v_Color = a_Color;
-					gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
-				}
-			)",
-			R"(
-				#version 330 core
-
-				layout(location = 0) out vec4 color;
-
-				in vec3 v_Position;
-				in vec4 v_Color;
-
-				void main() {
-					color = vec4(v_Position, 1.0);
-					color = v_Color;
-				}
-			)"
-		);
+		shader.setup("asset/shader/some.glsl");
 
 		////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////
@@ -224,72 +192,13 @@ private:
 		renderer.set_clear_color({0.5f, 0.5f, 0.5f, 1.f});
 		renderer.setup();
 
-		square_shader.setup(
-				R"(
-					#version 330 core
+		square_shader.setup("asset/shader/square.glsl");
 
-					layout(location = 0) in vec3 a_Position;
-
-					uniform mat4 u_ViewProjection;
-					uniform mat4 u_Transform;
-
-					out vec3 v_Position;
-
-					void main() {
-						v_Position = a_Position;
-						gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
-					}
-				)",
-				R"(
-					#version 330 core
-
-					layout(location = 0) out vec4 color;
-
-					uniform vec3 u_Color;
-
-					in vec3 v_Position;
-
-					void main() {
-						color = vec4(u_Color, 1); //vec4(v_Position, 1.0);
-					}
-				)"
-			);
-
-		texture_shader.setup(
-				R"(
-					#version 330 core
-
-					layout(location = 0) in vec3 a_Position;
-					layout(location = 1) in vec2 a_TexCoord;
-
-					uniform mat4 u_ViewProjection;
-					uniform mat4 u_Transform;
-
-					out vec2 v_TexCoord;
-
-					void main() {
-						v_TexCoord = a_TexCoord;
-						gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
-					}
-				)",
-				R"(
-					#version 330 core
-
-					layout(location = 0) out vec4 color;
-
-					in vec2 v_TexCoord;
-
-					uniform sampler2D u_Texture;
-
-					void main() {
-						color = texture(u_Texture, v_TexCoord);
-					}
-				)"
-			);
+		texture_shader.setup("asset/shader/texture.glsl");
 		texture_shader.bind();
 		texture_shader.upload_uniform("u_Texture", 0);
 
-		tex.setup(fs::path{"asset/texture/owl.png"});
+		tex.setup("asset/texture/owl.png");
 
 		SAGE_LOG_DEBUG(*this);
 	}
