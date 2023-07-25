@@ -1,2 +1,5 @@
+message(STATUS "Copying shaders to ${CMAKE_CURRENT_BINARY_DIR}")
 file(GLOB textures *)
+list(FILTER textures EXCLUDE REGEX "CMakeLists.txt")
 file(COPY ${textures} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+cmake_print_variables(textures)
