@@ -30,6 +30,18 @@ using Uniform = std::variant<
 		glm::mat4
 	>;
 
+// Try to keep the values such that they can be used to index an array
+// and don't forget to change MAX_SUPPORTED_TYPES if you add or remove shader::Types
+enum class Type {
+	None = -1 /* Try to cause trouble */,
+	Vertex = 0, Fragment = 1,
+};
+constexpr auto MAX_SUPPORTED_TYPES = 2;
+
+// TODO: Add a Source struct that may contain metadata: eg. optional<path>, etc
+
+using Parsed = std::array<std::optional<std::string>, MAX_SUPPORTED_TYPES>;
+
 template <typename S>
 concept Concept =
 	// requires s.setup(...)
@@ -37,8 +49,8 @@ concept Concept =
 		requires (S s, const fs::path& src) {
 			{ s.setup(src) } -> std::same_as<void>;
 		}
-		or requires (S s, const std::string& vertex_src, const std::string& fragment_src) {
-			{ s.setup(vertex_src, fragment_src) } -> std::same_as<void>;
+		or requires (S s, const Parsed& shaders) {
+			{ s.setup(shaders) } -> std::same_as<void>;
 		}
 	)
 	and requires (S s, const Uniform& uniform, const std::string& uniform_name) {
@@ -375,3 +387,21 @@ FMT_FORMATTER(sage::graphics::buffer::Layout) {
 		return fmt::format_to(ctx.out(), "\t;");
 	}
 };
+
+template <>
+FMT_FORMATTER(sage::graphics::shader::Type) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::graphics::shader::Type) {
+		using namespace sage::graphics::shader;
+
+		return fmt::format_to(ctx.out(), "shader::Type: {};",
+				std::invoke([&] { switch (obj) {
+					case Type::Vertex:		return "Vertex";
+					case Type::Fragment:	return "Fragment";
+					default:				return "BAD VERTEX";
+				}})
+			);
+	}
+};
+

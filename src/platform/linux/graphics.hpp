@@ -247,6 +247,12 @@ public:
 //
 // See those methods for details.
 struct Shader {
+	using Parsed_Shaders = sage::graphics::shader::Parsed;
+
+	static constexpr int shader_type_map[] = {
+			[std::to_underlying(sage::graphics::shader::Type::Vertex)] = GL_VERTEX_SHADER,
+			[std::to_underlying(sage::graphics::shader::Type::Fragment)] = GL_FRAGMENT_SHADER,
+		};
 
 private:
 	uint32_t renderer_id = 0;
@@ -260,83 +266,68 @@ public:
 	//
 	// For details on the parsing of the shader sources see parse_shaders() method.
 	auto setup(const fs::path& src) -> void {
-		const auto shaders = parse_shaders(sage::read_file(src));
-		SAGE_LOG_DEBUG("Parsed shaders from {}:\n===== Vertex\n{}\n===== Fragment\n{}", src, shaders.vertex, shaders.fragment);
-		setup(std::move(shaders.vertex), std::move(shaders.fragment));
+		setup(parse_shaders(sage::read_file(src)));
 	}
 
-	auto setup(const std::string& vertex_src, const std::string& fragment_src) -> void {
+	auto setup(const Parsed_Shaders& shaders) -> void {
+		using namespace sage::graphics;
+
 		SAGE_ASSERT(not renderer_id);
 
-		// https://www.khronos.org/opengl/wiki/Shader_Compilation
-		// Create an empty vertex shader handle
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		// FIXME: why shader.size() doesnt work? its an array
+		auto processed_shaders = std::array<GLuint, shader::MAX_SUPPORTED_TYPES>{};
 
-		// Send the vertex shader source code to GL
-		// Note that std::string's .c_str is NULL character terminated.
-		const GLchar *source = (const GLchar *)vertex_src.c_str();
-		glShaderSource(vertexShader, 1, &source, 0);
+		rg::for_each(shaders, [&, this, i = 0 /* Poor man's enumerate */] (const auto& source) mutable {
+				if (source.has_value()) {
+					// https://www.khronos.org/opengl/wiki/Shader_Compilation
 
-		// Compile the vertex shader
-		glCompileShader(vertexShader);
+					// Create an empty shader handle
+					GLuint shader_id = glCreateShader(shader_type_map[i]);
 
-		GLint isCompiled = 0;
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
-		if(isCompiled == GL_FALSE)
-		{
-			GLint maxLength = 0;
-			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+					// Send the shader source code to GL
+					// Note that std::string's .c_str is NULL character terminated.
+					const GLchar *source_ptr = (const GLchar *)source->c_str();
+					glShaderSource(shader_id, 1, &source_ptr, 0);
 
-			// The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
+					// Compile the vertex shader
+					glCompileShader(shader_id);
 
-			// We don't need the shader anymore.
-			glDeleteShader(vertexShader);
+					GLint isCompiled = 0;
+					glGetShaderiv(shader_id, GL_COMPILE_STATUS, &isCompiled);
+					if(isCompiled == GL_FALSE)
+					{
+						GLint maxLength = 0;
+						glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &maxLength);
 
-			SAGE_ASSERT_MSG(false, fmt::format("Vertex shader compilation failed with: {}", infoLog.data()));
-			return;
-		}
+						// The maxLength includes the NULL character
+						std::vector<GLchar> infoLog(maxLength);
+						glGetShaderInfoLog(shader_id, maxLength, &maxLength, &infoLog[0]);
 
-		// Create an empty fragment shader handle
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+						// We don't need the shader anymore.
+						glDeleteShader(shader_id);
 
-		// Send the fragment shader source code to GL
-		// Note that std::string's .c_str is NULL character terminated.
-		source = (const GLchar *)fragment_src.c_str();
-		glShaderSource(fragmentShader, 1, &source, 0);
+						SAGE_ASSERT_MSG(false, fmt::format("{} compilation failed with: {}", static_cast<shader::Type>(i), infoLog.data()));
+					}
+					else
+						processed_shaders[i] = shader_id;
+				}
 
-		// Compile the fragment shader
-		glCompileShader(fragmentShader);
+				++i;
 
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-		if (isCompiled == GL_FALSE)
-		{
-			GLint maxLength = 0;
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+			});
 
-			// The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
+		SAGE_LOG_DEBUG("Compiled shaders ids (0 means failed to compile): {}", processed_shaders);
+		SAGE_ASSERT(rg::all_of(processed_shaders, [] (const auto shader_id) { return shader_id != 0; }));
 
-			// We don't need the shader anymore.
-			glDeleteShader(fragmentShader);
-			// Either of them. Don't leak shaders.
-			glDeleteShader(vertexShader);
-
-			SAGE_ASSERT_MSG(false, fmt::format("Vertex shader compilation failed with: {}", infoLog.data()));
-			return;
-		}
-
-		// Vertex and fragment shaders are successfully compiled.
+		// Shaders are successfully compiled.
 		// Now time to link them together into a program.
 		// Get a program object.
 		GLuint program = glCreateProgram();
-		renderer_id = program;
 
 		// Attach our shaders to our program
-		glAttachShader(program, vertexShader);
-		glAttachShader(program, fragmentShader);
+		rg::for_each(processed_shaders, [=] (const auto shader) {
+				glAttachShader(program, shader);
+			});
 
 		// Link our program
 		glLinkProgram(program);
@@ -356,16 +347,20 @@ public:
 			// We don't need the program anymore.
 			glDeleteProgram(program);
 			// Don't leak shaders either.
-			glDeleteShader(vertexShader);
-			glDeleteShader(fragmentShader);
+			rg::for_each(processed_shaders, [=] (const auto shader) {
+					glDeleteShader(shader);
+				});
 
 			SAGE_ASSERT_MSG(false, fmt::format("Program compilation failed with: {}", infoLog.data()));
 			return;
 		}
 
 		// Always detach shaders after a successful link.
-		glDetachShader(program, vertexShader);
-		glDetachShader(program, fragmentShader);
+		rg::for_each(processed_shaders, [=] (const auto shader) {
+				glDetachShader(program, shader);
+			});
+
+		renderer_id = program;
 	}
 
 	auto teardown() {
@@ -430,41 +425,45 @@ public:
 	}
 
 private:
-	struct Parsed_Shaders {
-		std::string vertex, fragment;
-	};
 
-	static auto parse_shaders(const std::string& src) -> Parsed_Shaders {
+	static auto parse_shaders(const std::string& src) -> sage::graphics::shader::Parsed {
 		constexpr auto type_token = "#type "sv;		// Note the convenient space
 
 		// Supported shaders
-		enum Shader_Type { None = -1,					Vertex=0,	Fragment=1		};	// Keep values such that they can be used as array indexes
-		constexpr auto supported_shaders = std::array{	"vertex",	"fragment"		};
+		constexpr auto supported_shaders = std::array{ "vertex", "fragment" };
 		SAGE_ASSERT_MSG(src.find(type_token) != std::string::npos, "At least one #type of shader must exist. Supported: {}", supported_shaders);
 
+		auto shaders = Parsed_Shaders{};
+
 		// Process src
-		auto ostreams = std::array<std::ostringstream, 2>{};
 		{
+			using namespace sage::graphics;
+
 			auto line = std::string{};
-			auto shader = None;
+			auto shader = shader::Type::None;
 			for (auto istream = std::istringstream{src}; std::getline(istream, line); ) {
 				string::trim(line);
 				if (line.starts_with(type_token)) {
 					const auto shader_i = rg::find_if(supported_shaders, [&] (const auto& shader) { return line.ends_with(shader); });
 					SAGE_ASSERT(shader_i != supported_shaders.cend());
-					shader = static_cast<Shader_Type>(std::distance(supported_shaders.cbegin(), shader_i));	// Distance (index) should match the enum value
+					shader = static_cast<shader::Type>(std::distance(supported_shaders.cbegin(), shader_i));	// Distance (index) should match the enum value
+					shaders[std::to_underlying(shader)].emplace();
 				}
 				else {
-					SAGE_ASSERT_MSG(shader != None, "Make sure there that the first line of the file has some shader #type");
-					ostreams[shader] << line << '\n';
+					SAGE_ASSERT_MSG(shader != shader::Type::None, "Make sure there that the first line of the file has some shader #type");
+
+					auto& source = shaders[std::to_underlying(shader)];
+					SAGE_ASSERT(source.has_value());
+
+					source.value()
+						.append(std::move(line))
+						.push_back('\n')
+						;
 				}
 			}
 		}
 
-		return {
-			.vertex = ostreams[Vertex].str(),
-			.fragment = ostreams[Fragment].str()
-		};
+		return shaders;
 	}
 };
 
