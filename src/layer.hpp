@@ -10,6 +10,7 @@
 
 namespace sage::layer {
 
+#pragma message "TODO: Maybe pass optional<Event> to allow for functional chaining?"
 template <typename Layer>
 concept Concept =
 	requires (Layer l, const Event& event, const std::chrono::milliseconds delta) {
@@ -17,7 +18,6 @@ concept Concept =
 		{ l.update(delta) } -> std::same_as<void>;
 		{ l.imgui_prepare() } -> std::same_as<void>;
 		{ l.teardown() } -> std::same_as<void>;
-		// TODO: Maybe pass optional<Event> to allow for functional chaining?
 		// layers.event_callback(window.pending_event());
 		// instead of checking the pending_event first.
 		{ l.event_callback(event) } -> std::same_as<void>;

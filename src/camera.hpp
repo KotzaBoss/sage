@@ -11,7 +11,7 @@
 
 namespace sage::camera {
 
-// TODO: Not sure if this API is necessary, maybe have public members?
+#pragma message "TODO: Not sure if this API is necessary, maybe have public members?"
 struct Orthographic {
 
 private:

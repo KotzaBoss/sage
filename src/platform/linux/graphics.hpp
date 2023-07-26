@@ -249,10 +249,13 @@ public:
 struct Shader {
 	using Parsed_Shaders = sage::graphics::shader::Parsed;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 	static constexpr int shader_type_map[] = {
 			[std::to_underlying(sage::graphics::shader::Type::Vertex)] = GL_VERTEX_SHADER,
 			[std::to_underlying(sage::graphics::shader::Type::Fragment)] = GL_FRAGMENT_SHADER,
 		};
+#pragma GCC diagnostic pop
 
 private:
 	uint32_t renderer_id = 0;

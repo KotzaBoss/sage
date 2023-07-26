@@ -47,7 +47,7 @@ public:
 	}
 
 	auto update(const std::chrono::milliseconds) -> void {
-		// TODO: noop?
+		#pragma message "TODO: noop?"
 		//ImGui_ImplOpenGL3_NewFrame();
 		//ImGui_ImplGlfw_NewFrame();
 		//::ImGui::NewFrame();

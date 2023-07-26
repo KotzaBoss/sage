@@ -65,6 +65,8 @@ public:
 				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
 			});
 
+		#pragma message "TODO: Change switches to array lookups for clarity"
+
 		glfwSetMouseButtonCallback(glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
 				user_pointer_to_this_ref(win)
 					._pending_event.assign(Event::make_mouse_button({
