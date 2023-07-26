@@ -265,8 +265,8 @@ public:
 	// Empty lines do not matter.
 	//
 	// For details on the parsing of the shader sources see parse_shaders() method.
-	auto setup(const fs::path& src) -> void {
-		setup(parse_shaders(sage::read_file(src)));
+	auto setup(const fs::path& p) -> void {
+		setup(parse_shaders(sage::read_file(p), p));
 	}
 
 	auto setup(const Parsed_Shaders& shaders) -> void {
@@ -286,7 +286,7 @@ public:
 
 					// Send the shader source code to GL
 					// Note that std::string's .c_str is NULL character terminated.
-					const GLchar *source_ptr = (const GLchar *)source->c_str();
+					const GLchar *source_ptr = (const GLchar *)source->code.c_str();
 					glShaderSource(shader_id, 1, &source_ptr, 0);
 
 					// Compile the vertex shader
@@ -306,7 +306,7 @@ public:
 						// We don't need the shader anymore.
 						glDeleteShader(shader_id);
 
-						SAGE_ASSERT_MSG(false, fmt::format("{} compilation failed with: {}", static_cast<shader::Type>(i), infoLog.data()));
+						SAGE_ASSERT_MSG(false, "{} Compilation failed with: {}\n{}", static_cast<shader::Type>(i), infoLog.data(), *source);
 					}
 					else
 						processed_shaders[i] = shader_id;
@@ -426,28 +426,28 @@ public:
 
 private:
 
-	static auto parse_shaders(const std::string& src) -> sage::graphics::shader::Parsed {
+	static auto parse_shaders(const std::string& file_src, const std::optional<fs::path>& path = std::nullopt) -> sage::graphics::shader::Parsed {
 		constexpr auto type_token = "#type "sv;		// Note the convenient space
 
 		// Supported shaders
 		constexpr auto supported_shaders = std::array{ "vertex", "fragment" };
-		SAGE_ASSERT_MSG(src.find(type_token) != std::string::npos, "At least one #type of shader must exist. Supported: {}", supported_shaders);
+		SAGE_ASSERT_MSG(file_src.find(type_token) != std::string::npos, "At least one #type of shader must exist. Supported: {}", supported_shaders);
 
 		auto shaders = Parsed_Shaders{};
 
-		// Process src
+		// Process file_src
 		{
 			using namespace sage::graphics;
 
 			auto line = std::string{};
 			auto shader = shader::Type::None;
-			for (auto istream = std::istringstream{src}; std::getline(istream, line); ) {
+			for (auto istream = std::istringstream{file_src}; std::getline(istream, line); ) {
 				string::trim(line);
 				if (line.starts_with(type_token)) {
 					const auto shader_i = rg::find_if(supported_shaders, [&] (const auto& shader) { return line.ends_with(shader); });
 					SAGE_ASSERT(shader_i != supported_shaders.cend());
 					shader = static_cast<shader::Type>(std::distance(supported_shaders.cbegin(), shader_i));	// Distance (index) should match the enum value
-					shaders[std::to_underlying(shader)].emplace();
+					shaders[std::to_underlying(shader)].emplace("", path);
 				}
 				else {
 					SAGE_ASSERT_MSG(shader != shader::Type::None, "Make sure there that the first line of the file has some shader #type");
@@ -455,7 +455,7 @@ private:
 					auto& source = shaders[std::to_underlying(shader)];
 					SAGE_ASSERT(source.has_value());
 
-					source.value()
+					source->code
 						.append(std::move(line))
 						.push_back('\n')
 						;

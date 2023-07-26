@@ -38,9 +38,13 @@ enum class Type {
 };
 constexpr auto MAX_SUPPORTED_TYPES = 2;
 
-// TODO: Add a Source struct that may contain metadata: eg. optional<path>, etc
+struct Source {
+	std::string code;
+	// Metadata
+	std::optional<fs::path> path;
+};
 
-using Parsed = std::array<std::optional<std::string>, MAX_SUPPORTED_TYPES>;
+using Parsed = std::array<std::optional<shader::Source>, MAX_SUPPORTED_TYPES>;
 
 template <typename S>
 concept Concept =
@@ -405,3 +409,19 @@ FMT_FORMATTER(sage::graphics::shader::Type) {
 	}
 };
 
+template <>
+FMT_FORMATTER(sage::graphics::shader::Source) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::graphics::shader::Source) {
+		fmt::format_to(ctx.out(), "shader::Source:\n\tpath={};\n\tcode=\n", obj.path);
+
+		// Print code with line numbers
+		auto line = std::string{};
+		auto i = 1ul;
+		for (auto istr = std::istringstream{obj.code}; std::getline(istr, line); )
+			fmt::format_to(ctx.out(), "{:3}\t{}\n", i++, line);
+
+		return fmt::format_to(ctx.out(), "\n\t;");
+	}
+};
