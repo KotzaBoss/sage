@@ -34,7 +34,7 @@ endmacro()
 add_custom_target(run_sandbox
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		COMMAND clear
-		COMMAND make -j11 sandbox
+		COMMAND cmake --build . -j11 -- sandbox
 		COMMAND ./sandbox/sandbox
 	)
 
@@ -161,7 +161,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS TRUE)
 
-add_compile_options(-Wall -Wextra -Wpedantic -pthread)
+add_compile_options(-Wall -Wextra -Wpedantic -pthread -fdiagnostics-color=always)
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
 	add_compile_options(-fsanitize=undefined,address -fconcepts-diagnostics-depth=5)
 	add_link_options(-fsanitize=undefined,address)
