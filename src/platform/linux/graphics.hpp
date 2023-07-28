@@ -246,7 +246,8 @@ public:
 // and pass them to the setup(string, string) method. Instead use the setup(fs::path) overload.
 //
 // See those methods for details.
-struct Shader {
+struct Shader : sage::graphics::shader::Base {
+	using Base = sage::graphics::shader::Base;
 	using Parsed_Shaders = sage::graphics::shader::Parsed;
 
 #pragma GCC diagnostic push
@@ -282,6 +283,8 @@ public:
 
 		rg::for_each(shaders, [&, this, i = 0 /* Poor man's enumerate */] (const auto& source) mutable {
 				if (source.has_value()) {
+					this->name = Base::generate_name(*source);
+
 					// https://www.khronos.org/opengl/wiki/Shader_Compilation
 
 					// Create an empty shader handle
