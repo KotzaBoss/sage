@@ -31,6 +31,13 @@ endmacro()
 
 ############################################ Convenience Targets #
 
+add_custom_target(debug_sandbox
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMAND clear
+		COMMAND cmake --build . -j11 -- sandbox
+		COMMAND gdb ./sandbox/sandbox
+	)
+
 add_custom_target(run_sandbox
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		COMMAND clear
