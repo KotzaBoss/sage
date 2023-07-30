@@ -14,7 +14,7 @@ using namespace sage;
 TEST_CASE ("App") {
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
-	auto camera_controller = camera::Controller{1920.f / 1024.f, input};
+	auto camera_controller = camera::Controller{input};
 	using App = sage::App<
 			oslinux::Window,
 			oslinux::Input,

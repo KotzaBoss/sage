@@ -62,28 +62,51 @@ public:
 
 template <input::Concept Input>
 struct Controller {
-private:
-	float aspect_ratio;
-	float zoom;
-	glm::vec3 position;
-	// In degrees TODO: Make a separete unit::Degrees struct?
-	float rotation,
-		  rotation_speed;
-	float move_speed;
+	struct Zoom {
+		float min,
+			  max,
+			  level;
 
-	camera::Orthographic _camera;
+	};
+
+	struct Rotation {
+		// In degrees TODO: Make a separete unit::Degrees struct?
+		float level,
+			  speed;
+	};
+
+private:
 	Input& input;
+	float aspect_ratio;
+	Zoom zoom;
+	glm::vec3 position;
+	float move_speed;
+	Rotation rotation;
+	camera::Orthographic _camera;
 
 public:
-	Controller(float _aspect_ratio, Input& i)
-		: aspect_ratio{_aspect_ratio}
-		, zoom{1.f}
-		, position{0, 0, 0}
-		, rotation{0}
-		, rotation_speed{180.f}
-		, move_speed{zoom}
+	struct Controller_Args {
+		float aspect_ratio = 16.f / 9.f;
+		Zoom zoom = {
+				.min = 0.25f,
+				.max = 10.f,
+				.level = 1.f
+			};
+		glm::vec3&& position = {0, 0, 0};
+		Rotation rotation = {
+				.level = 0,
+				.speed = 180.f
+			};
+		float move_speed = zoom.level;
+	};
+	Controller(Input& _input, Controller_Args&& args = {})
+		: input{_input}
+		, aspect_ratio{args.aspect_ratio}
+		, zoom{args.zoom}
+		, position{args.position}
+		, move_speed{args.move_speed}
+		, rotation{args.rotation}
 		, _camera{projection_mat_args()}
-		, input{i}
 	{
 
 	}
@@ -98,8 +121,8 @@ public:
 		if		(input.is_key_pressed(input::Key::D))	position.x += move_speed * dt_coeff;
 		else if (input.is_key_pressed(input::Key::A))	position.x -= move_speed * dt_coeff;
 
-		if		(input.is_key_pressed(input::Key::Q))	rotation -= rotation_speed * dt_coeff;
-		else if	(input.is_key_pressed(input::Key::E))	rotation += rotation_speed * dt_coeff;
+		if		(input.is_key_pressed(input::Key::Q))	rotation.level -= rotation.speed * dt_coeff;
+		else if	(input.is_key_pressed(input::Key::E))	rotation.level += rotation.speed * dt_coeff;
 
 		calc_view_mat();
 	}
@@ -109,8 +132,8 @@ public:
 			case Event::Type::Mouse_Scrolled:
 				SAGE_ASSERT(std::holds_alternative<input::Mouse::Scroll>(e.payload));
 
-				zoom = std::clamp(zoom - 0.5 * std::get<input::Mouse::Scroll>(e.payload).offset.y, 0.25, 10.0);
-				move_speed = zoom;
+				zoom.level = std::clamp(zoom.level - 0.5 * std::get<input::Mouse::Scroll>(e.payload).offset.y, 0.25, 10.0);
+				move_speed = zoom.level;
 				break;
 			case Event::Type::Window_Resized: {
 				SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
@@ -131,7 +154,7 @@ private:
 	auto calc_view_mat() -> void {
 		const auto transform =
 				glm::translate(glm::mat4(1.f), position)
-				* glm::rotate(glm::mat4(1.f), glm::radians(rotation), glm::vec3(0, 0, 1)
+				* glm::rotate(glm::mat4(1.f), glm::radians(rotation.level), glm::vec3(0, 0, 1)
 			);
 
 		_camera._view_mat = glm::inverse(transform);
@@ -140,10 +163,10 @@ private:
 
 	auto projection_mat_args() const -> camera::Orthographic::Projection_Args {
 		return {
-				.left	= -aspect_ratio * zoom,
-				.right	= aspect_ratio * zoom,
-				.bottom	= -zoom,
-				.top	= zoom,
+				.left	= -aspect_ratio * zoom.level,
+				.right	= aspect_ratio * zoom.level,
+				.bottom	= -zoom.level,
+				.top	= zoom.level,
 			};
 	}
 
@@ -172,6 +195,6 @@ FMT_FORMATTER(sage::camera::Controller<I>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::camera::Controller<I>) {
-		return fmt::format_to(ctx.out(), "camera::Controller: camera={};", obj._camera);
+		return fmt::format_to(ctx.out(), "camera::Controller: position={}; rotation={}; camera={};", glm::to_string(obj.position), obj.rotation.level, obj._camera);
 	}
 };
