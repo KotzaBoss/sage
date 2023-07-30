@@ -34,6 +34,13 @@ public:
 		return { .width = static_cast<New_N>(width), .height = static_cast<New_N>(height) };
 	}
 
+	auto is_zero() const -> bool {
+		if constexpr (std::floating_point<N>)
+			SAGE_LOG_WARN("Caution testing Size<floating_point> for equality with 0");
+
+		return width == 0 and height == 0;
+	}
+
 public:
 	friend
 	REPR_DEF_FMT(Size<N>)
