@@ -20,6 +20,12 @@ struct Input {
 			[std::to_underlying(Key::Down)] = GLFW_KEY_DOWN,
 			[std::to_underlying(Key::Left)] = GLFW_KEY_LEFT,
 			[std::to_underlying(Key::Right)] = GLFW_KEY_RIGHT,
+			[std::to_underlying(Key::Q)]	= GLFW_KEY_Q,
+			[std::to_underlying(Key::E)]	= GLFW_KEY_E,
+			[std::to_underlying(Key::W)]	= GLFW_KEY_W,
+			[std::to_underlying(Key::A)]	= GLFW_KEY_A,
+			[std::to_underlying(Key::S)]	= GLFW_KEY_S,
+			[std::to_underlying(Key::D)]	= GLFW_KEY_D,
 		};
 
 	static auto is_in_key_map(const Key k) -> bool {

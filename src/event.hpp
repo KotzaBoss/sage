@@ -38,6 +38,7 @@ struct Event {
 		std::monostate,	// No payload
 		Size<size_t>,
 		input::Mouse::Button,
+		input::Mouse::Scroll,
 		input::Key
 	>;
 	static constexpr auto no_payload = Payload{};
@@ -59,7 +60,8 @@ public:
 		Type&& type;
 		input::Mouse::Button&& mouse_button;
 	};
-	static auto make_mouse_button	(const Make_Mouse_Button_Args& args) -> Event;
+	static auto make_mouse_button	(const Make_Mouse_Button_Args& args)	-> Event;
+	static auto make_mouse_scroll	(const input::Mouse::Scroll& args)		-> Event;
 
 	struct Make_Key_Args {
 		Type&& type;
@@ -90,6 +92,7 @@ FMT_FORMATTER(sage::Event::Type) {
 						case sage::Event::Type::Window_Resized:			return "Window_Resized";
 						case sage::Event::Type::Mouse_Button_Pressed:	return "Mouse_Button_Pressed";
 						case sage::Event::Type::Mouse_Button_Released:	return "Mouse_Button_Released";
+						case sage::Event::Type::Mouse_Scrolled:			return "Mouse_Scrolled";
 						case sage::Event::Type::Key_Pressed:			return "Key_Pressed";
 						case sage::Event::Type::Key_Repeated:			return "Key_Repeated";
 						case sage::Event::Type::Key_Released:			return "Key_Released";

@@ -85,6 +85,17 @@ public:
 				);
 			});
 
+		glfwSetScrollCallback(glfw, [] (GLFWwindow* win, double xoffset, double yoffset) {
+				user_pointer_to_this_ref(win)
+					._pending_event.assign(Event::make_mouse_scroll({
+								.offset = {
+									.x = xoffset,
+									.y = yoffset
+								}
+							})
+						);
+			});
+
 		glfwSetKeyCallback(glfw, [] (GLFWwindow* win, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
 				user_pointer_to_this_ref(win)
 					._pending_event.assign(Event::make_key({
@@ -95,10 +106,12 @@ public:
 											default:			return Event::Type::None;
 										}}),
 									.key = std::invoke([&] { switch (key) {
-											case GLFW_KEY_UP:		return input::Key::Up;
-											case GLFW_KEY_DOWN:		return input::Key::Down;
-											case GLFW_KEY_LEFT:		return input::Key::Left;
-											case GLFW_KEY_RIGHT:	return input::Key::Right;
+											case GLFW_KEY_Q:		return input::Key::Q;
+											case GLFW_KEY_E:		return input::Key::E;
+											case GLFW_KEY_W:		return input::Key::W;
+											case GLFW_KEY_A:		return input::Key::A;
+											case GLFW_KEY_S:		return input::Key::S;
+											case GLFW_KEY_D:		return input::Key::D;
 											default:
 												SAGE_LOG_DEBUG("oslinux::Window::glfwSetKeyCallback: Unexpected key {}", key);
 												return input::Key::None;
