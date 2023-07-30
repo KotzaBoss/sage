@@ -9,78 +9,151 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <glm/gtx/string_cast.hpp>
 
+#include "event.hpp"
+#include "input.hpp"
+
 namespace sage::camera {
 
 #pragma message "TODO: Not sure if this API is necessary, maybe have public members?"
 struct Orthographic {
+	template <input::Concept>
+	friend struct Controller;
 
 private:
 	glm::mat4 _projection_mat;
 	glm::mat4 _view_mat;
 	glm::mat4 _view_proj_mat;	// Cached
-	glm::vec3 _position;
-	float _rotation;			// In degrees TODO: Make a separete unit::Degrees struct?
 
 public:
-	struct Args {
-		float&& left, right, bottom, top;
+	struct Projection_Args {
+		float left, right, bottom, top;
 	};
-	Orthographic(Args&& args)
+	Orthographic(Projection_Args&& args)
 		: _projection_mat{glm::ortho(args.left, args.right, args.bottom, args.top, -1.f, 1.f)}
 		, _view_mat{1.f}
-		, _position{0, 0, 0}
-		, _rotation{0.f}
 	{
-		calc_view_mat();
+		_view_proj_mat = _projection_mat * _view_mat;
 	}
 
 	Orthographic(Orthographic&&) = default;
 
 public:
-	auto position() -> const glm::vec3& {
-		return _position;
-	}
-
-	auto set_position(const glm::vec3& pos) -> void {
-		_position = pos;
-		calc_view_mat();
-	}
-
-	auto rotation() -> float {
-		return _rotation;
-	}
-
-	auto set_rotation(const float rot) -> void {
-		_rotation = rot;
-		calc_view_mat();
-	}
-
-	auto projection_mat() -> const glm::mat4& {
-		return _projection_mat;
-	}
-
-	auto view_mat() -> const glm::mat4& {
-		return _view_mat;
-	}
-
-	auto view_proj_mat() -> const glm::mat4& {
-		return _view_proj_mat;
-	}
-
-
-private:
-	auto calc_view_mat() -> void {
-		const auto transform =
-				glm::translate(glm::mat4(1.f), _position)
-				* glm::rotate(glm::mat4(1.f), glm::radians(_rotation), glm::vec3(0, 0, 1)
-			);
-
-		_view_mat = glm::inverse(transform);
+	auto set_projection(Projection_Args&& args) {
+		_projection_mat = glm::ortho(args.left, args.right, args.bottom, args.top, -1.f, 1.f);
 		_view_proj_mat = _projection_mat * _view_mat;
 	}
 
 public:
+	auto projection_mat() const -> const glm::mat4& {
+		return _projection_mat;
+	}
+
+	auto view_mat() const -> const glm::mat4& {
+		return _view_mat;
+	}
+
+	auto view_proj_mat() const -> const glm::mat4& {
+		return _view_proj_mat;
+	}
+
+public:
 	friend FMT_FORMATTER(Orthographic);
+};
+
+template <input::Concept Input>
+struct Controller {
+private:
+	float aspect_ratio;
+	float zoom;
+	glm::vec3 position;
+	// In degrees TODO: Make a separete unit::Degrees struct?
+	float rotation,
+		  rotation_speed;
+	float move_speed;
+
+	camera::Orthographic _camera;
+	Input& input;
+
+public:
+	Controller(float _aspect_ratio, Input& i)
+		: aspect_ratio{_aspect_ratio}
+		, zoom{1.f}
+		, position{0, 0, 0}
+		, rotation{0}
+		, rotation_speed{180.f}
+		, move_speed{zoom}
+		, _camera{projection_mat_args()}
+		, input{i}
+	{
+
+	}
+
+public:
+	auto update(const std::chrono::milliseconds dt) -> void {
+		const auto dt_coeff = std::chrono::duration<float, std::chrono::seconds::period>{dt}.count();
+
+		if		(input.is_key_pressed(input::Key::W))	position.y += move_speed * dt_coeff;
+		else if (input.is_key_pressed(input::Key::S))	position.y -= move_speed * dt_coeff;
+
+		if		(input.is_key_pressed(input::Key::D))	position.x += move_speed * dt_coeff;
+		else if (input.is_key_pressed(input::Key::A))	position.x -= move_speed * dt_coeff;
+
+		if		(input.is_key_pressed(input::Key::Q))	rotation -= rotation_speed * dt_coeff;
+		else if	(input.is_key_pressed(input::Key::E))	rotation += rotation_speed * dt_coeff;
+
+		calc_view_mat();
+	}
+
+	auto event_callback(const Event& e) -> void {
+		switch (e.type) {
+			case Event::Type::Mouse_Scrolled:
+				SAGE_ASSERT(std::holds_alternative<input::Mouse::Scroll>(e.payload));
+
+				zoom = std::clamp(zoom - 0.5 * std::get<input::Mouse::Scroll>(e.payload).offset.y, 0.25, 10.0);
+				move_speed = zoom;
+				break;
+			case Event::Type::Window_Resized: {
+				SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
+
+				const auto sz = std::get<Size<size_t>>(e.payload).to<float>();
+				aspect_ratio = sz.width / sz.height;
+				break;
+			}
+			default:
+				SAGE_LOG_DEBUG("Uninterested in event: {}", e);
+				return;
+		}
+
+		_camera.set_projection(projection_mat_args());
+	}
+
+private:
+	auto calc_view_mat() -> void {
+		const auto transform =
+				glm::translate(glm::mat4(1.f), position)
+				* glm::rotate(glm::mat4(1.f), glm::radians(rotation), glm::vec3(0, 0, 1)
+			);
+
+		_camera._view_mat = glm::inverse(transform);
+		_camera._view_proj_mat = _camera._projection_mat * _camera._view_mat;
+	}
+
+	auto projection_mat_args() const -> camera::Orthographic::Projection_Args {
+		return {
+				.left	= -aspect_ratio * zoom,
+				.right	= aspect_ratio * zoom,
+				.bottom	= -zoom,
+				.top	= zoom,
+			};
+	}
+
+public:
+	auto camera() const -> const Orthographic& {
+		return _camera;
+	}
+
+public:
+	friend FMT_FORMATTER(Controller);
 };
 
 }// sage::camera
@@ -90,6 +163,15 @@ FMT_FORMATTER(sage::camera::Orthographic) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::camera::Orthographic) {
-		return fmt::format_to(ctx.out(), "camera::Orthographic: position={}; rotation={};;", glm::to_string(obj._position), obj._rotation);
+		return fmt::format_to(ctx.out(), "camera::Orthographic: projection_mat={};;", glm::to_string(obj._projection_mat));
+	}
+};
+
+template <sage::input::Concept I>
+FMT_FORMATTER(sage::camera::Controller<I>) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::camera::Controller<I>) {
+		return fmt::format_to(ctx.out(), "camera::Controller: camera={};", obj._camera);
 	}
 };

@@ -31,6 +31,7 @@ template <
 struct App {
 	using Layers = sage::layer::Storage<layer::ImGui, Ls...>;
 	using Clock = std::chrono::steady_clock;
+	using Camera_Controller = camera::Controller<Input>;
 
 private:
 	Window window;
@@ -52,15 +53,15 @@ private:
 	glm::vec3 square_color;
 	oslinux::Texture2D tex;
 
-	camera::Orthographic& camera;
+	Camera_Controller& camera_controller;
 
 public:
-	App(Window&& w, Input&& i, camera::Orthographic& c, same_as_any<Ls...>auto &&... ls)
+	App(Window&& w, Input&& i, Camera_Controller& cc, same_as_any<Ls...>auto &&... ls)
 		: window{std::move(w)}
 		, input{std::move(i)}
 		, layers{layer::ImGui{window}, std::move(ls)...}
 		, imgui{layers.front()}
-		, camera{c}
+		, camera_controller{cc}
 	{}
 
 	~App() {
@@ -79,11 +80,12 @@ public:
 						event.has_value())
 					{
 						layers.event_callback(*event);
+						camera_controller.event_callback(*event);
 					}
 
 					renderer.clear();
 
-					renderer.scene(camera, [&] {
+					renderer.scene(camera_controller.camera(), [&] {
 							const auto scale = glm::scale(glm::mat4{1}, glm::vec3{0.1f});
 							for (auto y = 0; y < 20; ++y) {
 								for (auto x = 0; x < 20; ++x) {
@@ -103,6 +105,7 @@ public:
 						});
 
 					layers.update(delta);
+					camera_controller.update(delta);
 
 					imgui.new_frame([this] {
 							layers.imgui_prepare();
@@ -223,7 +226,7 @@ FMT_FORMATTER(sage::App<Ts...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::App<Ts...>) {
-		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tcamera={}\n\tlayers={}\n\t;", obj.window, obj.camera, obj.layers);
+		return fmt::format_to(ctx.out(), "App:\n\twindow={}\n\tcamera_controller={}\n\tlayers={}\n\t;", obj.window, obj.camera_controller, obj.layers);
 	}
 };
 
