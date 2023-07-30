@@ -61,7 +61,7 @@ public:
 		glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
 				auto& _this = user_pointer_to_this_ref(win);
 
-				_this._properties.size = Size::to<size_t>(Size{width, height});
+				_this._properties.size = Size{width, height}.to<size_t>();
 				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
 			});
 

@@ -10,6 +10,16 @@ namespace sage::inline math {
 template<typename T>
 concept Number = std::integral<T> or std::floating_point<T>;
 
+template <Number Range, Number X>
+constexpr auto in_range(X x) -> bool {
+	if constexpr (std::integral<Range>)
+		return std::in_range<Range>(x);
+	else {
+		using limits = std::numeric_limits<Range>;
+		return limits::min() <= x and x <= limits::max();
+	}
+}
+
 template<Number N = size_t>
 struct Size {
 	using Type = N;
@@ -19,9 +29,9 @@ public:
 
 public:
 	template <Number New_N>
-	static auto to(const Size<N>& s) -> Size<New_N> {
-		SAGE_ASSERT(std::in_range<New_N>(s.width) and std::in_range<New_N>(s.height));
-		return { .width = static_cast<New_N>(s.width), .height = static_cast<New_N>(s.height) };
+	auto to() const -> Size<New_N> {
+		SAGE_ASSERT(in_range<New_N>(width) and in_range<New_N>(height));
+		return { .width = static_cast<New_N>(width), .height = static_cast<New_N>(height) };
 	}
 
 public:
