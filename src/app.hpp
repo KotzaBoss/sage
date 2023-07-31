@@ -104,8 +104,10 @@ public:
 							renderer.submit(texture_shader, square_vertex_array, glm::scale(glm::mat4{1}, glm::vec3{1.5f}));
 						});
 
-					layers.update(delta);
-					camera_controller.update(delta);
+					if (not window.is_minimized()) {
+						layers.update(delta);
+						camera_controller.update(delta);
+					}
 
 					imgui.new_frame([this] {
 							layers.imgui_prepare();
