@@ -12,8 +12,9 @@ namespace sage::window {
 struct Properties {
 	using Size = sage::Size<size_t>;
 
-	std::string title = "SAGE Window"s;
+	std::string_view title = "SAGE Window"sv;
 	Size size = { .width=1280, .height=720 };
+	bool is_minimized = false;
 
 	REPR_DECL(Properties);
 };
@@ -26,14 +27,14 @@ concept Concept =
 		{ win.update() } -> std::same_as<void>;
 		{ win.teardown() } -> std::same_as<void>;
 		{ win.pending_event() } -> std::same_as<std::optional<Event>>;
-		{ win.properties() } -> std::same_as<const Properties&>;
+		{ win.properties() } -> std::same_as<Properties>;
 		{ win.native_handle() } -> std::convertible_to<void*>;	// Each concrete provides its own pointer type
 	}
 	;
 
 struct Base {
 protected:
-	sage::window::Properties _properties;
+	Monitor<window::Properties> _properties;
 	Monitor<std::optional<Event>> _pending_event;
 
 public:
@@ -43,10 +44,16 @@ public:
 		: _properties{std::move(ps)}
 	{}
 
-	auto properties() const -> const sage::window::Properties& { return _properties; }
+	auto properties() const -> window::Properties {
+		return _properties.load();
+	}
 
 	auto pending_event() const -> std::optional<Event> {
 		return _pending_event.release();
+	}
+
+	auto is_minimized() const -> bool {
+		return _properties.load().is_minimized;
 	}
 };
 

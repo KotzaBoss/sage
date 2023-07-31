@@ -11,6 +11,7 @@ constexpr auto to_underlying(auto e) -> auto {
 #endif
 
 #include "repr.hpp"
+#include "log.hpp"
 
 namespace sage::inline util {
 
@@ -75,17 +76,31 @@ public:
 		return std::invoke(fn, obj);
 	}
 
-	// FIXME: Hate this, i couldnt get operator= to compile correctly, it keeps thinking that
-	// monitor = object;
-	// is trying to assign a Monitor<Object> instead of an Object.
 	template <typename Obj>
 		// Could not really figure out how to constrain it without this monstrosity.
 		// std::assignable_from whines about the LHS not being a lvalue.
 		requires requires (Obj o, Object dest) { dest = o; }
-	auto assign(Obj&& o) const -> const Monitor& {
+	auto store(Obj&& o) const -> void {
 		LOCK_GUARD(m);
 		obj = std::forward<Obj>(o);
-		return *this;
+	}
+
+	auto store(std::invocable<Object_Ref> auto fn) -> void {
+		LOCK_GUARD(m);
+		fn(obj);
+	}
+
+	auto load() const -> Object {
+		if constexpr (not std::is_trivially_copyable_v<T>)
+			SAGE_LOG_DEBUG("Guarded object of Monitor is not trivially copyable, consider using the load(invocable) overload");
+
+		LOCK_GUARD(m);
+		return obj;
+	}
+
+	auto load(const std::invocable<const Object_Ref> auto fn) -> void {
+		LOCK_GUARD(m);
+		fn(obj);
 	}
 
 	auto release() const -> Object {

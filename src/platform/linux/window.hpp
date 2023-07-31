@@ -31,10 +31,12 @@ public:
 				SAGE_LOG_ERROR("{} ({:#}): {}", err, err, msg);
 			});
 
+		const auto properties = _properties.load();
+		SAGE_ASSERT_MSG(properties.title.rfind('\0'), "OpenGL window title {:?} is not NULL terminated string", properties.title);
 		glfw = glfwCreateWindow(
-			_properties.size.width,
-			_properties.size.height,
-			_properties.title.c_str(),
+			properties.size.width,
+			properties.size.height,
+			properties.title.data(),
 			nullptr,
 			nullptr
 			);
@@ -55,21 +57,35 @@ public:
 		// No captures, must be convertible to functon
 		glfwSetWindowCloseCallback(glfw, [] (GLFWwindow* win) {
 				user_pointer_to_this_ref(win)
-					._pending_event.assign(Event::make_window_closed());
+					._pending_event.store(Event::make_window_closed());
 			});
 
 		glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
 				auto& _this = user_pointer_to_this_ref(win);
 
-				_this._properties.size = Size{width, height}.to<size_t>();
-				_this._pending_event.assign(Event::make_window_resized(_this._properties.size));
+				_this._properties.store([&] (auto& p) {
+						p.size = Size{width, height}.to<size_t>();
+					});
+				_this._pending_event.store(Event::make_window_resized(_this._properties.load().size));
+			});
+
+		glfwSetWindowIconifyCallback(glfw, [] (GLFWwindow* win, int iconified) {
+				auto& _this = user_pointer_to_this_ref(win);
+
+				_this._properties.store([=] (auto& p) {
+						p.is_minimized = iconified;
+					});
+				if (iconified)
+					_this._pending_event.store(Event::make_window_minimized());
+				else
+					_this._pending_event.store(Event::make_window_restored());
 			});
 
 		#pragma message "TODO: Change switches to array lookups for clarity"
 
 		glfwSetMouseButtonCallback(glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
 				user_pointer_to_this_ref(win)
-					._pending_event.assign(Event::make_mouse_button({
+					._pending_event.store(Event::make_mouse_button({
 						.type = std::invoke([&] { switch (action) {
 								case GLFW_PRESS:	return Event::Type::Mouse_Button_Pressed;
 								case GLFW_RELEASE:	return Event::Type::Mouse_Button_Released;
@@ -87,7 +103,7 @@ public:
 
 		glfwSetScrollCallback(glfw, [] (GLFWwindow* win, double xoffset, double yoffset) {
 				user_pointer_to_this_ref(win)
-					._pending_event.assign(Event::make_mouse_scroll({
+					._pending_event.store(Event::make_mouse_scroll({
 								.offset = {
 									.x = xoffset,
 									.y = yoffset
@@ -98,7 +114,7 @@ public:
 
 		glfwSetKeyCallback(glfw, [] (GLFWwindow* win, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
 				user_pointer_to_this_ref(win)
-					._pending_event.assign(Event::make_key({
+					._pending_event.store(Event::make_key({
 									.type = std::invoke([&] {switch (action) {
 											case GLFW_PRESS:	return Event::Type::Key_Pressed;
 											case GLFW_REPEAT:	return Event::Type::Key_Repeated;
