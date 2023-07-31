@@ -14,7 +14,7 @@ struct Event {
 					// Type
 	enum class Type {
 		None = 0,
-		Window_Closed, Window_Resized,
+		Window_Closed, Window_Resized, Window_Minimized, Window_Restored,
 		Mouse_Button_Pressed, Mouse_Button_Released, Mouse_Moved, Mouse_Scrolled,
 		Key_Pressed, Key_Repeated, Key_Released,
 	};
@@ -37,6 +37,7 @@ struct Event {
 	using Payload = std::variant<
 		std::monostate,	// No payload
 		Size<size_t>,
+		bool,
 		input::Mouse::Button,
 		input::Mouse::Scroll,
 		input::Key
@@ -53,8 +54,10 @@ public:
 	Payload payload;
 
 public:
-	static auto make_window_closed	()							-> Event;
-	static auto make_window_resized	(const Size<size_t>& sz)	-> Event;
+	static auto make_window_closed		()							-> Event;
+	static auto make_window_resized		(const Size<size_t>& sz)	-> Event;
+	static auto make_window_minimized	()							-> Event;
+	static auto make_window_restored	()							-> Event;
 
 	struct Make_Mouse_Button_Args {
 		Type&& type;
@@ -90,6 +93,8 @@ FMT_FORMATTER(sage::Event::Type) {
 					switch (obj) {
 						case sage::Event::Type::Window_Closed:			return "Window_Closed";
 						case sage::Event::Type::Window_Resized:			return "Window_Resized";
+						case sage::Event::Type::Window_Minimized:		return "Window_Minimized";
+						case sage::Event::Type::Window_Restored:		return "Window_Restored";
 						case sage::Event::Type::Mouse_Button_Pressed:	return "Mouse_Button_Pressed";
 						case sage::Event::Type::Mouse_Button_Released:	return "Mouse_Button_Released";
 						case sage::Event::Type::Mouse_Scrolled:			return "Mouse_Scrolled";

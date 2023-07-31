@@ -18,6 +18,22 @@ auto Event::make_window_resized(const Size<size_t>& sz) -> Event {
 	};
 }
 
+auto Event::make_window_minimized() -> Event {
+	return {
+		.type = Type::Window_Minimized,
+		.category = Category::Input,
+		.payload = Event::no_payload
+	};
+}
+
+auto Event::make_window_restored() -> Event {
+	return {
+		.type = Type::Window_Restored,
+		.category = Category::Input,
+		.payload = Event::no_payload
+	};
+}
+
 auto Event::make_mouse_button(const Make_Mouse_Button_Args& args) -> Event {
 	SAGE_ASSERT(
 			args.type == Event::Type::Mouse_Button_Pressed
