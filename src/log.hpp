@@ -5,6 +5,7 @@
 #include "fmt/format.h"
 #include "fmt/chrono.h"
 #include "fmt/std.h"
+#include "fmt/ranges.h"
 
 #ifdef NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
