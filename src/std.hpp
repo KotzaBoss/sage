@@ -127,5 +127,7 @@ namespace fs = std::filesystem;
 
 #include <sys/prctl.h>
 
+#include <cxxabi.h>
+
 using namespace std::literals;
 
