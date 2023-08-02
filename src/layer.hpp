@@ -16,6 +16,7 @@ concept Concept =
 	requires (Layer l, const Event& event, const std::chrono::milliseconds delta) {
 		{ l.setup() } -> std::same_as<void>;
 		{ l.update(delta) } -> std::same_as<void>;
+		// Must be called in layer::ImGui::new_frame()
 		{ l.imgui_prepare() } -> std::same_as<void>;
 		{ l.teardown() } -> std::same_as<void>;
 		// layers.event_callback(window.pending_event());
