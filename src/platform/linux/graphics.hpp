@@ -55,6 +55,10 @@ public:
 		const auto version = gladLoadGL(glfwGetProcAddress);
 		SAGE_ASSERT(version);
 
+		// Thanks: https://www.khronos.org/opengl/wiki/Example/OpenGL_Error_Testing_with_Message_Callbacks
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(gl_error_callback, nullptr);
+
 		const auto gl_version = std::string_view{reinterpret_cast<const char*>(glGetString(GL_VERSION))};
 
 		SAGE_LOG_INFO(R"end(OpenGL
@@ -71,11 +75,31 @@ public:
 			);
 
 		SAGE_ASSERT(gl_version.contains("4.6"));
+
 	}
 
 	auto swap_buffers() -> void {
 		glfwSwapBuffers(*glfw);
 	}
+
+private:
+	 static GLAPIENTRY auto gl_error_callback(
+		GLenum source,
+		GLenum type,
+		[[maybe_unused]] GLuint id,
+		[[maybe_unused]] GLenum severity,
+		[[maybe_unused]] GLsizei length,
+		const GLchar* message,
+		[[maybe_unused]] const void* userParam
+	) -> void
+	{
+		if (type == GL_DEBUG_TYPE_ERROR)
+			SAGE_LOG_ERROR(
+					"OpenGL Error:\n\t{} {}",
+					source, message
+				);
+	}
+
 };
 
 struct Vertex_Buffer {
@@ -385,11 +409,12 @@ public:
 	}
 
 	auto upload_uniform(const std::string& name, const sage::graphics::shader::Uniform& uniform) const -> void {
+		SAGE_ASSERT(renderer_id);
+		glUseProgram(renderer_id);
 		const auto loc = glGetUniformLocation(renderer_id, name.c_str());
 		SAGE_ASSERT(loc != -1);
 
-		std::visit(
-				[&] (auto&& u) {
+		std::visit([&] (auto&& u) {
 					using T = std::decay_t<decltype(u)>;
 					if constexpr (std::same_as<int, T>)
 						glUniform1i(loc,
