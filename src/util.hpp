@@ -112,6 +112,109 @@ public:
 template <typename Needle, typename... Haystack>
 concept same_as_any = (std::same_as<Needle, Haystack> or ...);
 
+namespace detail {
+	template <typename...>
+	inline constexpr auto unique = true;
+
+	template <typename T, typename... Rest>
+	inline constexpr auto unique<T, Rest...> = (not same_as_any<T, Rest> and ...) and unique<Rest...>;
+}
+
+template <typename... T>
+concept Unique = detail::unique<T...>;
+
+namespace type {
+
+using Real_Name_Ptr = std::unique_ptr<char, decltype([] (auto ptr) { std::free(ptr); })>;
+
+template <typename T>
+constexpr auto real_name() -> Real_Name_Ptr {
+	auto _real_name = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
+	SAGE_ASSERT(_real_name);
+	return Real_Name_Ptr{ _real_name };
+}
+
+template <typename X>
+struct Counter {
+	using Type = X;
+
+public:
+	size_t value = 0;
+
+public:
+	constexpr auto operator++ () -> Counter& {
+		++value;
+		return *this;
+	}
+
+	constexpr auto operator* () const -> size_t {
+		return value;
+	}
+
+	constexpr auto operator== (const std::unsigned_integral auto& other) const -> bool {
+		return value == other;
+	}
+};
+
+// See below (outside of namespace sage) for the specialization of tuple_size, to make
+// gcc happy...
+template <typename... Ts>
+struct Counters : std::tuple<Counter<Ts>...> {
+
+	template <same_as_any<Ts...> X>
+	constexpr auto increment() -> void {
+		++std::get<Counter<X>>(*this);
+	}
+
+	template <typename X>
+	constexpr auto count() -> size_t {
+		if constexpr (same_as_any<X, Ts...>)
+			return *std::get<Counter<X>>(*this);
+		else
+			return 0;
+	}
+};
+
+template <typename... Ts>
+	requires Unique<Ts...>
+struct Set {
+	Set() = delete;
+
+	using Set_Counters = type::Counters<Ts...>;
+
+	// Count occurences of Ts... in Xs...
+	// Syntactically simplified examples:
+	//
+	//		Set<int, float>::count<int>()				== tuple(1, 0);
+	//		Set<int, float>::count<float>()				== tuple(0, 1);
+	//		Set<int, float>::count<float, int, float>() == tuple(1, 2);
+	//
+	// See util.test.cpp for more extensive calls
+	template <typename... Xs>
+		requires (sizeof...(Xs) > 0)
+	static consteval auto count() -> type::Counters<Ts...> {
+		auto counters = type::Counters<Ts...>{};
+		(increment_counter_if_exists<Xs>(counters), ...);
+		return counters;
+	}
+
+	template <typename... Xs>
+		requires (sizeof...(Xs) <= 1)
+	static consteval auto contains() -> bool {
+		return (same_as_any<Xs, Ts...> or ...);
+	}
+
+private:
+	template <typename X>
+	static consteval auto increment_counter_if_exists(type::Counters<Ts...>& counters) -> void {
+		if constexpr (same_as_any<X, Ts...>)
+			counters.template increment<X>();
+	}
+
+};
+
+}// type
+
 template <typename... Ts>
 struct Polymorphic_Storage {
 	template <typename Q>
