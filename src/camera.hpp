@@ -143,7 +143,6 @@ public:
 				break;
 			}
 			default:
-				SAGE_LOG_DEBUG("Uninterested in event: {}", e);
 				return;
 		}
 

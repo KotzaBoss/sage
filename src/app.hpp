@@ -79,6 +79,7 @@ public:
 					if (const auto event = window.pending_event();
 						event.has_value())
 					{
+						renderer.event_callback(*event);
 						layers.event_callback(*event);
 						camera_controller.event_callback(*event);
 					}

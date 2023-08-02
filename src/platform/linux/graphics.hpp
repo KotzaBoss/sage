@@ -541,6 +541,15 @@ public:
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	auto event_callback(const Event& e) -> void {
+		if (e.type == Event::Type::Window_Resized) {
+			SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
+
+			const auto& payload = std::get<Size<size_t>>(e.payload);
+			glViewport(0, 0, payload.width, payload.height);
+		}
+	}
+
 	auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform = glm::mat4{1.f}) -> void {
 		Renderer_Base::submit(shader, va, transform, [&] {
 				glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
