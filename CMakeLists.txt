@@ -144,7 +144,7 @@ endif()
 
 # Expectations
 set(EXPECTED_COMPILER_ID "GNU")
-set(EXPECTED_COMPILER_VERSION "12.0.0")
+set(EXPECTED_COMPILER_VERSION "13.0.0")
 set(EXPECTED_COMPILER_DEBUG "${EXPECTED_COMPILER_ID} ${EXPECTED_COMPILER_VERSION}")
 
 # Checks
@@ -164,7 +164,7 @@ foreach (lang compiler id version IN ZIP_LISTS langs compilers ids versions)
 	endif()
 endforeach()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS TRUE)
 

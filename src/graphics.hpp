@@ -71,13 +71,20 @@ protected:
 
 protected:
 	static auto generate_name(const shader::Source& src) -> std::string {
-		if (src.path.has_value())
-			return src.path->stem().string();
-		else {
-			static auto i = 1ul;
-			SAGE_ASSERT_MSG(i < std::numeric_limits<decltype(i)>::max(), "Managed to instantiate {} shaders, impressive...", i);
-			return fmt::format("Anonymous_Shader_{}", i++);
-		}
+		return src.path
+			.or_else([] {
+					static auto i = 1ul;
+					SAGE_ASSERT_MSG(i < std::numeric_limits<decltype(i)>::max(),
+							"Managed to instantiate {} shaders, impressive...", i
+						);
+					return std::optional{fs::path{fmt::format("Anonymous_Shader_{}", i++)}};
+				})
+			.and_then([] (const auto& path){
+					return std::optional{path.stem()};
+				})
+			.value()
+			.string()
+			;
 	}
 };
 

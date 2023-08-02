@@ -124,6 +124,9 @@ namespace fs = std::filesystem;
 #endif
 #include <thread>
 #include <iso646.h>
+#ifdef __cpp_lib_expected
+	#include <expected>
+#endif
 
 #include <sys/prctl.h>
 

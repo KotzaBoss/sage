@@ -2,14 +2,6 @@
 
 #include "std.hpp"
 
-#ifndef __cpp_lib_to_underlying
-namespace std {
-constexpr auto to_underlying(auto e) -> auto {
-	return static_cast<std::underlying_type_t<decltype(e)>>(e);
-}
-}// std
-#endif
-
 #include "repr.hpp"
 #include "log.hpp"
 

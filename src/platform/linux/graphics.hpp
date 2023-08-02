@@ -55,18 +55,22 @@ public:
 		const auto version = gladLoadGL(glfwGetProcAddress);
 		SAGE_ASSERT(version);
 
+		const auto gl_version = std::string_view{reinterpret_cast<const char*>(glGetString(GL_VERSION))};
+
 		SAGE_LOG_INFO(R"end(OpenGL
 				Version:	{}
 				GLFW:		{}
 				GLAD:		{}.{}
 				Vendor:		{}
 				Renderer:	{})end",
-				(const char*)glGetString(GL_VERSION),
+				gl_version.data(),
 				glfwGetVersionString(),
 				GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version),
 				(const char*)glGetString(GL_VENDOR),
 				(const char*)glGetString(GL_RENDERER)
 			);
+
+		SAGE_ASSERT(gl_version.contains("4.6"));
 	}
 
 	auto swap_buffers() -> void {
@@ -281,7 +285,8 @@ public:
 		// FIXME: why shader.size() doesnt work? its an array
 		auto processed_shaders = std::array<GLuint, shader::MAX_SUPPORTED_TYPES>{};
 
-		rg::for_each(shaders, [&, this, i = 0 /* Poor man's enumerate */] (const auto& source) mutable {
+		rg::for_each(shaders | vw::enumerate, [&, this] (const auto& i_source) mutable {
+				const auto& [i, source] = i_source;
 				if (source.has_value()) {
 					this->name = Base::generate_name(*source);
 
@@ -317,9 +322,6 @@ public:
 					else
 						processed_shaders[i] = shader_id;
 				}
-
-				++i;
-
 			});
 
 		SAGE_LOG_DEBUG("Compiled shaders ids (0 means failed to compile): {}", processed_shaders);
