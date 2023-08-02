@@ -5,23 +5,23 @@
 
 #include "platform/linux/window.hpp"
 #include "layer_sandbox.hpp"
+#include "layer_2d.hpp"
 
 using namespace sage;
 
 TEST_CASE ("App") {
 	using App = sage::App<
 			oslinux::Window,
-			Layer_Sandbox
+			Layer_2D
 		>;
 
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
-	auto camera_controller = camera::Controller{input};
 	auto renderer = oslinux::Renderer{};
-	auto layer_sandbox = Layer_Sandbox{renderer, camera_controller};
+	auto layer_2d = Layer_2D{input, renderer};
 	auto app = App {
 			std::move(win),
-			std::move(layer_sandbox)
+			std::move(layer_2d)
 		};
 
 	SAGE_LOG_INFO(app);
