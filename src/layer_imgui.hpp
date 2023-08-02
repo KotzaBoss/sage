@@ -46,29 +46,7 @@ public:
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
-	auto update(const std::chrono::milliseconds) -> void {
-		#pragma message "TODO: noop?"
-		//ImGui_ImplOpenGL3_NewFrame();
-		//ImGui_ImplGlfw_NewFrame();
-		//::ImGui::NewFrame();
-
-		//auto& io = ::ImGui::GetIO();
-		//io.DisplaySize = ImVec2(1024, 768);
-
-		//// FIXME: Find a way to pass "sage context information" to the layer starting
-		//// here in the update function
-		////
-
-		//auto now = glfwGetTime();
-		//io.DeltaTime = time > 0.0f ? (now - time) : (1.0f / 60.0f);
-		//time = now;
-
-		//static auto show = true;
-		//::ImGui::ShowDemoWindow(&show);
-
-		//::ImGui::Render();
-		//ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
-	}
+	auto update(const std::chrono::milliseconds) -> void {}
 
 	auto teardown() -> void {
 		ImGui_ImplOpenGL3_Shutdown();
@@ -132,7 +110,7 @@ public:
 				return;
 
 			default:
-				SAGE_LOG_WARN("layer::ImGui: Unexpected event type {}", e.type);
+				SAGE_LOG_DEBUG("layer::ImGui: Uninterested in event {}", e.type);
 				return;
 		}
 	}
