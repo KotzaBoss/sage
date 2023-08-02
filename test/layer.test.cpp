@@ -39,7 +39,7 @@ TEST_CASE ("Layer") {
 		auto ids = std::vector<size_t>{};
 		ids.reserve(layers.size());
 
-		layers.const_apply([&] (const auto& layer) {
+		layers.const_apply([&] (const sage::layer::Concept auto& layer) {
 				ids.push_back(layer.id);
 			});
 

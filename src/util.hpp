@@ -216,6 +216,7 @@ private:
 }// type
 
 template <typename... Ts>
+	requires Unique<Ts...>
 struct Polymorphic_Storage {
 	template <typename Q>
 	using Vector = std::vector<Q>;
@@ -228,9 +229,21 @@ protected:
 public:
 	Polymorphic_Storage() = default;
 
-	Polymorphic_Storage(same_as_any<Ts...> auto&&... xs) {
-			(_store(std::move(xs)), ...);
-		}
+	template <same_as_any<Ts...>... Xs>
+	constexpr Polymorphic_Storage(Xs&&... xs) {
+		// Reserve vector capacity
+		std::apply([this] <typename... Counter> (Counter&&... counter) {
+					(
+						std::get<Vector<typename Counter::Type>>(storage)
+							.reserve(*counter)
+						, ...
+					);
+				},
+				type::Set<Ts...>::template count<Xs...>()
+			);
+
+		(_store(std::move(xs)), ...);
+	}
 
 
 public:
@@ -265,7 +278,31 @@ public:
 			);
 	}
 
-	// FIXME: Had to rename the const overload because the fmt::formatter doesnt work otherwise. fix?
+	#pragma message "FIXME: Had to rename the const overload because the fmt::formatter doesnt work otherwise. fix?"
+
+	// To differentiate between the two overloads use them as follows:
+	//
+	//		storage.const_apply([] (const auto& vec) {
+	//				// One by one each vector will be accessed here
+	//				// in order of the Ts... passed.
+	//			});
+	//
+	//		storage.const_apply([] (const sage::layer::Concept auto& layer) {
+	//				// One by one each layer will be accessed here
+	//				// in order of the Ts... passed.
+	//			});
+	//
+	template <typename Fn>
+		requires (std::invocable<Fn, const Vector<Ts>&> and ...)
+	auto const_apply(const Fn& fn) const -> void {
+		std::apply(
+				[&] (const auto&... vec) {
+					(std::invoke(fn, vec), ...);
+				},
+				storage
+			);
+	}
+
 	template <typename Fn>
 		requires (std::invocable<Fn, const Ts&> and ...)
 	auto const_apply(const Fn& fn) const -> void {
@@ -291,4 +328,16 @@ public:
 
 }// util
 
+template <typename... Ts>
+struct std::tuple_size<sage::util::type::Counters<Ts...>>
+	: std::tuple_size<std::tuple<sage::util::type::Counter<Ts>...>>
+{};
 
+template <typename T>
+FMT_FORMATTER(sage::util::type::Counter<T>) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::util::type::Counter<T>) {
+		return fmt::format_to(ctx.out(), "type::Counter<{}>: {};", sage::util::type::real_name<T>().get(), *obj);
+	}
+};

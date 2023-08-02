@@ -63,3 +63,24 @@ TEST_CASE ("Type") {
 	CHECK_EQ(type::Set<std::string, float>	::template contains<int>(), false);
 }
 
+TEST_CASE ("Polymorphic_Storage") {
+	using Storage = util::Polymorphic_Storage<int, float, std::string>;
+
+	const auto storage = Storage{
+		1,2,3,4,5,
+		"1"s, "2"s,
+		1.f, 2.f, 3.f
+	};
+
+	storage.const_apply([] <typename T> (const Storage::Vector<T>& vec) {
+			const auto capacity = vec.capacity(),
+					   size = vec.size();
+			CHECK_EQ(capacity, size);
+			if constexpr (std::same_as<int, T>)
+				CHECK_EQ(size, 5);
+			else if constexpr (std::same_as<float, T>)
+				CHECK_EQ(size, 3);
+			else
+				CHECK_EQ(size, 2);
+		});
+}

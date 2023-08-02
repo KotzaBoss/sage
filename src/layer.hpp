@@ -54,7 +54,7 @@ FMT_FORMATTER(sage::layer::Storage<Ls...>) {
 
 	FMT_FORMATTER_FORMAT(sage::layer::Storage<Ls...>) {
 		fmt::format_to(ctx.out(), "layer::Storage: ");
-		obj.const_apply([&] (const auto& layer) { fmt::format_to(ctx.out(), "\n\t{}", layer); });
+		obj.const_apply([&] (const sage::layer::Concept auto& layer) { fmt::format_to(ctx.out(), "\n\t{}", layer); });
 		return fmt::format_to(ctx.out(), "\n\t;");
 	}
 };
