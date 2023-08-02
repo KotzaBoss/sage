@@ -83,28 +83,30 @@ public:
 						camera_controller.event_callback(*event);
 					}
 
-					renderer.clear();
-
-					renderer.scene(camera_controller.camera(), [&] {
-							const auto scale = glm::scale(glm::mat4{1}, glm::vec3{0.1f});
-							for (auto y = 0; y < 20; ++y) {
-								for (auto x = 0; x < 20; ++x) {
-									const auto transform = glm::translate(glm::mat4{1}, glm::vec3{x * 0.11f, y * 0.11f, 0}) * scale;
-
-									if (x % 2 and y % 2)
-										square_shader.upload_uniform("u_Color", square_color);
-									else
-										square_shader.upload_uniform("u_Color", glm::vec4{1, 1, 1, 1});
-
-									renderer.submit(square_shader, square_vertex_array, transform);
-								}
-							}
-
-							tex.bind();
-							renderer.submit(texture_shader, square_vertex_array, glm::scale(glm::mat4{1}, glm::vec3{1.5f}));
-						});
-
+					// As layers get more interesting this if may change but for now keep it
+					// very strict: no window, no work
 					if (not window.is_minimized()) {
+						renderer.clear();
+
+						renderer.scene(camera_controller.camera(), [&] {
+								const auto scale = glm::scale(glm::mat4{1}, glm::vec3{0.1f});
+								for (auto y = 0; y < 20; ++y) {
+									for (auto x = 0; x < 20; ++x) {
+										const auto transform = glm::translate(glm::mat4{1}, glm::vec3{x * 0.11f, y * 0.11f, 0}) * scale;
+
+										if (x % 2 and y % 2)
+											square_shader.upload_uniform("u_Color", square_color);
+										else
+											square_shader.upload_uniform("u_Color", glm::vec4{1, 1, 1, 1});
+
+										renderer.submit(square_shader, square_vertex_array, transform);
+									}
+								}
+
+								tex.bind();
+								renderer.submit(texture_shader, square_vertex_array, glm::scale(glm::mat4{1}, glm::vec3{1.5f}));
+							});
+
 						layers.update(delta);
 						camera_controller.update(delta);
 					}
