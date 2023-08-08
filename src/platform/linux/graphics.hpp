@@ -414,43 +414,48 @@ public:
 		const auto loc = glGetUniformLocation(renderer_id, name.c_str());
 		SAGE_ASSERT(loc != -1);
 
-		std::visit([&] (auto&& u) {
-					using T = std::decay_t<decltype(u)>;
-					if constexpr (std::same_as<int, T>)
+		std::visit(Overloaded {
+					[&] (int u) {
 						glUniform1i(loc,
 								u
 							);
-					else if constexpr (std::same_as<float, T>)
+					},
+					[&] (float u) {
 						glUniform1f(loc,
 								u
 							);
-					else if constexpr (std::same_as<glm::vec2, T>)
+					},
+					[&] (const glm::vec2& u) {
 						glUniform2f(loc,
 								u.x, u.y
 							);
-					else if constexpr (std::same_as<glm::vec3, T>)
+					},
+					[&] (const glm::vec3& u) {
 						glUniform3f(loc,
 								u.x, u.y, u.z
 							);
-					else if constexpr (std::same_as<glm::vec4, T>)
+					},
+					[&] (const glm::vec4& u) {
 						glUniform4f(loc,
 								u.x, u.y, u.z, u.w
 							);
-					else if constexpr (std::same_as<glm::mat3, T>)
+					},
+					[&] (const glm::mat3& u) {
 						glUniformMatrix3fv(loc,
 								1,
 								GL_FALSE,
 								glm::value_ptr(u)
 							);
-					else if constexpr (std::same_as<glm::mat4, T>)
+					},
+					[&] (const glm::mat4& u) {
 						glUniformMatrix4fv(loc,
 								1,
 								GL_FALSE,
 								glm::value_ptr(u)
 							);
-					else {
-						// static_assert(false);	// Why can i never get this to work correctly?
-						SAGE_ASSERT_MSG(false, fmt::format("Uniform holds type of index {}, which is not supported", uniform.index()));
+					},
+					[&] (auto&& x) {
+						SAGE_ASSERT_MSG(false, "{}", type::real_name(std::move(x)));
 					}
 				},
 				uniform

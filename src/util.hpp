@@ -7,6 +7,11 @@
 
 namespace sage::inline util {
 
+template <typename... Fns>
+struct Overloaded : Fns... {
+	using Fns::operator()...;
+};
+
 namespace string {
 // Modified with ranges from: https://_stackoverflow.com/questions/216823/how-to-trim-an-stdstring
 constexpr auto trim(std::string& s, const char to_trim = ' ') -> void {
@@ -124,6 +129,10 @@ constexpr auto real_name() -> Real_Name_Ptr {
 	auto _real_name = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
 	SAGE_ASSERT(_real_name);
 	return Real_Name_Ptr{ _real_name };
+}
+
+constexpr auto real_name(auto&& x) -> Real_Name_Ptr {
+	return real_name<decltype(x)>();
 }
 
 template <typename X>
@@ -331,5 +340,14 @@ FMT_FORMATTER(sage::util::type::Counter<T>) {
 
 	FMT_FORMATTER_FORMAT(sage::util::type::Counter<T>) {
 		return fmt::format_to(ctx.out(), "type::Counter<{}>: {};", sage::util::type::real_name<T>().get(), *obj);
+	}
+};
+
+template <>
+FMT_FORMATTER(sage::util::type::Real_Name_Ptr) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::util::type::Real_Name_Ptr) {
+		return fmt::format_to(ctx.out(), "type::Real_Name_Ptr: {};", obj.get());
 	}
 };
