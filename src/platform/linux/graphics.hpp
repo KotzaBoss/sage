@@ -563,8 +563,53 @@ public:
 	auto unbind() const -> void {}
 };
 
-using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;
+using Renderer_2D_Base = sage::graphics::renderer::Base_2D<Vertex_Array, Vertex_Buffer, Index_Buffer, Shader>;
+struct Renderer_2D : Renderer_2D_Base {
+	auto setup() -> void {
+		namespace graphics = sage::graphics;
 
+		auto square_vertex_buffer = oslinux::Vertex_Buffer{};
+		square_vertex_buffer.setup(
+				{
+					-0.5f, -0.5f, 0.0f,
+					 0.5f, -0.5f, 0.0f,
+					 0.5f,  0.5f, 0.0f,
+					-0.5f,  0.5f, 0.0f,
+				},
+				graphics::buffer::Layout{
+					graphics::buffer::Element{{
+							.name = "a_Position",
+							.type = graphics::shader::data::Type::Float3
+						}},
+				}
+			);
+
+		auto square_index_buffer = oslinux::Index_Buffer{};
+		square_index_buffer.setup({0, 1, 2, 2, 3, 0});
+
+		scene_data.vertex_array.setup(std::move(square_vertex_buffer), std::move(square_index_buffer));
+
+		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+
+		scene_data.shader.setup("asset/shader/flat_color.glsl");
+	}
+	auto teardown() -> void {}
+	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
+		Renderer_2D_Base::scene(cam, draws);
+	}
+	auto draw(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) -> void {
+		Renderer_2D_Base::draw(pos, size, color, [this] {
+				const auto& index_buffer = scene_data.vertex_array.index_buffer();
+				glDrawElements(GL_TRIANGLES, index_buffer.indeces().size(), GL_UNSIGNED_INT, nullptr);
+			});
+	}
+
+	auto clear() -> void {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+};
+
+using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;
 struct Renderer : Renderer_Base {
 
 public:

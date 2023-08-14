@@ -294,6 +294,59 @@ concept Concept =
 namespace renderer {
 
 template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
+concept Concept_2D =
+	shader::Concept<Shader>
+	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
+	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
+		{ r.setup() } -> std::same_as<void>;
+		{ r.teardown() } -> std::same_as<void>;
+		{ r.scene(cam, draws) } -> std::same_as<void>;
+		{ r.draw(pos, size, color) } -> std::same_as<void>;
+		{ r.clear() } -> std::same_as<void>;
+	}
+	;
+
+template <typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
+	requires shader::Concept<Shader>
+		and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
+struct Base_2D {
+	struct Scene_Data {
+		Vertex_Array vertex_array;
+		Shader shader;
+	};
+
+protected:
+	Scene_Data scene_data;
+
+private:
+	bool scene_active = false;
+
+protected:
+	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
+		SAGE_ASSERT(not scene_active);
+
+		scene_active = true;
+
+		scene_data.shader.bind();
+		scene_data.shader.upload_uniform("u_ViewProjection", cam.view_proj_mat());
+		scene_data.shader.upload_uniform("u_Transform", glm::mat4{1.0f});
+
+		draws();
+
+		scene_active = false;
+	}
+
+	auto draw(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color, const std::function<void()>& impl) {
+		SAGE_ASSERT(scene_active);
+
+		scene_data.shader.upload_uniform("u_Color", color);
+		scene_data.vertex_array.bind();
+
+		impl();
+	}
+};
+
+template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
 concept Concept =
 	shader::Concept<Shader>
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>

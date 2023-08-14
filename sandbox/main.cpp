@@ -17,7 +17,7 @@ TEST_CASE ("App") {
 
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
-	auto renderer = oslinux::Renderer{};
+	auto renderer = oslinux::Renderer_2D{};
 	auto layer_2d = Layer_2D{input, renderer};
 	auto app = App {
 			std::move(win),
