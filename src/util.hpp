@@ -35,9 +35,7 @@ constexpr auto truth(const auto& x) -> bool {
 }
 
 template<std::integral I>
-consteval auto bits() -> size_t {
-	return sizeof(I) * 8;
-}
+constexpr auto bits = sizeof(I) * 8;
 
 #define LOCK_GUARD(mutex) const auto _ = std::lock_guard{m}
 

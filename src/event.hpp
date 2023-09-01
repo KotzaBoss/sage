@@ -18,7 +18,7 @@ struct Event {
 		Mouse_Button_Pressed, Mouse_Button_Released, Mouse_Moved, Mouse_Scrolled,
 		Key_Pressed, Key_Repeated, Key_Released,
 	};
-	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>();
+	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>;
 	REPR_DECL(Type);
 
 					// Category
@@ -30,7 +30,7 @@ struct Event {
 		Keyboard	= 1 << 2,
 		Mouse		= 1 << 3
 	};
-	constexpr static inline auto bits_of_Category = bits<std::underlying_type_t<Category>>();
+	constexpr static inline auto bits_of_Category = bits<std::underlying_type_t<Category>>;
 	REPR_DECL(Category);
 
 					// Payloads
