@@ -34,11 +34,15 @@ concept Concept =
 
 struct Base {
 protected:
-	Monitor<window::Properties> _properties;
-	Monitor<std::optional<Event>> _pending_event;
+	// Ensure data is trivially copyable
+	std::atomic<window::Properties> _properties;
+	std::atomic<std::optional<Event>> _pending_event;
 
 public:
-	Base(Base&&) = default;
+	Base(Base&& other) {
+		_properties = other._properties.load();
+		_pending_event = other._pending_event.load();
+	};
 
 	Base(Properties&& ps)
 		: _properties{std::move(ps)}
@@ -49,7 +53,7 @@ public:
 	}
 
 	auto pending_event() const -> std::optional<Event> {
-		return _pending_event.release();
+		return _pending_event.load();
 	}
 
 	auto is_minimized() const -> bool {

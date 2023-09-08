@@ -63,18 +63,20 @@ public:
 		glfwSetWindowSizeCallback(glfw, [] (GLFWwindow* win, int width, int height) {
 				auto& _this = user_pointer_to_this_ref(win);
 
-				_this._properties.store([&] (auto& p) {
+				atomic_delta_store(_this._properties, [=] (auto& p) {
 						p.size = Size{width, height}.to<size_t>();
 					});
+
 				_this._pending_event.store(Event::make_window_resized(_this._properties.load().size));
 			});
 
 		glfwSetWindowIconifyCallback(glfw, [] (GLFWwindow* win, int iconified) {
 				auto& _this = user_pointer_to_this_ref(win);
 
-				_this._properties.store([=] (auto& p) {
+				atomic_delta_store(_this._properties, [=] (auto& p) {
 						p.is_minimized = iconified;
 					});
+
 				if (iconified)
 					_this._pending_event.store(Event::make_window_minimized());
 				else

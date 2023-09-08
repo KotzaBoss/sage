@@ -37,6 +37,42 @@ constexpr auto truth(const auto& x) -> bool {
 template<std::integral I>
 constexpr auto bits = sizeof(I) * 8;
 
+// Use with care because there may still be a race.
+// Prefer using it when the atomic is strictly encapsulated/controlled,
+// and externals only read it (see window::Base).
+//
+// TL;DR
+//
+// class Complicated {
+// private:
+//		std::atomic<Data> _data;
+//
+// public:
+//      auto work() -> void {
+//			atomic_delta_store(_data, [] (auto d) {
+//					d.some_field = 123;
+//					return d;
+//				});
+//      }
+//
+//      auto data() const -> Data {
+//			return _data.load();
+//      }
+// };
+template <typename T>
+auto atomic_delta_store(std::atomic<T>& a, const std::invocable<T&> auto& delta) -> std::atomic<T>& {
+	// A bit excessive but this way the caller has the more elegant code.
+	// CAUTION: As of GCC 13 a lambda [](auto) can be passed as a [](auto & ):
+	// atomic_delta_store(a, [] (auto x) { ... });
+	// atomic_delta_store(a, [] (auto& x) { ... });
+	// Both compile but i have no interest in testing whether it is correct.
+	// It also issues a "x unused" warning so its not good to begin with.
+	auto t = a.load();
+	delta(t);
+	a.store(t);
+	return a;
+}
+
 #define LOCK_GUARD(mutex) const auto _ = std::lock_guard{m}
 
 // Inspired by Herb Sutter: https://stackoverflow.com/questions/60522330/how-does-herb-sutters-monitor-class-work
