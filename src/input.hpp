@@ -8,8 +8,8 @@
 namespace sage::input {
 
 enum class Key {
-	None = -1, Left_Ctrl,
-	Up, Down, Left, Right,
+	None = -1,
+	Left_Ctrl,
 	// Letters
 	Q, E, W, A, S, D,
 };
@@ -56,10 +56,6 @@ FMT_FORMATTER(sage::input::Key) {
 				"input::Key: {};",
 				std::invoke([&] {
 					switch (obj) {
-						case sage::input::Key::Up:		return "Up";
-						case sage::input::Key::Down:	return "Down";
-						case sage::input::Key::Left:	return "Left";
-						case sage::input::Key::Right:	return "Right";
 						case sage::input::Key::Q:		return "Q";
 						case sage::input::Key::E:		return "E";
 						case sage::input::Key::W:		return "W";

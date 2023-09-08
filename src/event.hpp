@@ -15,7 +15,7 @@ struct Event {
 	enum class Type {
 		None = 0,
 		Window_Closed, Window_Resized, Window_Minimized, Window_Restored,
-		Mouse_Button_Pressed, Mouse_Button_Released, Mouse_Moved, Mouse_Scrolled,
+		Mouse_Button_Pressed, Mouse_Button_Released, Mouse_Button_Repeated, Mouse_Moved, Mouse_Scrolled,
 		Key_Pressed, Key_Repeated, Key_Released,
 	};
 	constexpr static inline auto bits_of_Type = bits<std::underlying_type_t<Type>>;
@@ -60,15 +60,15 @@ public:
 	static auto make_window_restored	()							-> Event;
 
 	struct Make_Mouse_Button_Args {
-		Type&& type;
-		input::Mouse::Button&& mouse_button;
+		Type type;
+		input::Mouse::Button mouse_button;
 	};
 	static auto make_mouse_button	(const Make_Mouse_Button_Args& args)	-> Event;
 	static auto make_mouse_scroll	(const input::Mouse::Scroll& args)		-> Event;
 
 	struct Make_Key_Args {
-		Type&& type;
-		input::Key&& key;
+		Type type;
+		input::Key key;
 	};
 	static auto make_key	(const Make_Key_Args& args) -> Event;
 

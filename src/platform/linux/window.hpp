@@ -1,13 +1,11 @@
 #pragma once
 
 #include "src/window.hpp"
-#include "src/input.hpp"
 
 #include "repr.hpp"
 
 #include "graphics.hpp"
-
-#include "GLFW/glfw3.h"
+#include "glfw.hpp"
 
 namespace sage::oslinux::inline window {
 
@@ -86,21 +84,15 @@ public:
 		#pragma message "TODO: Change switches to array lookups for clarity"
 
 		glfwSetMouseButtonCallback(glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
+				SAGE_ASSERT(glfw::action::is_expected(action));
+				SAGE_ASSERT(glfw::mouse::is_expected(button));
+
 				user_pointer_to_this_ref(win)
 					._pending_event.store(Event::make_mouse_button({
-						.type = std::invoke([&] { switch (action) {
-								case GLFW_PRESS:	return Event::Type::Mouse_Button_Pressed;
-								case GLFW_RELEASE:	return Event::Type::Mouse_Button_Released;
-								default:			return Event::Type::None;
-						}}),
-						.mouse_button = std::invoke([&] { switch (button) {
-								case GLFW_MOUSE_BUTTON_LEFT:	return input::Mouse::Button::Left;
-								case GLFW_MOUSE_BUTTON_RIGHT:	return input::Mouse::Button::Right;
-								case GLFW_MOUSE_BUTTON_MIDDLE:	return input::Mouse::Button::Middle;
-								default:						return input::Mouse::Button::None;
-						}})
-					})
-				);
+							.type = glfw::action::mouse_button_type_map[action],
+							.mouse_button = glfw::mouse::button_map[button],
+						})
+					);
 			});
 
 		glfwSetScrollCallback(glfw, [] (GLFWwindow* win, double xoffset, double yoffset) {
@@ -115,25 +107,13 @@ public:
 			});
 
 		glfwSetKeyCallback(glfw, [] (GLFWwindow* win, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
+				SAGE_ASSERT(glfw::action::is_expected(action));
+				SAGE_ASSERT(glfw::key::is_expected(key));
+
 				user_pointer_to_this_ref(win)
 					._pending_event.store(Event::make_key({
-									.type = std::invoke([&] {switch (action) {
-											case GLFW_PRESS:	return Event::Type::Key_Pressed;
-											case GLFW_REPEAT:	return Event::Type::Key_Repeated;
-											case GLFW_RELEASE:	return Event::Type::Key_Released;
-											default:			return Event::Type::None;
-										}}),
-									.key = std::invoke([&] { switch (key) {
-											case GLFW_KEY_Q:		return input::Key::Q;
-											case GLFW_KEY_E:		return input::Key::E;
-											case GLFW_KEY_W:		return input::Key::W;
-											case GLFW_KEY_A:		return input::Key::A;
-											case GLFW_KEY_S:		return input::Key::S;
-											case GLFW_KEY_D:		return input::Key::D;
-											default:
-												SAGE_LOG_DEBUG("oslinux::Window::glfwSetKeyCallback: Unexpected key {}", key);
-												return input::Key::None;
-										}}),
+									.type = glfw::action::key_type_map[action],
+									.key = glfw::key::map[key],
 								})
 					);
 			});
