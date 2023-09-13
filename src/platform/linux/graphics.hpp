@@ -539,6 +539,9 @@ public:
 		glTextureParameteri(renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(renderer_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+		glTextureParameteri(renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 		glTextureSubImage2D(renderer_id,
 				0,
 				0, 0,
@@ -567,7 +570,7 @@ public:
 	auto unbind() const -> void {}
 };
 
-using Renderer_2D_Base = sage::graphics::renderer::Base_2D<Vertex_Array, Vertex_Buffer, Index_Buffer, Shader>;
+using Renderer_2D_Base = sage::graphics::renderer::Base_2D<Vertex_Array, Vertex_Buffer, Index_Buffer, Texture2D, Shader>;
 struct Renderer_2D : Renderer_2D_Base {
 	auto setup() -> void {
 		namespace graphics = sage::graphics;
@@ -575,15 +578,19 @@ struct Renderer_2D : Renderer_2D_Base {
 		auto square_vertex_buffer = oslinux::Vertex_Buffer{};
 		square_vertex_buffer.setup(
 				{
-					-0.5f, -0.5f, 0.0f,
-					 0.5f, -0.5f, 0.0f,
-					 0.5f,  0.5f, 0.0f,
-					-0.5f,  0.5f, 0.0f,
+					-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+					 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+					 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+					-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
 				},
 				graphics::buffer::Layout{
 					graphics::buffer::Element{{
 							.name = "a_Position",
 							.type = graphics::shader::data::Type::Float3
+						}},
+					graphics::buffer::Element{{
+							.name = "a_TexCoord",
+							.type = graphics::shader::data::Type::Float2
 						}},
 				}
 			);
@@ -595,14 +602,16 @@ struct Renderer_2D : Renderer_2D_Base {
 
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 
-		scene_data.shader.setup("asset/shader/flat_color.glsl");
+		scene_data.shader.setup("asset/shader/texture.glsl");
+		scene_data.shader.bind();
+		scene_data.shader.set("u_Texture", 0);
 	}
 	auto teardown() -> void {}
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
 		Renderer_2D_Base::scene(cam, draws);
 	}
-	auto draw(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) -> void {
-		Renderer_2D_Base::draw(pos, size, color, [this] {
+	auto draw(const glm::vec3& pos, const glm::vec2& size, const Texture2D& texture) -> void {
+		Renderer_2D_Base::draw(pos, size, texture, [this] {
 				const auto& index_buffer = scene_data.vertex_array.index_buffer();
 				glDrawElements(GL_TRIANGLES, index_buffer.indeces().size(), GL_UNSIGNED_INT, nullptr);
 			});
@@ -620,6 +629,7 @@ public:
 	auto setup() -> void {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	auto event_callback(const Event& e) -> void {

@@ -295,21 +295,24 @@ concept Concept =
 
 namespace renderer {
 
-template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
+template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Texture, typename Shader>
 concept Concept_2D =
-	shader::Concept<Shader>
+	texture::Concept<Texture>
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
-	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
+	and shader::Concept<Shader>
+	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const Texture& texture) {
 		{ r.setup() } -> std::same_as<void>;
 		{ r.teardown() } -> std::same_as<void>;
 		{ r.scene(cam, draws) } -> std::same_as<void>;
-		{ r.draw(pos, size, color) } -> std::same_as<void>;
+		{ r.draw(pos, size, texture) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;
 	}
 	;
 
-template <typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
-	requires shader::Concept<Shader>
+template <typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Texture, typename Shader>
+	requires
+		texture::Concept<Texture>
+		and shader::Concept<Shader>
 		and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
 struct Base_2D {
 	struct Scene_Data {
@@ -337,11 +340,10 @@ protected:
 		scene_active = false;
 	}
 
-	auto draw(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color, const std::function<void()>& impl) {
+	auto draw(const glm::vec3& pos, const glm::vec2& size, const Texture& texture, const std::function<void()>& impl) {
 		SAGE_ASSERT(scene_active);
 
-		scene_data.shader.upload_uniform("u_Color", color);
-
+		scene_data.shader.bind();
 		scene_data.shader.set(
 				"u_Transform",
 				//                       rotation here|
@@ -349,6 +351,8 @@ protected:
 				//                                    V
 				glm::translate(glm::mat4{1.0f}, pos) * glm::scale(glm::mat4{1.0f}, {size.x, size.y, 1.0f})
 			);
+
+		texture.bind();
 
 		scene_data.vertex_array.bind();
 
