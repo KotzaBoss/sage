@@ -12,6 +12,10 @@ public:
 
 	glm::vec4 square_color = {0, 0, 0, 1};
 
+	glm::vec3 square_1_pos = {};
+	size_t frames = 0;
+	bool layering = true;
+
 public:
 	Layer_2D(oslinux::Input& input, oslinux::Renderer_2D& r)
 		: camera_controller{input}
@@ -30,7 +34,24 @@ public:
 				if (square_color.r < 1)
 					square_color.r += 0.001f;
 
-				renderer.draw({/* TODO */}, {/* TODO */}, square_color);
+				if (square_1_pos.x > 1)
+					square_1_pos.x = -1;
+				square_1_pos.x += 0.01;
+
+				if (frames++ == 60) {
+					frames = 0;
+					layering = !layering;
+				}
+
+				if (layering) {
+					renderer.draw(square_1_pos, { 0.8f, 0.8f }, square_color);
+					renderer.draw({  0.5f, -0.5f, 0.f }, { 0.5f, 0.75f }, { 0.2f, 0.3f, 0.3f, 1.0f });
+				}
+				else {
+					renderer.draw({  0.5f, -0.5f, 0.f }, { 0.5f, 0.75f }, { 0.2f, 0.3f, 0.3f, 1.0f });
+					renderer.draw(square_1_pos, { 0.8f, 0.8f }, square_color);
+				}
+
 			});
 
 		camera_controller.update(delta);

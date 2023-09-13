@@ -46,6 +46,7 @@ struct Source {
 
 using Parsed = std::array<std::optional<shader::Source>, MAX_SUPPORTED_TYPES>;
 
+#pragma message "TODO: Material system will differentiate set/upload_uniform?"
 template <typename S>
 concept Concept =
 	// requires s.setup(...)
@@ -62,6 +63,7 @@ concept Concept =
 		{ s.bind() } -> std::same_as<void>;
 		{ s.unbind() } -> std::same_as<void>;
 		{ s.upload_uniform(uniform_name, uniform) } -> std::same_as<void>;
+		{ s.set(uniform_name, uniform) } -> std::same_as<void>;
 	}
 	;
 
@@ -328,8 +330,7 @@ protected:
 		scene_active = true;
 
 		scene_data.shader.bind();
-		scene_data.shader.upload_uniform("u_ViewProjection", cam.view_proj_mat());
-		scene_data.shader.upload_uniform("u_Transform", glm::mat4{1.0f});
+		scene_data.shader.set("u_ViewProjection", cam.view_proj_mat());
 
 		draws();
 
@@ -340,6 +341,15 @@ protected:
 		SAGE_ASSERT(scene_active);
 
 		scene_data.shader.upload_uniform("u_Color", color);
+
+		scene_data.shader.set(
+				"u_Transform",
+				//                       rotation here|
+				//                                    |
+				//                                    V
+				glm::translate(glm::mat4{1.0f}, pos) * glm::scale(glm::mat4{1.0f}, {size.x, size.y, 1.0f})
+			);
+
 		scene_data.vertex_array.bind();
 
 		impl();

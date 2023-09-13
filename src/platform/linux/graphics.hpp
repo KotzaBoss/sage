@@ -462,6 +462,10 @@ public:
 			);
 	}
 
+	auto set(const std::string& name, const sage::graphics::shader::Uniform& value) const -> void {
+		upload_uniform(name, value);
+	}
+
 private:
 
 	static auto parse_shaders(const std::string& file_src, const std::optional<fs::path>& path = std::nullopt) -> sage::graphics::shader::Parsed {
