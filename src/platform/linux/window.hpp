@@ -14,6 +14,7 @@ using Size = math::Size<int>;
 struct Window : sage::window::Base {
 
 private:
+	glfw::Handle handle;
 	GLFWwindow* glfw;
 	OpenGL_Context context;
 
@@ -22,13 +23,6 @@ public:
 		: Base{std::move(props)}
 		, context{&glfw}
 	{
-		const auto ok = glfwInit();
-		SAGE_ASSERT(ok);
-
-		glfwSetErrorCallback([] (int err, const char* msg) {
-				SAGE_LOG_ERROR("{} ({:#}): {}", err, err, msg);
-			});
-
 		const auto properties = _properties.load();
 		SAGE_ASSERT_MSG(properties.title.rfind('\0'), "OpenGL window title {:?} is not NULL terminated string", properties.title);
 		glfw = glfwCreateWindow(
@@ -126,7 +120,6 @@ public:
 
 	auto teardown() -> void {
 		glfwDestroyWindow(glfw);
-		glfwTerminate();
 	}
 
 	auto native_handle() const -> GLFWwindow* {

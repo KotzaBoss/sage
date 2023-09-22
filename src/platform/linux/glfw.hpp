@@ -10,6 +10,28 @@
 
 namespace sage::glfw {
 
+// Make sure its constructed before any other glfw operations are performed.
+struct Handle {
+private:
+	inline static auto flag = std::once_flag{};
+
+public:
+	Handle() {
+		const auto ok = glfwInit();	// glfwInit/glfwTerminate just returns if already initialized
+		SAGE_ASSERT(ok);
+
+		std::call_once(flag, [] {
+				glfwSetErrorCallback([] (int err, const char* msg) {
+					SAGE_LOG_ERROR("{} ({:#}): {}", err, err, msg);
+				});
+			});
+	}
+
+	~Handle() {
+		glfwTerminate();
+	}
+};
+
 inline namespace input {
 
 namespace action {
