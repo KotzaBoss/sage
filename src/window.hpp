@@ -23,7 +23,6 @@ template <typename Window>
 concept Concept =
 	requires (Window win, Properties&& properties, const Event& event) {
 		Window(std::move(properties));	// Constructor
-		{ win.setup() } -> std::same_as<void>;
 		{ win.update() } -> std::same_as<void>;
 		{ win.teardown() } -> std::same_as<void>;
 		{ win.pending_event() } -> std::same_as<std::optional<Event>>;

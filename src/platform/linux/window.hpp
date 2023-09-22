@@ -15,33 +15,29 @@ struct Window : sage::window::Base {
 
 private:
 	glfw::Handle handle;
-	GLFWwindow* glfw;
+	GLFWwindow* glfw = nullptr;
 	OpenGL_Context context;
 
 public:
 	Window(sage::window::Properties&& props)
 		: Base{std::move(props)}
-		, context{&glfw}
-	{
-		const auto properties = _properties.load();
-		SAGE_ASSERT_MSG(properties.title.rfind('\0'), "OpenGL window title {:?} is not NULL terminated string", properties.title);
-		glfw = glfwCreateWindow(
-			properties.size.width,
-			properties.size.height,
-			properties.title.data(),
+		, glfw{glfwCreateWindow(
+			props.size.width,
+			props.size.height,
+			props.title.data(),
 			nullptr,
 			nullptr
-			);
+			)}
+		, context{&glfw}
+	{
+		SAGE_ASSERT_MSG(props.title.rfind('\0'), "OpenGL window title {:?} is not NULL terminated string", props.title);
 		SAGE_ASSERT(glfw);
-	}
-
-public:
-	auto setup() -> void {
-		context.setup();
 
 		glfwSwapInterval(1);	// vsync on
 
 		// User Data
+		// CAUTION: Should the object be moved the 'this' is no longer valid, therefore any move should reset the pointer.
+		// There is no synchronisation so proceed with caution. You should move only before any App runs.
 		glfwSetWindowUserPointer(glfw, this);
 
 		// Callbacks
@@ -113,7 +109,20 @@ public:
 			});
 	}
 
+	Window(Window&& other)
+		: Base(std::move(other))
+		, handle{std::move(other.handle)}
+		, glfw{std::exchange(other.glfw, nullptr)}
+		, context{std::move(other.context)}
+	{
+		SAGE_ASSERT(&other != this);
+		glfwSetWindowUserPointer(glfw, this);
+	}
+
+public:
 	auto update() -> void {
+		SAGE_ASSERT(glfw);
+
 		glfwPollEvents();
 		context.swap_buffers();
 	}

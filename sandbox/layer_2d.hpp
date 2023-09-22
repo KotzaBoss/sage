@@ -7,24 +7,18 @@ struct Layer_2D {
 
 public:
 	Camera_Controller camera_controller;
-
-	oslinux::Texture2D texture;
-
 	oslinux::Renderer_2D& renderer;
+	oslinux::Texture2D texture;
 
 public:
 	Layer_2D(oslinux::Input& input, oslinux::Renderer_2D& r)
 		: camera_controller{input}
 		, renderer{r}
+		, texture{"asset/texture/owl.png"}
+
 	{}
 
 public:
-	auto setup() -> void {
-		renderer.setup();
-
-		texture.setup("asset/texture/owl.png");
-	}
-
 	auto update(const std::chrono::milliseconds delta) -> void {
 		renderer.clear();
 

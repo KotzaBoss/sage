@@ -10,6 +10,11 @@
 using namespace sage;
 
 TEST_CASE ("App") {
+	static auto stop_source = std::stop_source{};
+	signal(SIGINT, [] (int) { stop_source.request_stop(); });
+
+	//
+
 	using App = sage::App<
 			oslinux::Window,
 			Layer_2D
@@ -24,14 +29,5 @@ TEST_CASE ("App") {
 			std::move(layer_2d)
 		};
 
-	SAGE_LOG_INFO(app);
-
-	app.start();
-
-	static auto exit = false;
-	signal(SIGINT, [] (int) { exit = true; });
-	while (not exit)
-		;
-
-	app.stop();
+	app.run(stop_source.get_token());
 }

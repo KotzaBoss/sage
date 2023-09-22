@@ -12,7 +12,6 @@ namespace sage::graphics {
 template <typename T>
 concept Context =
 	requires (T t) {
-		{ t.setup() } -> std::same_as<void>;
 		{ t.swap_buffers() } -> std::same_as<void>;
 	}
 	;
@@ -49,16 +48,7 @@ using Parsed = std::array<std::optional<shader::Source>, MAX_SUPPORTED_TYPES>;
 #pragma message "TODO: Material system will differentiate set/upload_uniform?"
 template <typename S>
 concept Concept =
-	// requires s.setup(...)
-	(
-		requires (S s, const fs::path& src) {
-			{ s.setup(src) } -> std::same_as<void>;
-		}
-		or requires (S s, const Parsed& shaders) {
-			{ s.setup(shaders) } -> std::same_as<void>;
-		}
-	)
-	and requires (S s, const Uniform& uniform, const std::string& uniform_name) {
+	requires (S s, const Uniform& uniform, const std::string& uniform_name) {
 		{ s.teardown() } -> std::same_as<void>;
 		{ s.bind() } -> std::same_as<void>;
 		{ s.unbind() } -> std::same_as<void>;
@@ -152,7 +142,6 @@ inline auto component_count_of(const Type& t) -> size_t {
 template <typename T>
 concept Concept =
 	requires (T t) {
-		{ t.setup() } -> std::same_as<void>;
 		{ t.teardown() } -> std::same_as<void>;
 		{ t.bind() } -> std::same_as<void>;
 		{ t.unbind() } -> std::same_as<void>;
@@ -229,7 +218,6 @@ using Vertices = std::vector<float>;
 template <typename VB>
 concept Concept =
 	requires (VB vb, Vertices&& vertices, buffer::Layout&& layout) {
-		{ vb.setup(std::move(vertices), std::move(layout)) } -> std::same_as<void>;
 		{ vb.teardown() } -> std::same_as<void>;
 		{ vb.bind() } -> std::same_as<void>;
 		{ vb.unbind() } -> std::same_as<void>;
@@ -245,7 +233,6 @@ using Indeces = std::vector<uint32_t>;
 template <typename IB>
 concept Concept =
 	requires (IB ib, Indeces&& indeces) {
-		{ ib.setup(std::move(indeces)) } -> std::same_as<void>;
 		{ ib.teardown() } -> std::same_as<void>;
 		{ ib.bind() } -> std::same_as<void>;
 		{ ib.unbind() } -> std::same_as<void>;
@@ -268,7 +255,6 @@ concept Concept =
 	and requires (A a, Vertex_Buffer&& vb, Index_Buffer&& ib) {
 		requires std::same_as<typename A::Vertex_Buffer, Vertex_Buffer>;
 		requires std::same_as<typename A::Index_Buffer, Index_Buffer>;
-		{ a.setup(std::move(vb), std::move(ib)) } -> std::same_as<void>;
 		{ a.teardown() } -> std::same_as<void>;
 		{ a.bind() } -> std::same_as<void>;
 		{ a.unbind() } -> std::same_as<void>;
@@ -282,7 +268,6 @@ namespace texture {
 template <typename T>
 concept Concept =
 	requires (T t, const fs::path& path, const size_t slot) {
-		{ t.setup(path) } -> std::same_as<void>;
 		{ t.teardown() } -> std::same_as<void>;
 		{ t.width() } -> std::same_as<size_t>;
 		{ t.height() } -> std::same_as<size_t>;
@@ -301,7 +286,6 @@ concept Concept_2D =
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
 	and shader::Concept<Shader>
 	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const Texture& texture) {
-		{ r.setup() } -> std::same_as<void>;
 		{ r.teardown() } -> std::same_as<void>;
 		{ r.scene(cam, draws) } -> std::same_as<void>;
 		{ r.draw(pos, size, texture) } -> std::same_as<void>;
@@ -325,6 +309,11 @@ protected:
 
 private:
 	bool scene_active = false;
+
+protected:
+	Base_2D(Scene_Data&& sd)
+		: scene_data{std::move(sd)}
+	{}
 
 protected:
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
@@ -365,7 +354,6 @@ concept Concept =
 	shader::Concept<Shader>
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
 	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const Vertex_Array& va, const glm::mat4& transform, const Event& event) {
-		{ r.setup() } -> std::same_as<void>;
 		{ r.event_callback(event) } -> std::same_as<void>;
 		{ r.scene(cam, submissions) } -> std::same_as<void>;
 		{ r.submit(shader, va, transform) } -> std::same_as<void>;

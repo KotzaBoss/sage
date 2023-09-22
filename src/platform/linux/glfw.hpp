@@ -92,9 +92,14 @@ constexpr auto is_expected(const int m) -> bool {
 		or m == GLFW_KEY_A
 		or m == GLFW_KEY_S
 		or m == GLFW_KEY_D
+		or m == GLFW_KEY_LEFT_CONTROL
 		;
 }
 
+// As of C++20 GCC 13, all values need to be initialized with the designated initializers for arrays.
+// So we cannot have:
+// int foo[100] = { [2] = 1 };
+// Therefore we need this more hacky workaround.
 inline struct Map {
 private:
 	// Yes wastefull but makes the user code simple. Can optimize later,

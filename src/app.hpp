@@ -26,7 +26,7 @@ struct App {
 	using Layers = sage::layer::Storage<layer::ImGui, Ls...>;
 
 private:
-	Window window;
+	Window&& window;
 
 	Layers layers;
 
@@ -36,69 +36,60 @@ private:
 	// invalidated).
 	layer::ImGui& imgui;
 
-	std::jthread loop;
-
 public:
-	App(Window&& w, same_as_any<Ls...> auto &&... ls)
+	App(Window&& w, same_as_any<Ls...> auto&&... ls)
 		: window{std::move(w)}
 		, layers{layer::ImGui{window}, std::move(ls)...}
 		, imgui{layers.front()}
-	{}
-
-	~App() {
-		SAGE_ASSERT_MSG(not loop.joinable(), "Make sure you have both start and stop in place");
-	}
-
-public:
-	auto start() -> void {
-		loop = std::jthread{[this] (const auto stoken) {
-				setup();
-
-				for (auto tick = time::Tick{}; not stoken.stop_requested(); ) {
-					const auto delta = tick();
-
-					if (const auto event = window.pending_event();
-						event.has_value())
-					{
-						layers.event_callback(*event);
-					}
-
-					// As layers get more interesting this if may change but for now keep it
-					// very strict: no window, no work
-					if (not window.is_minimized()) {
-						layers.update(delta);
-					}
-
-					imgui.new_frame([this] {
-							layers.imgui_prepare();
-						});
-
-					window.update();
-
-					#pragma message "TODO: Fixed rate updates how to? Hardcode to 144fps for now."
-					// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep
-					constexpr auto frame_duration = 1000ms / 144;
-					std::this_thread::sleep_until(tick.current_time_point() + frame_duration);
-				}
-
-				teardown();
-
-			}};
-	}
-	auto stop() -> void {
-		loop.request_stop();
-		loop.join();
-	}
-
-private:
-	auto setup() -> void {
-		#pragma message "TODO: Move setup/teardown into constructors?"
-		window.setup();
-		layers.setup();
-
+	{
 		SAGE_LOG_DEBUG(*this);
 	}
 
+	~App() {
+		//SAGE_ASSERT_MSG(not loop.joinable(), "Make sure you have both start and stop in place");
+	}
+
+public:
+	auto run(std::stop_token stoken) -> bool {
+		for (auto tick = time::Tick{}; not stoken.stop_requested(); ) {
+			const auto delta = tick();
+
+			if (const auto event = window.pending_event();
+				event.has_value())
+			{
+				SAGE_LOG_INFO(*event);
+				layers.event_callback(*event);
+			}
+
+			// As layers get more interesting this if may change but for now keep it
+			// very strict: no window, no work
+			if (not window.is_minimized()) {
+				layers.update(delta);
+			}
+
+			imgui.new_frame([this] {
+					layers.imgui_prepare();
+				});
+
+			window.update();
+
+			#pragma message "TODO: Fixed rate updates how to? Hardcode to 144fps for now."
+			// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep
+			constexpr auto frame_duration = 1000ms / 144;
+			std::this_thread::sleep_until(tick.current_time_point() + frame_duration);
+		}
+
+		teardown();
+
+		return true;
+	}
+
+	//auto stop() -> void {
+	//	loop.request_stop();
+	//	loop.join();
+	//}
+
+private:
 	auto teardown() -> void {
 		layers.teardown();
 		window.teardown();

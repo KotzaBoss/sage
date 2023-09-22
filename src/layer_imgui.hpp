@@ -20,9 +20,7 @@ private:
 public:
 	ImGui(oslinux::Window& w)
 		: window{w}
-	{}
-
-	auto setup() -> void {
+	{
 		::IMGUI_CHECKVERSION();		// 9000 IQ
 		::ImGui::CreateContext();
 
@@ -42,8 +40,9 @@ public:
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
+		SAGE_ASSERT(window.native_handle() != nullptr);
 		ImGui_ImplGlfw_InitForOpenGL(window.native_handle(), true);
-		ImGui_ImplOpenGL3_Init("#version 410");
+		ImGui_ImplOpenGL3_Init("#version 460");
 	}
 
 	auto update(const std::chrono::milliseconds) -> void {}
@@ -160,6 +159,6 @@ FMT_FORMATTER(sage::layer::ImGui) {
 
 	FMT_FORMATTER_FORMAT(sage::layer::ImGui) {
 		(void)obj;
-		return fmt::format_to(ctx.out(), "layer::ImGui: ");
+		return fmt::format_to(ctx.out(), "layer::ImGui;");
 	}
 };

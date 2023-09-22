@@ -46,10 +46,6 @@ public:
 		: glfw{w}
 	{
 		SAGE_ASSERT(glfw);
-	}
-
-public:
-	auto setup() -> void {
 		glfwMakeContextCurrent(*glfw);
 
 		const auto version = gladLoadGL(glfwGetProcAddress);
@@ -75,9 +71,9 @@ public:
 			);
 
 		SAGE_ASSERT(gl_version.contains("4.6"));
-
 	}
 
+public:
 	auto swap_buffers() -> void {
 		glfwSwapBuffers(*glfw);
 	}
@@ -112,9 +108,10 @@ private:
 	Layout _layout;
 
 public:
-	auto setup(Vertices vertices, Layout&& layout) -> void{
-		_vertices = std::move(vertices);
-
+	Vertex_Buffer(Vertices&& v, Layout&& l)
+		: _vertices{std::move(v)}
+		, _layout{std::move(l)}
+	{
 		glCreateBuffers(1, &renderer_id);
 		glBindBuffer(GL_ARRAY_BUFFER, renderer_id);
 		glBufferData(
@@ -123,8 +120,6 @@ public:
 				_vertices.data(),
 				GL_STATIC_DRAW
 			);
-
-		_layout = std::move(layout);
 	}
 
 	auto teardown() -> void {
@@ -164,9 +159,9 @@ private:
 	Indeces _indeces;
 
 public:
-	auto setup(Indeces&& indeces) -> void {
-		_indeces = std::move(indeces);
-
+	Index_Buffer(Indeces&& indeces)
+		: _indeces{std::move(indeces)}
+	{
 		glCreateBuffers(1, &renderer_id);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer_id);
 		glBufferData(
@@ -210,16 +205,18 @@ private:
 	Index_Buffer _index_buffer;
 
 public:
-	auto setup(Vertex_Buffer&& vb, Index_Buffer&& ib) -> void {
+	Vertex_Array(Vertex_Buffer&& vb, Index_Buffer&& ib)
+		: _vertex_buffer{std::move(vb)}
+		, _index_buffer{std::move(ib)}
+	{
 		SAGE_ASSERT(not renderer_id);
 		//SAGE_ASSERT(vb and ib);
-		SAGE_ASSERT_MSG(vb.layout().elements().size(), "Vertex_Buffer has not been setup() yet");
-		SAGE_ASSERT_MSG(ib.indeces().size(), "Index_Buffer has not been setup() yet");
+		SAGE_ASSERT(_vertex_buffer.layout().elements().size());
+		SAGE_ASSERT(_index_buffer.indeces().size());
 
 		glCreateVertexArrays(1, &renderer_id);
 		glBindVertexArray(renderer_id);
 
-		_vertex_buffer = std::move(vb);
 		_vertex_buffer.bind();
 
 		rg::for_each(_vertex_buffer.layout().elements(), [&, index = 0ul] (const auto& elem) mutable {
@@ -236,7 +233,6 @@ public:
 			});
 
 
-		_index_buffer = std::move(ib);
 		_index_buffer.bind();
 	}
 
@@ -271,7 +267,7 @@ public:
 };
 
 // When setting up the shader from file do not try to manually read the contents of the file
-// and pass them to the setup(string, string) method. Instead use the setup(fs::path) overload.
+// and pass them to the Shader(string, string) constructor. Instead use the Shader(fs::path) overload.
 //
 // See those methods for details.
 struct Shader : sage::graphics::shader::Base {
@@ -297,11 +293,11 @@ public:
 	// Empty lines do not matter.
 	//
 	// For details on the parsing of the shader sources see parse_shaders() method.
-	auto setup(const fs::path& p) -> void {
-		setup(parse_shaders(sage::read_file(p), p));
-	}
+	Shader(const fs::path& p)
+		: Shader{parse_shaders(sage::read_file(p), p)}
+	{}
 
-	auto setup(const Parsed_Shaders& shaders) -> void {
+	Shader(const Parsed_Shaders& shaders) {
 		using namespace sage::graphics;
 
 		SAGE_ASSERT(not renderer_id);
@@ -517,7 +513,7 @@ private:
 	uint32_t renderer_id = 0;
 
 public:
-	auto setup(const fs::path& p) -> void {
+	Texture2D(const fs::path& p) {
 		SAGE_ASSERT_MSG(fs::exists(p), "Current: {}; Requested: {}", fs::current_path(), p);
 		path = p;
 
@@ -572,40 +568,38 @@ public:
 
 using Renderer_2D_Base = sage::graphics::renderer::Base_2D<Vertex_Array, Vertex_Buffer, Index_Buffer, Texture2D, Shader>;
 struct Renderer_2D : Renderer_2D_Base {
-	auto setup() -> void {
-		namespace graphics = sage::graphics;
-
-		auto square_vertex_buffer = oslinux::Vertex_Buffer{};
-		square_vertex_buffer.setup(
-				{
-					-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-					 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-					 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-					-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+	Renderer_2D()
+		: Renderer_2D_Base{{
+			.vertex_array{
+				Vertex_Buffer{
+					Vertex_Buffer::Vertices{
+						-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+						 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+						 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+						-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+					},
+					sage::graphics::buffer::Layout{
+						sage::graphics::buffer::Element{{
+								.name = "a_Position",
+								.type = sage::graphics::shader::data::Type::Float3
+							}},
+						sage::graphics::buffer::Element{{
+								.name = "a_TexCoord",
+								.type = sage::graphics::shader::data::Type::Float2
+							}},
+					}
 				},
-				graphics::buffer::Layout{
-					graphics::buffer::Element{{
-							.name = "a_Position",
-							.type = graphics::shader::data::Type::Float3
-						}},
-					graphics::buffer::Element{{
-							.name = "a_TexCoord",
-							.type = graphics::shader::data::Type::Float2
-						}},
-				}
-			);
-
-		auto square_index_buffer = oslinux::Index_Buffer{};
-		square_index_buffer.setup({0, 1, 2, 2, 3, 0});
-
-		scene_data.vertex_array.setup(std::move(square_vertex_buffer), std::move(square_index_buffer));
-
+				Index_Buffer{{0, 1, 2, 2, 3, 0}}
+			},
+			.shader{"asset/shader/texture.glsl"}
+		}}
+	{
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 
-		scene_data.shader.setup("asset/shader/texture.glsl");
 		scene_data.shader.bind();
 		scene_data.shader.set("u_Texture", 0);
 	}
+
 	auto teardown() -> void {}
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
 		Renderer_2D_Base::scene(cam, draws);
@@ -626,7 +620,7 @@ using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Verte
 struct Renderer : Renderer_Base {
 
 public:
-	auto setup() -> void {
+	Renderer() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);

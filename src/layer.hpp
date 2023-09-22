@@ -14,7 +14,6 @@ namespace sage::layer {
 template <typename Layer>
 concept Concept =
 	requires (Layer l, const Event& event, const std::chrono::milliseconds delta) {
-		{ l.setup() } -> std::same_as<void>;
 		{ l.update(delta) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
 		{ l.imgui_prepare() } -> std::same_as<void>;
@@ -35,7 +34,6 @@ public:
 	{}
 
 public:
-	auto setup()										-> void { this->apply([] (auto& layer)	{ layer.setup();			}); }
 	auto update(const std::chrono::milliseconds delta)	-> void { this->apply([=] (auto& layer)	{ layer.update(delta);		}); }
 	auto imgui_prepare()								-> void { this->apply([] (auto& layer)	{ layer.imgui_prepare();	}); }
 	auto teardown()										-> void { this->apply([] (auto& layer)	{ layer.teardown();			}); }
