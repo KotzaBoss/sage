@@ -7,6 +7,20 @@
 
 namespace sage::inline util {
 
+template <std::unsigned_integral I>
+struct ID : std::optional<I> {
+	using std::optional<I>::optional;
+
+	constexpr ID(ID&& other)
+		: std::optional<I>::optional{std::move(other)}
+	{
+		other.reset();
+	}
+
+	constexpr auto operator= (const ID&) -> ID& = default;
+};
+
+
 template <typename... Fns>
 struct Overloaded : Fns... {
 	using Fns::operator()...;

@@ -5,10 +5,13 @@
 #include "src/input.hpp"
 #include "src/event.hpp"
 #include "src/math.hpp"
+#include "src/util.hpp"
 
 #include "GLFW/glfw3.h"
 
 namespace sage::glfw {
+
+using ID = sage::util::ID<uint32_t>;
 
 // Make sure its constructed before any other glfw operations are performed.
 struct Handle {
