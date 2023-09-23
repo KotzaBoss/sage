@@ -2,6 +2,11 @@
 
 #include "sage.hpp"
 
+#include "platform/linux/input.hpp"
+#include "platform/linux/graphics.hpp"
+
+using namespace sage;
+
 struct Layer_2D {
 	using Camera_Controller = camera::Controller<oslinux::Input>;
 
@@ -15,7 +20,6 @@ public:
 		: camera_controller{input}
 		, renderer{r}
 		, texture{"asset/texture/owl.png"}
-
 	{}
 
 public:
@@ -33,10 +37,6 @@ public:
 
 	auto event_callback(const Event& e) -> void {
 		camera_controller.event_callback(e);
-	}
-
-	auto teardown() -> void {
-		renderer.teardown();
 	}
 
 	auto imgui_prepare() -> void {

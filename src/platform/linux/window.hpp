@@ -119,16 +119,17 @@ public:
 		glfwSetWindowUserPointer(glfw, this);
 	}
 
+	~Window() {
+		if (glfw)
+			glfwDestroyWindow(glfw);
+	}
+
 public:
 	auto update() -> void {
 		SAGE_ASSERT(glfw);
 
 		glfwPollEvents();
 		context.swap_buffers();
-	}
-
-	auto teardown() -> void {
-		glfwDestroyWindow(glfw);
 	}
 
 	auto native_handle() const -> GLFWwindow* {

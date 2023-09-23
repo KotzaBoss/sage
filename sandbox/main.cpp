@@ -4,7 +4,6 @@
 #include "sage.hpp"
 
 #include "platform/linux/window.hpp"
-#include "layer_sandbox.hpp"
 #include "layer_2d.hpp"
 
 using namespace sage;

@@ -17,7 +17,6 @@ concept Concept =
 		{ l.update(delta) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
 		{ l.imgui_prepare() } -> std::same_as<void>;
-		{ l.teardown() } -> std::same_as<void>;
 		// layers.event_callback(window.pending_event());
 		// instead of checking the pending_event first.
 		{ l.event_callback(event) } -> std::same_as<void>;
@@ -36,7 +35,6 @@ public:
 public:
 	auto update(const std::chrono::milliseconds delta)	-> void { this->apply([=] (auto& layer)	{ layer.update(delta);		}); }
 	auto imgui_prepare()								-> void { this->apply([] (auto& layer)	{ layer.imgui_prepare();	}); }
-	auto teardown()										-> void { this->apply([] (auto& layer)	{ layer.teardown();			}); }
 
 	auto event_callback(const Event& e) -> void { this->apply([&] (auto& layer) { layer.event_callback(e); });}
 

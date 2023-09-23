@@ -122,11 +122,18 @@ public:
 			);
 	}
 
-	auto teardown() -> void {
+	Vertex_Buffer(Vertex_Buffer&& other)
+		: renderer_id{std::exchange(other.renderer_id, 0)}
+		, _vertices{std::move(other._vertices)}
+		, _layout{std::move(other._layout)}
+	{}
+
+	~Vertex_Buffer() {
 		if (renderer_id)
 			glDeleteBuffers(1, &renderer_id);
 	}
 
+public:
 	auto bind() const -> void {
 		SAGE_ASSERT(renderer_id);
 		glBindBuffer(GL_ARRAY_BUFFER, renderer_id);
@@ -172,11 +179,18 @@ public:
 			);
 	}
 
-	auto teardown() -> void {
+	Index_Buffer(Index_Buffer&& other)
+		: renderer_id{std::exchange(other.renderer_id, 0)}
+		, _size{other._size}
+		, _indeces{std::move(other._indeces)}
+	{}
+
+	~Index_Buffer() {
 		if (renderer_id)
 			glDeleteBuffers(1, &renderer_id);
 	}
 
+public:
 	auto indeces() const -> const Indeces& {
 		return _indeces;
 	}
@@ -200,17 +214,17 @@ struct Vertex_Array {
 	using Index_Buffer = oslinux::Index_Buffer;
 
 private:
-	uint32_t renderer_id = 0;
+	uint32_t renderer_id;
 	Vertex_Buffer _vertex_buffer;
 	Index_Buffer _index_buffer;
 
 public:
 	Vertex_Array(Vertex_Buffer&& vb, Index_Buffer&& ib)
-		: _vertex_buffer{std::move(vb)}
+		: renderer_id{0}
+		, _vertex_buffer{std::move(vb)}
 		, _index_buffer{std::move(ib)}
 	{
 		SAGE_ASSERT(not renderer_id);
-		//SAGE_ASSERT(vb and ib);
 		SAGE_ASSERT(_vertex_buffer.layout().elements().size());
 		SAGE_ASSERT(_index_buffer.indeces().size());
 
@@ -236,14 +250,19 @@ public:
 		_index_buffer.bind();
 	}
 
-	auto teardown() -> void {
+	Vertex_Array(Vertex_Array&& other)
+		: renderer_id{std::exchange(other.renderer_id, 0)}
+		, _vertex_buffer{std::move(other._vertex_buffer)}
+		, _index_buffer{std::move(other._index_buffer)}
+	{}
+
+	~Vertex_Array() {
 		if (renderer_id) {
-			_vertex_buffer.teardown();
-			_index_buffer.teardown();
 			glDeleteVertexArrays(1, &renderer_id);
 		}
 	}
 
+public:
 	auto bind() const -> void {
 		SAGE_ASSERT(renderer_id);
 		glBindVertexArray(renderer_id);
@@ -391,9 +410,13 @@ public:
 		renderer_id = program;
 	}
 
-	auto teardown() {
-		SAGE_ASSERT(renderer_id);
-		glDeleteProgram(renderer_id);
+	Shader(Shader&& other)
+		: renderer_id{std::exchange(other.renderer_id, 0)}
+	{}
+
+	~Shader() {
+		if (renderer_id)
+			glDeleteProgram(renderer_id);
 	}
 
 	auto bind() const -> void {
@@ -550,8 +573,16 @@ public:
 		stbi_image_free(data);
 	}
 
-	auto teardown() -> void {
-		glDeleteTextures(1, &renderer_id);
+	Texture2D(Texture2D&& other)
+		: path{std::move(other.path)}
+		, _width{other._width}
+		, _height{other._height}
+		, renderer_id{std::exchange(other.renderer_id, 0)}
+	{}
+
+	~Texture2D() {
+		if (renderer_id)
+			glDeleteTextures(1, &renderer_id);
 	}
 
 public:
@@ -600,7 +631,6 @@ struct Renderer_2D : Renderer_2D_Base {
 		scene_data.shader.set("u_Texture", 0);
 	}
 
-	auto teardown() -> void {}
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
 		Renderer_2D_Base::scene(cam, draws);
 	}

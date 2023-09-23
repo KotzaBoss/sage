@@ -7,9 +7,10 @@ struct Dump_Layer {
 		: id{_id}
 	{}
 
+	~Dump_Layer() { MESSAGE("DUMP Tearing down ", id); }
+
 	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
 	auto update() -> void { MESSAGE("DUMP Updating ", id); }
-	auto teardown() -> void { MESSAGE("DUMP Tearing down ", id); }
 	auto event_callback(const auto& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Dump_Layer);
@@ -33,9 +34,10 @@ struct Other_Layer {
 		: id{_id}
 	{}
 
+	~Other_Layer() { MESSAGE("OTHER Tearing down ", id); }
+
 	auto setup() -> void { MESSAGE("OTHER Setting up ", id); }
 	auto update() -> void { MESSAGE("OTHER Updating ", id); }
-	auto teardown() -> void { MESSAGE("OTHER Tearing down ", id); }
 	auto event_callback(const auto& event) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
 
 	REPR_DECL(Other_Layer);
@@ -59,9 +61,10 @@ struct Last_Layer {
 		: id{_id}
 	{}
 
+	~Last_Layer() { MESSAGE("LAST Tearing down ", id); }
+
 	auto setup() -> void { MESSAGE("LAST Setting up ", id); }
 	auto update() -> void { MESSAGE("LAST Updating ", id); }
-	auto teardown() -> void { MESSAGE("LAST Tearing down ", id); }
 	auto event_callback(const auto& event) -> void { MESSAGE("LAST Layer \"", id, "\" got Event ", event); }
 
 	REPR_DECL(Last_Layer);

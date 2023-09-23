@@ -2,7 +2,6 @@
 
 #include "layer.hpp"
 
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -15,10 +14,10 @@ struct ImGui {
 
 private:
 	float time = 0.0f;
-	oslinux::Window& window;
+	oslinux::Window* window;
 
 public:
-	ImGui(oslinux::Window& w)
+	ImGui(oslinux::Window* w)
 		: window{w}
 	{
 		::IMGUI_CHECKVERSION();		// 9000 IQ
@@ -40,18 +39,26 @@ public:
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
-		SAGE_ASSERT(window.native_handle() != nullptr);
-		ImGui_ImplGlfw_InitForOpenGL(window.native_handle(), true);
+		SAGE_ASSERT(window->native_handle() != nullptr);
+		ImGui_ImplGlfw_InitForOpenGL(window->native_handle(), true);
 		ImGui_ImplOpenGL3_Init("#version 460");
 	}
 
-	auto update(const std::chrono::milliseconds) -> void {}
+	ImGui(ImGui&& other)
+		: time{other.time}
+		, window{std::exchange(other.window, nullptr)}
+	{}
 
-	auto teardown() -> void {
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		::ImGui::DestroyContext();
+	~ImGui() {
+		if (window) {
+			ImGui_ImplOpenGL3_Shutdown();
+			ImGui_ImplGlfw_Shutdown();
+			::ImGui::DestroyContext();
+		}
 	}
+
+public:
+	auto update(const std::chrono::milliseconds) -> void {}
 
 	auto event_callback(const Event& e) -> void {
 		using namespace sage;
@@ -127,7 +134,7 @@ public:
 
 		// Render
 		auto& io = ::ImGui::GetIO();
-		const auto win_size = window.properties().size;
+		const auto win_size = window->properties().size;
 		io.DisplaySize = ImVec2(win_size.width, win_size.height);
 
 		::ImGui::Render();

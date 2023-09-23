@@ -24,7 +24,6 @@ concept Concept =
 	requires (Window win, Properties&& properties, const Event& event) {
 		Window(std::move(properties));	// Constructor
 		{ win.update() } -> std::same_as<void>;
-		{ win.teardown() } -> std::same_as<void>;
 		{ win.pending_event() } -> std::same_as<std::optional<Event>>;
 		{ win.properties() } -> std::same_as<Properties>;
 		{ win.native_handle() } -> std::convertible_to<void*>;	// Each concrete provides its own pointer type

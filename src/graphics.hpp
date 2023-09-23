@@ -49,7 +49,6 @@ using Parsed = std::array<std::optional<shader::Source>, MAX_SUPPORTED_TYPES>;
 template <typename S>
 concept Concept =
 	requires (S s, const Uniform& uniform, const std::string& uniform_name) {
-		{ s.teardown() } -> std::same_as<void>;
 		{ s.bind() } -> std::same_as<void>;
 		{ s.unbind() } -> std::same_as<void>;
 		{ s.upload_uniform(uniform_name, uniform) } -> std::same_as<void>;
@@ -142,7 +141,6 @@ inline auto component_count_of(const Type& t) -> size_t {
 template <typename T>
 concept Concept =
 	requires (T t) {
-		{ t.teardown() } -> std::same_as<void>;
 		{ t.bind() } -> std::same_as<void>;
 		{ t.unbind() } -> std::same_as<void>;
 	}
@@ -218,7 +216,6 @@ using Vertices = std::vector<float>;
 template <typename VB>
 concept Concept =
 	requires (VB vb, Vertices&& vertices, buffer::Layout&& layout) {
-		{ vb.teardown() } -> std::same_as<void>;
 		{ vb.bind() } -> std::same_as<void>;
 		{ vb.unbind() } -> std::same_as<void>;
 	}
@@ -233,7 +230,6 @@ using Indeces = std::vector<uint32_t>;
 template <typename IB>
 concept Concept =
 	requires (IB ib, Indeces&& indeces) {
-		{ ib.teardown() } -> std::same_as<void>;
 		{ ib.bind() } -> std::same_as<void>;
 		{ ib.unbind() } -> std::same_as<void>;
 		{ ib.indeces() } -> std::same_as<const Indeces&>;
@@ -255,7 +251,6 @@ concept Concept =
 	and requires (A a, Vertex_Buffer&& vb, Index_Buffer&& ib) {
 		requires std::same_as<typename A::Vertex_Buffer, Vertex_Buffer>;
 		requires std::same_as<typename A::Index_Buffer, Index_Buffer>;
-		{ a.teardown() } -> std::same_as<void>;
 		{ a.bind() } -> std::same_as<void>;
 		{ a.unbind() } -> std::same_as<void>;
 	}
@@ -268,7 +263,6 @@ namespace texture {
 template <typename T>
 concept Concept =
 	requires (T t, const fs::path& path, const size_t slot) {
-		{ t.teardown() } -> std::same_as<void>;
 		{ t.width() } -> std::same_as<size_t>;
 		{ t.height() } -> std::same_as<size_t>;
 		{ t.bind(slot) } -> std::same_as<void>;
@@ -286,7 +280,6 @@ concept Concept_2D =
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
 	and shader::Concept<Shader>
 	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const Texture& texture) {
-		{ r.teardown() } -> std::same_as<void>;
 		{ r.scene(cam, draws) } -> std::same_as<void>;
 		{ r.draw(pos, size, texture) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;

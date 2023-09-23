@@ -39,14 +39,10 @@ private:
 public:
 	App(Window&& w, same_as_any<Ls...> auto&&... ls)
 		: window{std::move(w)}
-		, layers{layer::ImGui{window}, std::move(ls)...}
+		, layers{layer::ImGui{&window}, std::move(ls)...}
 		, imgui{layers.front()}
 	{
 		SAGE_LOG_DEBUG(*this);
-	}
-
-	~App() {
-		//SAGE_ASSERT_MSG(not loop.joinable(), "Make sure you have both start and stop in place");
 	}
 
 public:
@@ -57,7 +53,6 @@ public:
 			if (const auto event = window.pending_event();
 				event.has_value())
 			{
-				SAGE_LOG_INFO(*event);
 				layers.event_callback(*event);
 			}
 
@@ -79,20 +74,7 @@ public:
 			std::this_thread::sleep_until(tick.current_time_point() + frame_duration);
 		}
 
-		teardown();
-
 		return true;
-	}
-
-	//auto stop() -> void {
-	//	loop.request_stop();
-	//	loop.join();
-	//}
-
-private:
-	auto teardown() -> void {
-		layers.teardown();
-		window.teardown();
 	}
 
 public:
