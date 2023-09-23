@@ -47,13 +47,9 @@ TEST_CASE ("Layer") {
 		REQUIRE(rg::is_sorted(ids));
 	}
 
-	layers.setup();
-
 	const auto start = std::chrono::steady_clock::now();
 	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
 		layers.update(tick());
 	}
-
-	layers.teardown();
 }
 

@@ -10,12 +10,9 @@ using namespace sage;
 TEST_CASE ("ImGui Layer") {
 
 	auto win = oslinux::Window(sage::window::Properties{});
-	auto imgui = layer::ImGui(win);
+	auto imgui = layer::ImGui(&win);
 
 	MESSAGE(imgui);
-
-	win.setup();
-	imgui.setup();
 
 	const auto start = std::chrono::steady_clock::now();
 	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
@@ -26,8 +23,5 @@ TEST_CASE ("ImGui Layer") {
 		win.update();
 		std::this_thread::sleep_for(1s);
 	}
-
-	imgui.teardown();
-	win.teardown();
 
 }

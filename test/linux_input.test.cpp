@@ -9,7 +9,6 @@ TEST_CASE ("Linux Window") {
 	auto win = oslinux::Window{window::Properties{}};
 	auto input = oslinux::Input{win.native_handle()};
 	MESSAGE(win);
-	win.setup();
 
 	const auto end = std::chrono::steady_clock::now() + 2s;
 	while (std::chrono::steady_clock::now() < end) {
@@ -20,5 +19,4 @@ TEST_CASE ("Linux Window") {
 				input.mouse_pos()
 			);
 	}
-	win.teardown();
 }

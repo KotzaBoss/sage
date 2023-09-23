@@ -8,9 +8,12 @@ struct Dump_Layer {
 
 	Dump_Layer(const size_t _id)
 		: id{_id}
-	{}
+	{
+		MESSAGE("DUMP Setting up ", id);
+	}
 
-	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
+	~Dump_Layer() { MESSAGE("DUMP Tearing down ", id); }
+
 	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("DUMP Updating {}", id, delta); }
 	auto imgui_prepare() -> void {
 		// Create a window called "My First Tool", with a menu bar.
@@ -46,7 +49,6 @@ struct Dump_Layer {
 		ImGui::EndChild();
 		ImGui::End();
 	}
-	auto teardown() -> void { MESSAGE("DUMP Tearing down ", id); }
 	auto event_callback(const sage::Event& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Dump_Layer);
@@ -68,9 +70,12 @@ struct Other_Layer {
 
 	Other_Layer(const size_t _id)
 		: id{_id}
-	{}
+	{
+		MESSAGE("OTHER Setting up ", id);
+	}
 
-	auto setup() -> void { MESSAGE("OTHER Setting up ", id); }
+	~Other_Layer() { MESSAGE("OTHER Tearing down ", id); }
+
 	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("OTHER Updating {}", id, delta); }
 	auto imgui_prepare() -> void {
 		ImGui::Text("Hello, world %d", 123);
@@ -81,7 +86,6 @@ struct Other_Layer {
 		float f;
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	}
-	auto teardown() -> void { MESSAGE("OTHER Tearing down ", id); }
 	auto event_callback(const sage::Event& event) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
 
 	REPR_DECL(Other_Layer);
@@ -103,14 +107,16 @@ struct Last_Layer {
 
 	Last_Layer(const size_t _id)
 		: id{_id}
-	{}
+	{
+		MESSAGE("DUMP Setting up ", id);
+	}
 
-	auto setup() -> void { MESSAGE("DUMP Setting up ", id); }
+	~Last_Layer() { MESSAGE("DUMP Tearing down ", id); }
+
 	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("LAST Updating {}", id, delta); }
 	auto imgui_prepare() -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}
-	auto teardown() -> void { MESSAGE("DUMP Tearing down ", id); }
 	auto event_callback(const sage::Event& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Last_Layer);
