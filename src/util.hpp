@@ -157,6 +157,7 @@ public:
 template <typename Needle, typename... Haystack>
 concept same_as_any = (std::same_as<Needle, Haystack> or ...);
 
+// Needed to be able to define Unique as Unique<typename...> and not Unique<typename Needle, typename... Haystack>
 namespace detail {
 	template <typename...>
 	inline constexpr auto unique = true;
@@ -266,6 +267,52 @@ private:
 
 template <typename... Ts>
 	requires Unique<Ts...>
+struct Polymorphic_Array {
+	using Storage = std::tuple<Ts...>;
+
+protected:
+	Storage storage;
+
+public:
+	Polymorphic_Array(same_as_any<Ts...> auto&&... ts)
+		: storage{std::make_tuple(std::move(ts)...)}
+	{}
+
+public:
+	constexpr auto size() const -> size_t {
+		return sizeof...(Ts);
+	}
+
+	auto front() -> std::tuple_element_t<0, Storage>& {
+		return std::get<0>(storage);
+	}
+
+	template <typename Fn>
+		requires ((std::invocable<Fn, Ts&> and ...) or (std::invocable<Fn, const Ts&> and ...))
+	auto apply(Fn&& fn) -> void {
+		std::apply(
+				[&] (auto&... t) {
+					(std::invoke(std::forward<Fn>(fn), t), ...);
+				},
+				storage
+			);
+	}
+
+	#pragma message "FIXME: Make constness work for Polymorphic_* containers. Why app chooses this when there is no const?"
+	//template <typename Fn>
+	//	requires (std::invocable<Fn, const Ts&> and ...)
+	//auto apply(Fn&& fn) const -> void {
+	//	std::apply(
+	//			[&] (const auto&... t) {
+	//				(std::invoke(std::forward<Fn>(fn), t), ...);
+	//			},
+	//			storage
+	//		);
+	//}
+};
+
+template <typename... Ts>
+	requires Unique<Ts...>
 struct Polymorphic_Storage {
 	template <typename Q>
 	using Vector = std::vector<Q>;
@@ -278,30 +325,32 @@ protected:
 public:
 	Polymorphic_Storage() = default;
 
-	template <same_as_any<Ts...>... Xs>
-	constexpr Polymorphic_Storage(Xs&&... xs) {
-		// Reserve vector capacity
-		std::apply([this] <typename... Counter> (Counter&&... counter) {
-					(
-						std::get<Vector<typename Counter::Type>>(storage)
-							.reserve(*counter)
-						, ...
-					);
-				},
-				type::Set<Ts...>::template count<Xs...>()
-			);
-
-		(_store(std::move(xs)), ...);
+	// CAUTION: Vectors must be in the order that Ts are declared
+	//
+	// using S = Polymorphic_Storage<int, string>
+	// s = S{ {1,2,3}, {"4"s, "5"s} };  // Ok
+	// s = S{ {"4"s, "5"s}, {1,2,3} };  // Error, propably: candidate Polymorphic_Storage({brace enclosed initializer list})
+	//
+	constexpr Polymorphic_Storage(Vector<Ts>&&... vs) {
+		((std::get<std::decay_t<decltype(vs)>>(storage) = std::move(vs)), ...);
 	}
-
 
 public:
 	auto store(same_as_any<Ts...> auto&& x) -> void {
-		_store(std::move(x));
+		using Type = std::decay_t<decltype(x)>;
+		std::get<Vector<Type>>(storage)
+			.push_back(std::move(x));
 	}
 
-	template <same_as_any<Ts...> T> auto get() const	-> const Vector<T>&	{ return std::get<T>(storage); }
-	template <same_as_any<Ts...> T> auto get()			-> Vector<T>&		{ return std::get<T>(storage); }
+	template <same_as_any<Ts...> T>
+	auto get() const -> const Vector<T>& {
+		return std::get<T>(storage);
+	}
+
+	template <same_as_any<Ts...> T>
+	auto get() -> Vector<T>& {
+		return std::get<T>(storage);
+	}
 
 	auto size() const -> size_t {
 		return std::apply(
@@ -316,59 +365,54 @@ public:
 		return std::get<0>(storage).front();
 	}
 
+											// Apply
+											//
+
 	template <typename Fn>
-		requires (std::invocable<Fn, Ts&> and ...)
-	auto apply(const Fn& fn) -> void {
+		requires ((std::invocable<Fn, Ts&> and ...) or (std::invocable<Fn, const Ts&> and ...))
+	auto apply(Fn&& fn) -> void {
 		std::apply(
 				[&] (auto&... vec) {
-					(rg::for_each(vec, [&] (auto& t) { std::invoke(fn, t); }), ...);
+					(rg::for_each(vec, [&] (auto& t) { std::invoke(std::forward<Fn>(fn), t); }), ...);
 				},
 				storage
 			);
 	}
 
-	#pragma message "FIXME: Had to rename the const overload because the fmt::formatter doesnt work otherwise. fix?"
-
-	// To differentiate between the two overloads use them as follows:
-	//
-	//		storage.const_apply([] (const auto& vec) {
-	//				// One by one each vector will be accessed here
-	//				// in order of the Ts... passed.
-	//			});
-	//
-	//		storage.const_apply([] (const sage::layer::Concept auto& layer) {
-	//				// One by one each layer will be accessed here
-	//				// in order of the Ts... passed.
-	//			});
-	//
-	template <typename Fn>
-		requires (std::invocable<Fn, const Vector<Ts>&> and ...)
-	auto const_apply(const Fn& fn) const -> void {
-		std::apply(
-				[&] (const auto&... vec) {
-					(std::invoke(fn, vec), ...);
-				},
-				storage
-			);
-	}
+	#pragma message "FIXME: See pragma in Polymorphic_Array"
+	//template <typename Fn>
+	//	requires (std::invocable<Fn, const Ts&> and ...)
+	//auto apply(Fn&& fn) const -> void {
+	//	std::apply(
+	//			[&] (const auto&... vec) {
+	//				(rg::for_each(vec, [&] (const auto& t) { std::invoke(std::forward<Fn>(fn), t); }), ...);
+	//			},
+	//			storage
+	//		);
+	//}
 
 	template <typename Fn>
-		requires (std::invocable<Fn, const Ts&> and ...)
-	auto const_apply(const Fn& fn) const -> void {
+		requires ((std::invocable<Fn, Vector<Ts>&> and ...) or (std::invocable<Fn, const Vector<Ts>&> and ...))
+	auto apply_group(Fn&& fn) -> void {
 		std::apply(
-				[&] (const auto&... vec) {
-					(rg::for_each(vec, [&] (const auto& t) { std::invoke(fn, t); }), ...);
+				[&] (auto&... vec) {
+					(std::invoke(std::forward<Fn>(fn), vec), ...);
 				},
 				storage
 			);
 	}
 
-private:
-	auto _store(same_as_any<Ts...> auto&& x) -> void {
-		using Type = std::decay_t<decltype(x)>;
-		std::get<Vector<Type>>(storage)
-			.push_back(std::move(x));
-	}
+	#pragma message "FIXME: See pragma in Polymorphic_Array"
+	//template <typename Fn>
+	//	requires (std::invocable<Fn, const Vector<Ts>&> and ...)
+	//auto apply_group(Fn&& fn) const -> void {
+	//	std::apply(
+	//			[&] (const auto&... vec) {
+	//				(std::invoke(std::forward<Fn>(fn), vec), ...);
+	//			},
+	//			storage
+	//		);
+	//}
 
 public:
 	friend REPR_DEF_FMT(Polymorphic_Storage<Ts...>);
@@ -397,5 +441,31 @@ FMT_FORMATTER(sage::util::type::Real_Name_Ptr) {
 
 	FMT_FORMATTER_FORMAT(sage::util::type::Real_Name_Ptr) {
 		return fmt::format_to(ctx.out(), "type::Real_Name_Ptr: {};", obj.get());
+	}
+};
+
+template <typename... Ts>
+FMT_FORMATTER(sage::util::Polymorphic_Array<Ts...>) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::util::Polymorphic_Array<Ts...>) {
+		fmt::format_to(ctx.out(), "util::Polymorphic_Array: ");
+		// Dark magic
+		#pragma message "FIXME: Use const auto in lambda when Polymorphic_* have constness"
+		const_cast<std::remove_const_t<std::decay_t<decltype(obj)>>&>(obj).apply([&] (auto& x) { fmt::format_to(ctx.out(), "\n\t{}", x); });
+		return fmt::format_to(ctx.out(), "\n\t;");
+	}
+};
+
+
+template <typename... Ts>
+FMT_FORMATTER(sage::util::Polymorphic_Storage<Ts...>) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::util::Polymorphic_Storage<Ts...>) {
+		fmt::format_to(ctx.out(), "util::Polymorphic_Array: ");
+		#pragma message "FIXME: Use const auto in lambda when Polymorphic_* have constness"
+		const_cast<std::remove_const_t<std::decay_t<decltype(obj)>>&>(obj).apply([&] (auto& x) { fmt::format_to(ctx.out(), "\n\t{}", x); });
+		return fmt::format_to(ctx.out(), "\n\t;");
 	}
 };

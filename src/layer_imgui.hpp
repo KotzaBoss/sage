@@ -123,14 +123,15 @@ public:
 
 	// There can be different inputs as the engine proceeds, for example
 	// a view so that it can be created by filtering etc.
-	auto new_frame(const std::invocable auto& frame_work) -> void {
+	template <std::invocable Fn>
+	auto new_frame(Fn&& work) -> void {
 		// New Frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		::ImGui::NewFrame();
 
 		// Other objects imgui work
-		frame_work();
+		std::invoke(std::forward<Fn>(work));
 
 		// Render
 		auto& io = ::ImGui::GetIO();

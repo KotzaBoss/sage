@@ -23,7 +23,7 @@ template <
 	requires
 		(not same_as_any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
 struct App {
-	using Layers = sage::layer::Storage<layer::ImGui, Ls...>;
+	using Layers = sage::layer::Array<layer::ImGui, Ls...>;
 
 private:
 	Window&& window;

@@ -185,8 +185,8 @@ private:
 	size_t _stride;
 
 public:
-	Layout(std::same_as<Element> auto&&... es)
-		: _elements{std::move(es)...}
+	Layout(Vector&& es)
+		: _elements{std::move(es)}
 		, _stride{0}
 	{
 		rg::for_each(_elements, [this, offset = 0ul] (auto& elem) mutable {

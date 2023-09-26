@@ -613,7 +613,7 @@ struct Renderer_2D : Renderer_2D_Base {
 						 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
 						-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
 					},
-					sage::graphics::buffer::Layout{
+					sage::graphics::buffer::Layout{{
 						sage::graphics::buffer::Element{{
 								.name = "a_Position",
 								.type = sage::graphics::shader::data::Type::Float3
@@ -622,7 +622,7 @@ struct Renderer_2D : Renderer_2D_Base {
 								.name = "a_TexCoord",
 								.type = sage::graphics::shader::data::Type::Float2
 							}},
-					}
+					}}
 				},
 				Index_Buffer{{0, 1, 2, 2, 3, 0}}
 			},

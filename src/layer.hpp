@@ -25,18 +25,69 @@ concept Concept =
 
 
 template <layer::Concept... Ls>
-struct Storage : util::Polymorphic_Storage<Ls...> {
+struct Array : util::Polymorphic_Array<Ls...> {
+	using Base = util::Polymorphic_Array<Ls...>;
 
 public:
-	Storage(auto&&... layers)
-		: util::Polymorphic_Storage<Ls...>{std::move(layers)...}
+	Array(same_as_any<Ls...> auto&&... ls)
+		: Base{std::move(ls)...}
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta)	-> void { this->apply([=] (auto& layer)	{ layer.update(delta);		}); }
-	auto imgui_prepare()								-> void { this->apply([] (auto& layer)	{ layer.imgui_prepare();	}); }
+	auto update(const std::chrono::milliseconds delta) -> void {
+		Base::apply([=] (auto& layer) {
+				layer.update(delta);
+			});
+	}
 
-	auto event_callback(const Event& e) -> void { this->apply([&] (auto& layer) { layer.event_callback(e); });}
+	auto imgui_prepare() -> void {
+		Base::apply([] (auto& layer) {
+				layer.imgui_prepare();
+			});
+	}
+
+	auto event_callback(const Event& e) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.event_callback(e);
+			});
+	}
+
+public:
+	friend REPR_DEF_FMT(Array<Ls...>)
+	friend FMT_FORMATTER(Array<Ls...>);
+
+};
+
+template <layer::Concept... Ls>
+struct Storage : util::Polymorphic_Storage<Ls...> {
+	using Base = util::Polymorphic_Storage<Ls...>;
+
+	template<layer::Concept L>
+	using Vector = typename Base::Vector<L>;
+
+public:
+	Storage(Vector<Ls>&&... layers)
+		: Base{std::move(layers)...}
+	{}
+
+public:
+	auto update(const std::chrono::milliseconds delta) -> void {
+		Base::apply([=] (auto& layer) {
+				layer.update(delta);
+			});
+	}
+
+	auto imgui_prepare() -> void {
+		Base::apply([] (auto& layer) {
+				layer.imgui_prepare();
+			});
+	}
+
+	auto event_callback(const Event& e) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.event_callback(e);
+			});
+	}
 
 public:
 	friend REPR_DEF_FMT(Storage<Ls...>)
@@ -46,13 +97,10 @@ public:
 }// sage::layer
 
 template <sage::layer::Concept... Ls>
-FMT_FORMATTER(sage::layer::Storage<Ls...>) {
-	FMT_FORMATTER_DEFAULT_PARSE
+FMT_FORMATTER(sage::layer::Array<Ls...>) : fmt::formatter<sage::util::Polymorphic_Array<Ls...>>
+{};
 
-	FMT_FORMATTER_FORMAT(sage::layer::Storage<Ls...>) {
-		fmt::format_to(ctx.out(), "layer::Storage: ");
-		obj.const_apply([&] (const sage::layer::Concept auto& layer) { fmt::format_to(ctx.out(), "\n\t{}", layer); });
-		return fmt::format_to(ctx.out(), "\n\t;");
-	}
-};
 
+template <sage::layer::Concept... Ls>
+FMT_FORMATTER(sage::layer::Storage<Ls...>) : fmt::formatter<sage::util::Polymorphic_Storage<Ls...>>
+{};
