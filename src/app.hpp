@@ -21,7 +21,7 @@ template <
 		sage::layer::Concept... Ls
 	>
 	requires
-		(not same_as_any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
+		(not type::Any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
 struct App {
 	using Layers = sage::layer::Array<layer::ImGui, Ls...>;
 
@@ -37,7 +37,7 @@ private:
 	layer::ImGui& imgui;
 
 public:
-	App(Window&& w, same_as_any<Ls...> auto&&... ls)
+	App(Window&& w, type::Any<Ls...> auto&&... ls)
 		: window{std::move(w)}
 		, layers{layer::ImGui{&window}, std::move(ls)...}
 		, imgui{layers.front()}

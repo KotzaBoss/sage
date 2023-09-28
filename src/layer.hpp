@@ -29,7 +29,7 @@ struct Array : util::Polymorphic_Array<Ls...> {
 	using Base = util::Polymorphic_Array<Ls...>;
 
 public:
-	Array(same_as_any<Ls...> auto&&... ls)
+	Array(type::Any<Ls...> auto&&... ls)
 		: Base{std::move(ls)...}
 	{}
 

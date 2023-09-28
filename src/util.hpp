@@ -154,8 +154,15 @@ public:
 	}
 };
 
+namespace type {
+
+inline namespace comp {
+
 template <typename Needle, typename... Haystack>
-concept same_as_any = (std::same_as<Needle, Haystack> or ...);
+concept Any = (std::same_as<Needle, Haystack> or ...);
+
+template <typename Needle, typename... Haystack>
+concept Not_In = not Any<Needle, Haystack...>;
 
 // Needed to be able to define Unique as Unique<typename...> and not Unique<typename Needle, typename... Haystack>
 namespace detail {
@@ -163,13 +170,13 @@ namespace detail {
 	inline constexpr auto unique = true;
 
 	template <typename T, typename... Rest>
-	inline constexpr auto unique<T, Rest...> = (not same_as_any<T, Rest> and ...) and unique<Rest...>;
+	inline constexpr auto unique<T, Rest...> = Not_In<T, Rest...> and unique<Rest...>;
 }
 
 template <typename... T>
 concept Unique = detail::unique<T...>;
 
-namespace type {
+}// type::comp
 
 using Real_Name_Ptr = std::unique_ptr<char, decltype([] (auto ptr) { std::free(ptr); })>;
 
@@ -211,14 +218,14 @@ public:
 template <typename... Ts>
 struct Counters : std::tuple<Counter<Ts>...> {
 
-	template <same_as_any<Ts...> X>
+	template <Any<Ts...> X>
 	constexpr auto increment() -> void {
 		++std::get<Counter<X>>(*this);
 	}
 
 	template <typename X>
 	constexpr auto count() -> size_t {
-		if constexpr (same_as_any<X, Ts...>)
+		if constexpr (Any<X, Ts...>)
 			return *std::get<Counter<X>>(*this);
 		else
 			return 0;
@@ -229,8 +236,6 @@ template <typename... Ts>
 	requires Unique<Ts...>
 struct Set {
 	Set() = delete;
-
-	using Set_Counters = type::Counters<Ts...>;
 
 	// Count occurences of Ts... in Xs...
 	// Syntactically simplified examples:
@@ -251,13 +256,13 @@ struct Set {
 	template <typename... Xs>
 		requires (sizeof...(Xs) <= 1)
 	static consteval auto contains() -> bool {
-		return (same_as_any<Xs, Ts...> or ...);
+		return (Any<Xs, Ts...> or ...);
 	}
 
 private:
 	template <typename X>
 	static consteval auto increment_counter_if_exists(type::Counters<Ts...>& counters) -> void {
-		if constexpr (same_as_any<X, Ts...>)
+		if constexpr (Any<X, Ts...>)
 			counters.template increment<X>();
 	}
 
@@ -266,7 +271,7 @@ private:
 }// type
 
 template <typename... Ts>
-	requires Unique<Ts...>
+	requires type::Unique<Ts...>
 struct Polymorphic_Array {
 	using Storage = std::tuple<Ts...>;
 
@@ -274,7 +279,7 @@ protected:
 	Storage storage;
 
 public:
-	Polymorphic_Array(same_as_any<Ts...> auto&&... ts)
+	Polymorphic_Array(type::Any<Ts...> auto&&... ts)
 		: storage{std::make_tuple(std::move(ts)...)}
 	{}
 
@@ -312,7 +317,7 @@ public:
 };
 
 template <typename... Ts>
-	requires Unique<Ts...>
+	requires type::Unique<Ts...>
 struct Polymorphic_Storage {
 	template <typename Q>
 	using Vector = std::vector<Q>;
@@ -336,18 +341,18 @@ public:
 	}
 
 public:
-	auto store(same_as_any<Ts...> auto&& x) -> void {
+	auto store(type::Any<Ts...> auto&& x) -> void {
 		using Type = std::decay_t<decltype(x)>;
 		std::get<Vector<Type>>(storage)
 			.push_back(std::move(x));
 	}
 
-	template <same_as_any<Ts...> T>
+	template <type::Any<Ts...> T>
 	auto get() const -> const Vector<T>& {
 		return std::get<T>(storage);
 	}
 
-	template <same_as_any<Ts...> T>
+	template <type::Any<Ts...> T>
 	auto get() -> Vector<T>& {
 		return std::get<T>(storage);
 	}
