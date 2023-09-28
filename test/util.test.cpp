@@ -51,10 +51,11 @@ TEST_CASE ("Trim") {
 TEST_CASE ("Type") {
 	#pragma message "TODO: Weird behaviour for Set<>::count<>()"
 	//CHECK_EQ(type::Set<>					::template count<>(), std::tuple{});
-	CHECK_EQ(type::Set<>					::template count<int>(),				std::tuple{});
-	CHECK_EQ(type::Set<int>					::template count<int>(),				std::make_tuple(1u));
-	CHECK_EQ(type::Set<int, float>			::template count<float>(),				std::make_tuple(0u, 1u));
-	CHECK_EQ(type::Set<int, float>			::template count<float, int, float>(),	std::make_tuple(1u, 2u));
+	CHECK_EQ(type::Set<>					::template count<int>(),						std::tuple{});
+	CHECK_EQ(type::Set<int>					::template count<int>(),						std::make_tuple(1u));
+	CHECK_EQ(type::Set<int, float>			::template count<float>(),						std::make_tuple(0u, 1u));
+	CHECK_EQ(type::Set<int, float>			::template count<float, int, float>(),			std::make_tuple(1u, 2u));
+	CHECK_EQ(type::Set<int, float>			::template count<float, int, double, float>(),	std::make_tuple(1u, 2u));
 
 	CHECK_EQ(type::Set<>					::template contains<int>(), false);
 	CHECK_EQ(type::Set<>					::template contains<>(),	false);
