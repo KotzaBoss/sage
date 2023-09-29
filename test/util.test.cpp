@@ -49,6 +49,21 @@ TEST_CASE ("Trim") {
 }
 
 TEST_CASE ("Type") {
+	CHECK_EQ(type::Any<int>,				false);
+	CHECK_EQ(type::Any<int, int>,			true);
+	CHECK_EQ(type::Any<int, float, int>,	true);
+	CHECK_EQ(type::Any<int, double>,		false);
+
+	CHECK_EQ(type::Not_In<int>,				true);
+	CHECK_EQ(type::Not_In<int, int>,		false);
+	CHECK_EQ(type::Not_In<int, float, int>,	false);
+	CHECK_EQ(type::Not_In<int, double>,		true);
+
+	CHECK_EQ(type::Unique<>,				true);
+	CHECK_EQ(type::Unique<int>,				true);
+	CHECK_EQ(type::Unique<int, float, int>,	false);
+	CHECK_EQ(type::Unique<int, double>,		true);
+
 	#pragma message "TODO: Weird behaviour for Set<>::count<>()"
 	//CHECK_EQ(type::Set<>					::template count<>(), std::tuple{});
 	CHECK_EQ(type::Set<>					::template count<int>(),						std::tuple{});

@@ -97,10 +97,20 @@ public:
 }// sage::layer
 
 template <sage::layer::Concept... Ls>
-FMT_FORMATTER(sage::layer::Array<Ls...>) : fmt::formatter<sage::util::Polymorphic_Array<Ls...>>
-{};
+FMT_FORMATTER(sage::layer::Array<Ls...>) {
+	FMT_FORMATTER_DEFAULT_PARSE
 
+	FMT_FORMATTER_FORMAT(sage::layer::Array<Ls...>) {
+		return fmt::format_to(ctx.out(), "layer::Array: {};", static_cast<const std::decay_t<decltype(obj)>::Base&>(obj));
+	}
+};
 
 template <sage::layer::Concept... Ls>
-FMT_FORMATTER(sage::layer::Storage<Ls...>) : fmt::formatter<sage::util::Polymorphic_Storage<Ls...>>
-{};
+FMT_FORMATTER(sage::layer::Storage<Ls...>) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::layer::Storage<Ls...>) {
+		return fmt::format_to(ctx.out(), "layer::Storage: {};", static_cast<const std::decay_t<decltype(obj)>::Base&>(obj));
+	}
+};
+

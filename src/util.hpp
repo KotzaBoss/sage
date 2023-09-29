@@ -232,6 +232,17 @@ struct Counters : std::tuple<Counter<Ts>...> {
 	}
 };
 
+}// sage::util::type
+}// sage::util
+
+template <typename... Ts>
+struct std::tuple_size<sage::util::type::Counters<Ts...>>
+	: std::tuple_size<std::tuple<sage::util::type::Counter<Ts>...>>
+{};
+
+namespace sage::inline util {
+namespace type {
+
 template <typename... Ts>
 	requires Unique<Ts...>
 struct Set {
@@ -269,166 +280,122 @@ private:
 };
 
 }// type
+}// sage::util
+
+namespace sage::inline util {
+
+// The fmtlib is a pain to deal with if Polymorphic_Storage subclasses Polymorphic_Array
+// so just inherit both from tuple.
+template <typename... Ts>
+using Polymorphic_Container_Base = std::tuple<Ts...>;
 
 template <typename... Ts>
 	requires type::Unique<Ts...>
-struct Polymorphic_Array {
-	using Storage = std::tuple<Ts...>;
-
-protected:
-	Storage storage;
-
-public:
-	Polymorphic_Array(type::Any<Ts...> auto&&... ts)
-		: storage{std::make_tuple(std::move(ts)...)}
-	{}
+struct Polymorphic_Array : Polymorphic_Container_Base<Ts...> {
+	using Base = Polymorphic_Container_Base<Ts...>;
+	using Base::Base;
 
 public:
 	constexpr auto size() const -> size_t {
-		return sizeof...(Ts);
+		return std::tuple_size_v<Base>;
 	}
 
-	auto front() -> std::tuple_element_t<0, Storage>& {
-		return std::get<0>(storage);
+	constexpr auto front() -> std::tuple_element_t<0, Base>& {
+		return std::get<0>(*this);
 	}
 
+	#if __cplusplus >= 202302L	// >C++23
+	#pragma message "TODO: Deduce this to add const-correctness to Polymorphic_Containers."
+	#endif
+	// TODO: add check std>=23 todo deduce this
 	template <typename Fn>
 		requires ((std::invocable<Fn, Ts&> and ...) or (std::invocable<Fn, const Ts&> and ...))
-	auto apply(Fn&& fn) -> void {
-		std::apply(
+	constexpr auto apply(Fn&& fn) -> decltype(auto) {
+		return std::apply(
 				[&] (auto&... t) {
-					(std::invoke(std::forward<Fn>(fn), t), ...);
+					return (std::invoke(std::forward<Fn>(fn), t), ...);
 				},
-				storage
+				*this
 			);
 	}
-
-	#pragma message "FIXME: Make constness work for Polymorphic_* containers. Why app chooses this when there is no const?"
-	//template <typename Fn>
-	//	requires (std::invocable<Fn, const Ts&> and ...)
-	//auto apply(Fn&& fn) const -> void {
-	//	std::apply(
-	//			[&] (const auto&... t) {
-	//				(std::invoke(std::forward<Fn>(fn), t), ...);
-	//			},
-	//			storage
-	//		);
-	//}
 };
 
 template <typename... Ts>
+Polymorphic_Array(Ts&&...) -> Polymorphic_Array<Ts...>;
+
+}// sage::util
+
+template <typename... Ts>
+struct std::tuple_size<sage::util::Polymorphic_Array<Ts...>>
+	: std::tuple_size<typename sage::util::Polymorphic_Array<Ts...>::Base>
+{};
+
+template <size_t I, typename... Ts>
+struct std::tuple_element<I, sage::util::Polymorphic_Array<Ts...>>
+	: std::tuple_element<I, typename sage::util::Polymorphic_Array<Ts...>::Base>
+{};
+
+
+namespace sage::inline util {
+
+template <typename... Ts>
 	requires type::Unique<Ts...>
-struct Polymorphic_Storage {
+struct Polymorphic_Storage : Polymorphic_Container_Base<std::vector<Ts>...> {
 	template <typename Q>
 	using Vector = std::vector<Q>;
-
-	using Storage = std::tuple<Vector<Ts>...>;
-
-protected:
-	Storage storage;
+	using Base = Polymorphic_Container_Base<Vector<Ts>...>;
+	using Base::Base;
 
 public:
-	Polymorphic_Storage() = default;
-
-	// CAUTION: Vectors must be in the order that Ts are declared
-	//
-	// using S = Polymorphic_Storage<int, string>
-	// s = S{ {1,2,3}, {"4"s, "5"s} };  // Ok
-	// s = S{ {"4"s, "5"s}, {1,2,3} };  // Error, propably: candidate Polymorphic_Storage({brace enclosed initializer list})
-	//
-	constexpr Polymorphic_Storage(Vector<Ts>&&... vs) {
-		((std::get<std::decay_t<decltype(vs)>>(storage) = std::move(vs)), ...);
-	}
-
-public:
-	auto store(type::Any<Ts...> auto&& x) -> void {
-		using Type = std::decay_t<decltype(x)>;
-		std::get<Vector<Type>>(storage)
-			.push_back(std::move(x));
-	}
-
-	template <type::Any<Ts...> T>
-	auto get() const -> const Vector<T>& {
-		return std::get<T>(storage);
-	}
-
-	template <type::Any<Ts...> T>
-	auto get() -> Vector<T>& {
-		return std::get<T>(storage);
-	}
-
-	auto size() const -> size_t {
+	constexpr auto size() const -> size_t {
 		return std::apply(
 				[] (const auto&... vec) {
 					return (vec.size() + ...);
 				},
-				storage
+				*this
 			);
 	}
 
-	auto front() -> std::tuple_element_t<0, Storage>::reference {
-		return std::get<0>(storage).front();
+	constexpr auto front() -> std::tuple_element_t<0, Base>& {
+		return std::get<0>(*this).front();
 	}
-
-											// Apply
-											//
 
 	template <typename Fn>
 		requires ((std::invocable<Fn, Ts&> and ...) or (std::invocable<Fn, const Ts&> and ...))
-	auto apply(Fn&& fn) -> void {
-		std::apply(
+	constexpr auto apply(Fn&& fn) -> decltype(auto) {
+		return std::apply(
 				[&] (auto&... vec) {
-					(rg::for_each(vec, [&] (auto& t) { std::invoke(std::forward<Fn>(fn), t); }), ...);
+					return (rg::for_each(vec, [&] (auto& t) { return std::invoke(std::forward<Fn>(fn), t); }), ...);
 				},
-				storage
+				*this
 			);
 	}
-
-	#pragma message "FIXME: See pragma in Polymorphic_Array"
-	//template <typename Fn>
-	//	requires (std::invocable<Fn, const Ts&> and ...)
-	//auto apply(Fn&& fn) const -> void {
-	//	std::apply(
-	//			[&] (const auto&... vec) {
-	//				(rg::for_each(vec, [&] (const auto& t) { std::invoke(std::forward<Fn>(fn), t); }), ...);
-	//			},
-	//			storage
-	//		);
-	//}
 
 	template <typename Fn>
 		requires ((std::invocable<Fn, Vector<Ts>&> and ...) or (std::invocable<Fn, const Vector<Ts>&> and ...))
-	auto apply_group(Fn&& fn) -> void {
-		std::apply(
+	constexpr auto apply_group(Fn&& fn) -> decltype(auto) {
+		return std::apply(
 				[&] (auto&... vec) {
-					(std::invoke(std::forward<Fn>(fn), vec), ...);
+					return (std::invoke(std::forward<Fn>(fn), vec), ...);
 				},
-				storage
+				*this
 			);
 	}
-
-	#pragma message "FIXME: See pragma in Polymorphic_Array"
-	//template <typename Fn>
-	//	requires (std::invocable<Fn, const Vector<Ts>&> and ...)
-	//auto apply_group(Fn&& fn) const -> void {
-	//	std::apply(
-	//			[&] (const auto&... vec) {
-	//				(std::invoke(std::forward<Fn>(fn), vec), ...);
-	//			},
-	//			storage
-	//		);
-	//}
-
-public:
-	friend REPR_DEF_FMT(Polymorphic_Storage<Ts...>);
-	friend FMT_FORMATTER(Polymorphic_Storage<Ts...>);
 };
 
-}// util
+template <typename... Ts>
+Polymorphic_Storage(std::vector<Ts>&&...) -> Polymorphic_Storage<Ts...>;
+
+}// sage::util
+
+template <size_t I, typename... Ts>
+struct std::tuple_element<I, sage::util::Polymorphic_Storage<Ts...>>
+	: std::tuple_element<I, typename sage::util::Polymorphic_Storage<Ts...>::Base>
+{};
 
 template <typename... Ts>
-struct std::tuple_size<sage::util::type::Counters<Ts...>>
-	: std::tuple_size<std::tuple<sage::util::type::Counter<Ts>...>>
+struct std::tuple_size<sage::util::Polymorphic_Storage<Ts...>>
+	: std::tuple_size<typename sage::util::Polymorphic_Storage<Ts...>::Base>
 {};
 
 template <typename T>
@@ -449,28 +416,3 @@ FMT_FORMATTER(sage::util::type::Real_Name_Ptr) {
 	}
 };
 
-template <typename... Ts>
-FMT_FORMATTER(sage::util::Polymorphic_Array<Ts...>) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::util::Polymorphic_Array<Ts...>) {
-		fmt::format_to(ctx.out(), "util::Polymorphic_Array: ");
-		// Dark magic
-		#pragma message "FIXME: Use const auto in lambda when Polymorphic_* have constness"
-		const_cast<std::remove_const_t<std::decay_t<decltype(obj)>>&>(obj).apply([&] (auto& x) { fmt::format_to(ctx.out(), "\n\t{}", x); });
-		return fmt::format_to(ctx.out(), "\n\t;");
-	}
-};
-
-
-template <typename... Ts>
-FMT_FORMATTER(sage::util::Polymorphic_Storage<Ts...>) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(sage::util::Polymorphic_Storage<Ts...>) {
-		fmt::format_to(ctx.out(), "util::Polymorphic_Array: ");
-		#pragma message "FIXME: Use const auto in lambda when Polymorphic_* have constness"
-		const_cast<std::remove_const_t<std::decay_t<decltype(obj)>>&>(obj).apply([&] (auto& x) { fmt::format_to(ctx.out(), "\n\t{}", x); });
-		return fmt::format_to(ctx.out(), "\n\t;");
-	}
-};
