@@ -134,3 +134,14 @@ namespace fs = std::filesystem;
 
 using namespace std::literals;
 
+namespace build {
+
+inline constexpr auto in_debug_mode =
+#ifdef NDEBUG
+	false
+#else
+	true
+#endif
+	;
+
+}// build
