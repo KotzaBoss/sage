@@ -359,7 +359,7 @@ public:
 						// We don't need the shader anymore.
 						glDeleteShader(shader_id);
 
-						SAGE_ASSERT_MSG(false, "{} Compilation failed with: {}\n{}", static_cast<shader::Type>(i), infoLog.data(), *source);
+						SAGE_ASSERT(false, "{} Compilation failed with: {}\n{}", static_cast<shader::Type>(i), infoLog.data(), *source);
 					}
 					else
 						processed_shaders[i] = shader_id;
@@ -401,7 +401,7 @@ public:
 					glDeleteShader(shader);
 				});
 
-			SAGE_ASSERT_MSG(false, fmt::format("Program compilation failed with: {}", infoLog.data()));
+			SAGE_ASSERT(false, "Program compilation failed with: {}", infoLog.data());
 			return;
 		}
 
@@ -477,7 +477,7 @@ public:
 							);
 					},
 					[&] (auto&& x) {
-						SAGE_ASSERT_MSG(false, "{}", type::real_name(std::move(x)));
+						SAGE_ASSERT(false, "{}", type::real_name(std::move(x)));
 					}
 				},
 				uniform
@@ -495,7 +495,7 @@ private:
 
 		// Supported shaders
 		constexpr auto supported_shaders = std::array{ "vertex", "fragment" };
-		SAGE_ASSERT_MSG(file_src.find(type_token) != std::string::npos, "At least one #type of shader must exist. Supported: {}", supported_shaders);
+		SAGE_ASSERT(file_src.find(type_token) != std::string::npos, "At least one #type of shader must exist. Supported: {}", supported_shaders);
 
 		auto shaders = Parsed_Shaders{};
 
@@ -514,7 +514,7 @@ private:
 					shaders[std::to_underlying(shader)].emplace("", path);
 				}
 				else {
-					SAGE_ASSERT_MSG(shader != shader::Type::None, "Make sure there that the first line of the file has some shader #type");
+					SAGE_ASSERT(shader != shader::Type::None, "Make sure there that the first line of the file has some shader #type");
 
 					auto& source = shaders[std::to_underlying(shader)];
 					SAGE_ASSERT(source.has_value());
@@ -540,14 +540,14 @@ private:
 
 public:
 	Texture2D(const fs::path& p) {
-		SAGE_ASSERT_MSG(fs::exists(p), "Current: {}; Requested: {}", fs::current_path(), p);
+		SAGE_ASSERT_PATH_EXISTS(p);
 		path = p;
 
 		stbi_set_flip_vertically_on_load(1);
 
 		int width, height, channels;
 		const auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		SAGE_ASSERT_MSG(data, "stbi could not load from: {}", path.c_str());
+		SAGE_ASSERT(data, "stbi could not load from: {}", path.c_str());
 
 		_width = width;
 		_height = height;

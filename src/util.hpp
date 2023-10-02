@@ -44,8 +44,16 @@ constexpr auto trim(std::string& s, const char to_trim = ' ') -> void {
 }
 } // sage::util::string
 
-constexpr auto truth(const auto& x) -> bool {
-	return x;
+template <typename T>
+concept Boolean_Testable =
+	requires (T&& t) {
+		{ static_cast<bool>(std::forward<T>(t)) } -> std::same_as<bool>;
+	}
+	;
+
+template <Boolean_Testable T>
+constexpr auto truth(T&& x) -> bool {
+	return static_cast<bool>(std::forward<T>(x));
 }
 
 template<std::integral I>

@@ -30,7 +30,7 @@ public:
 			)}
 		, context{&glfw}
 	{
-		SAGE_ASSERT_MSG(props.title.rfind('\0'), "OpenGL window title {:?} is not NULL terminated string", props.title);
+		SAGE_ASSERT(props.title.rfind('\0'), "OpenGL window title {:?} is not NULL terminated string", props.title);
 		SAGE_ASSERT(glfw);
 
 		glfwSwapInterval(1);	// vsync on

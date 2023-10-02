@@ -46,7 +46,7 @@ struct Event {
 	REPR_DECL(Payload);
 
 	using Callback = std::function<void(const Event&)>;
-	static constexpr auto uninitialized_callback = [] (const Event&) { SAGE_ASSERT_MSG(false, "Event::Callback is uninitialized"); };
+	static constexpr auto uninitialized_callback = [] (const Event&) { SAGE_ASSERT(false, "Event::Callback is uninitialized"); };
 
 public:
 	Type type;

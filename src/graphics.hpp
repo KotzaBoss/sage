@@ -65,7 +65,7 @@ protected:
 		return src.path
 			.or_else([] {
 					static auto i = 1ul;
-					SAGE_ASSERT_MSG(i < std::numeric_limits<decltype(i)>::max(),
+					SAGE_ASSERT(i < std::numeric_limits<decltype(i)>::max(),
 							"Managed to instantiate {} shaders, impressive...", i
 						);
 					return std::optional{fs::path{fmt::format("Anonymous_Shader_{}", i++)}};
@@ -397,7 +397,7 @@ protected:	// Does not count as part of the concept just shares the same name to
 	auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform, const std::function<void()>& impl) -> void {
 		SAGE_ASSERT(not va.vertex_buffer().layout().elements().empty());
 		SAGE_ASSERT(not va.index_buffer().indeces().empty());
-		SAGE_ASSERT_MSG(scene_data.has_value(), "Renderer::submit() must be called in the submissions function passed to Renderer::scene()");
+		SAGE_ASSERT(scene_data.has_value(), "Renderer::submit() must be called in the submissions function passed to Renderer::scene()");
 
 		shader.bind();
 		shader.upload_uniform("u_ViewProjection", scene_data->view_proj_mat);

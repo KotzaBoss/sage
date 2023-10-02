@@ -81,8 +81,8 @@ public:
 
 				const auto button = std::get<input::Mouse::Button>(e.payload);
 				const auto button_idx = std::to_underlying(button);
-				SAGE_ASSERT_MSG(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
-						fmt::format("Index for mouse button {} is out of bounds", button)
+				SAGE_ASSERT(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
+						"Index for mouse button {} is out of bounds", button
 					);
 
 				::ImGui::GetIO()
@@ -96,8 +96,8 @@ public:
 
 				const auto button = std::get<input::Mouse::Button>(e.payload);
 				const auto button_idx = std::to_underlying(button);
-				SAGE_ASSERT_MSG(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
-						fmt::format("Index for mouse button {} is out of bounds", button)
+				SAGE_ASSERT(button_idx >= 0 and (size_t)button_idx < sizeof(sage_to_imgui_mouse_buttons),
+						"Index for mouse button {} is out of bounds", button
 					);
 
 				::ImGui::GetIO()
