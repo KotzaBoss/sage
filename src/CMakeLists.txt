@@ -1,5 +1,5 @@
 add_library(std std.cpp)
-target_precompile_headers(std PUBLIC "std.hpp")
+target_precompile_headers(std PRIVATE "std.hpp")
 cmake_print_properties(TARGETS std PROPERTIES SOURCES LINK_LIBRARIES)
 
 add_library(log STATIC log.cpp)

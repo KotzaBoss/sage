@@ -29,30 +29,24 @@ macro(section_fail msg)
 	message(CHECK_FAIL ${msg})
 endmacro()
 
-############################################ Convenience Targets #
-
-add_custom_target(debug_sandbox
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMAND clear
-		COMMAND cmake --build . -j11 -- sandbox
-		COMMAND gdb ./sandbox/sandbox
-	)
-
-add_custom_target(run_sandbox
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMAND clear
-		COMMAND cmake --build . -j11 -- sandbox
-		COMMAND ./sandbox/sandbox
-	)
-
-############################################ Build Type #
-section_start("Build type")
+############################################ Build #
+section_start("Build")
 
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+
 section_pass("${CMAKE_BUILD_TYPE}")
+
+############################################ Generator #
+section_start("Generator")
+
+if (NOT ${CMAKE_GENERATOR} MATCHES "Ninja")
+	message(WARNING "Consider configuring cmake with `-G Ninja` for better performance")
+endif()
+
+section_pass("${CMAKE_GENERATOR}")
 
 ############################################ ccache #
 section_start("ccache")
@@ -64,9 +58,8 @@ if (${CCACHE_ENABLED})
 		message(WARNING "Consider not using ccache for builds other than Debug")
 	endif()
 
-	if (NOT ${CCACHE} MATCHES ".*NOTFOUND")
-		set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE})
-		set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE})
+	if (CCACHE)
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE})
 		section_pass(${CCACHE})
 	else()
 		set(CCACHE_ENABLED OFF)
@@ -177,6 +170,27 @@ endif()
 
 section_pass("Ok")
 
+############################################ Linker #
+section_start("Linker")
+
+set(faster_linkers "lld" "mold")
+set(flag "-fuse-ld")
+if (NOT CMAKE_CXX_FLAGS)
+		message(WARNING
+			"Consider configuring cmake with `-DCMAKE_CXX_FLAGS=\"${flag}=LINKER\"` with one of ${faster_linkers} to speed up linking")
+else()
+foreach (f IN LISTS CMAKE_CXX_FLAGS)
+	message("${f}")
+	if (NOT ${f} MATCHES "${flag}=*")
+		message(WARNING
+			"Consider configuring cmake with `-DCMAKE_CXX_FLAGS=\"${flag}=LINKER\"` with one of ${faster_linkers} to speed up linking")
+		break()
+	endif()
+endforeach()
+endif()
+
+section_pass("Ok")
+
 ############################################ Subdirectories #
 section_start("Subdirectories")
 
@@ -200,24 +214,58 @@ endif()
 
 section_pass("Ok")
 
+############################################ Convenience Targets #
+
+include(ProcessorCount)
+ProcessorCount(NPROC)
+if (NPROC EQUAL 0)
+	set(NPROC 1)
+else()
+	# Leave 1 process out so that we don't saturate the computer
+	math(EXPR NPROC "${NPROC} - 1")
+endif()
+
+add_custom_target(debug_sandbox
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMAND cmake --build . -- -j${NPROC} sandbox
+		COMMAND gdb ./sandbox/sandbox
+	)
+
+add_custom_target(run_sandbox
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMAND cmake --build . -- -j${NPROC} sandbox
+		COMMAND ./sandbox/sandbox
+	)
+
+add_custom_target(todo
+		ALL
+		# Keep this directory so that grep displays relative paths
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+		COMMENT "Write build/todo files"
+		COMMAND mkdir -p ${CMAKE_BINARY_DIR}/todo
+		COMMAND grep -nrE --color=always -C10 "\"(TODO|FIXME):.*\"" src sandbox test > ${CMAKE_BINARY_DIR}/todo/long
+		COMMAND grep  -nrE --only-matching --color=never "\"(TODO|FIXME):.*\"" src sandbox test
+				| sed -e "s/:/█/" -e "s/:/█/"
+				| column --separator="█" -t
+				| tee ${CMAKE_BINARY_DIR}/todo/short
+		VERBATIM
+	)
+add_dependencies(todo sandbox)
+
 ############################################ Summary #
-message(STATUS "▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜")
+message(STATUS "▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
 message(STATUS "	${PROJECT_NAME} ${PROJECT_VERSION}")
 message(STATUS "	${PROJECT_DESCRIPTION}")
-message(STATUS "")
-message(STATUS "Convinience targets: .............................................")
-message(STATUS "")
-message(STATUS "make -C build run_sandbox")
-message(STATUS "make -C build debug_sandbox")
-message(STATUS "make -C build test")
 message(STATUS "")
 message(STATUS "Custom Details: ..................................................")
 message(STATUS "")
 cmake_print_variables(CCACHE_ENABLED CCACHE)
 cmake_print_variables(BUILD_SANDBOX)
+cmake_print_variables(NPROC)
 message(STATUS "")
 message(STATUS "CMake Details: ...................................................")
 message(STATUS "")
+cmake_print_variables(CMAKE_GENERATOR)
 cmake_print_variables(CMAKE_BUILD_TYPE)
 cmake_print_variables(CMAKE_CXX_COMPILER_ID)
 cmake_print_variables(CMAKE_CXX_COMPILER)
@@ -226,12 +274,22 @@ cmake_print_variables(CMAKE_CXX_COMPILER_LAUNCHER)
 cmake_print_variables(CMAKE_CXX_STANDARD)
 cmake_print_variables(CMAKE_CXX_EXTENSIONS)
 cmake_print_variables(CMAKE_CXX_STANDARD)
+cmake_print_variables(CMAKE_CXX_FLAGS)
 cmake_print_properties(DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 		PROPERTIES
 			COMPILE_OPTIONS
 			COMPILE_DEFINITIONS
+			RULE_LAUNCH_COMPILE
+			LINK_OPTIONS
 			INCLUDE_DIRECTORIES
 			LINK_DIRECTORIES
 			SUBDIRECTORIES
 	)
-message(STATUS "▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟")
+message(STATUS "Convinience targets: .............................................")
+message(STATUS "")
+message(STATUS "cmake --build build -- run_sandbox")
+message(STATUS "cmake --build build -- debug_sandbox")
+message(STATUS "cmake --build build -- test")
+message(STATUS "cmake --build build -- todo")
+message(STATUS "")
+message(STATUS "▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄")
