@@ -1,6 +1,8 @@
 message(STATUS "sandbox")
 add_executable(sandbox main.cpp)
 
+add_dependencies(sandbox shaders textures)
+
 target_include_directories(sandbox
 	PRIVATE
 		${PROJECT_SOURCE_DIR}/src
