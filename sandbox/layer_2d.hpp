@@ -27,9 +27,10 @@ public:
 		renderer.clear();
 
 		renderer.scene(camera_controller.camera(), [&] {
+				#pragma message "FIXME: Bit depth testing should allow all to be seen."
 				renderer.draw({ -1.0f, 0.0f, 0.0f }, { 0.8f, 0.8f }, texture);
 				renderer.draw({  0.0f, 0.0f, -0.1f }, { 10.0f, 10.0f }, texture);
-				renderer.draw({  0.5f, -0.5f, 0.0f }, { 0.5f, 0.75f }, texture);
+				renderer.draw({  0.5f, -0.5f, 0.0f }, { 0.5f, 0.75f }, glm::vec4{1.0, 1.0, 0.0, 1.0});
 			});
 
 		camera_controller.update(delta);

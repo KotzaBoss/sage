@@ -20,6 +20,7 @@ constexpr auto in_range(X x) -> bool {
 	}
 }
 
+#pragma message "FIXME: default template does not work."
 template<Number N = size_t>
 struct Size {
 	using Type = N;

@@ -38,7 +38,7 @@
 			SAGE_LOG_CRITICAL("`{}` evaluated to false.", #expr);	\
 			if (not sage::log::detail::variadic_pack_is_empty(__VA_ARGS__))	\
 				/* spdlog doesn't use __VA_OPT__ so add an "" to make it work when __VA_ARGS__ is empty */	\
-				SAGE_LOG_CRITICAL("" __VA_ARGS__);	\
+				SAGE_LOG_CRITICAL("\t" __VA_ARGS__);	\
 			\
 			std::terminate();	\
 		}	\

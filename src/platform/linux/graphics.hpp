@@ -434,7 +434,7 @@ public:
 		SAGE_ASSERT(renderer_id);
 		glUseProgram(*renderer_id);
 		const auto loc = glGetUniformLocation(*renderer_id, name.c_str());
-		SAGE_ASSERT(loc != -1);
+		SAGE_ASSERT(loc != -1, "Cannot find uniform {:?}", name);
 
 		std::visit(Overloaded {
 					[&] (int u) {
@@ -532,35 +532,65 @@ private:
 };
 
 struct Texture2D {
+	using Size = sage::math::Size<size_t>;
+
 private:
 	fs::path path;
-	size_t _width,
-		   _height;
+	Size size;
+	GLenum internal_format,
+		   data_format;
+	size_t channels;
 	glfw::ID renderer_id;
 
 public:
+	Texture2D(const Size& sz, const size_t channels = 4)
+		: size{sz}
+		, channels{channels}
+	{
+		SAGE_ASSERT(channels == 3 or channels == 4);
+
+		internal_format = channels == 3 ? GL_RGB8 : GL_RGBA8;
+		data_format = channels == 3 ? GL_RGB : GL_RGBA;
+
+		renderer_id.emplace();
+		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id.value());
+		glTextureStorage2D(*renderer_id, 1, internal_format, size.width, size.height);
+
+		glTextureParameteri(*renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(*renderer_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		#pragma message "OPTIMIZE: ?"
+		const auto data = std::vector(size.width * size.height * channels, std::byte{0xff});
+		set_data(data);
+	}
+
 	Texture2D(const fs::path& p) {
 		SAGE_ASSERT_PATH_EXISTS(p);
 		path = p;
 
 		stbi_set_flip_vertically_on_load(1);
 
-		int width, height, channels;
-		const auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		int w, h, chan;
+		const auto data = stbi_load(path.c_str(), &w, &h, &chan, 0);
 		SAGE_ASSERT(data, "stbi could not load from: {}", path.c_str());
+		SAGE_ASSERT(chan == 3 or chan == 4);
 
-		_width = width;
-		_height = height;
-		SAGE_ASSERT(channels == 3 or channels == 4);
-		const auto internal_format = channels == 3 ? GL_RGB8 : GL_RGBA8;
-		const auto data_format = channels == 3 ? GL_RGB : GL_RGBA;
+		size.width = w;
+		size.height = h;
+		channels = chan;
+
+		internal_format = channels == 3 ? GL_RGB8 : GL_RGBA8;
+		data_format = channels == 3 ? GL_RGB : GL_RGBA;
 
 		renderer_id.emplace();
 		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id.value());
-		glTextureStorage2D(*renderer_id, 1, internal_format, _width, _height);
+		glTextureStorage2D(*renderer_id, 1, internal_format, size.width, size.height);
 
 		glTextureParameteri(*renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(*renderer_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(*renderer_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -568,7 +598,7 @@ public:
 		glTextureSubImage2D(*renderer_id,
 				0,
 				0, 0,
-				_width, _height,
+				size.width, size.height,
 				data_format,
 				GL_UNSIGNED_BYTE,
 				data
@@ -579,8 +609,7 @@ public:
 
 	Texture2D(Texture2D&& other)
 		: path{std::move(other.path)}
-		, _width{other._width}
-		, _height{other._height}
+		, size{other.size}
 		, renderer_id{std::move(other.renderer_id)}
 	{}
 
@@ -590,10 +619,26 @@ public:
 	}
 
 public:
-	auto width() const -> size_t { return _width; }
-	auto height() const -> size_t { return _height; }
+	auto width() const -> size_t { return size.width; }
+	auto height() const -> size_t { return size.height; }
 
 public:
+	auto set_data(const std::span<const std::byte> data) -> void {
+		SAGE_ASSERT(renderer_id);
+		SAGE_ASSERT(data.size() == size.width * size.height * channels,
+				"Data must fill the entire texture");
+
+		glTextureSubImage2D(
+				*renderer_id,
+				0,
+				0, 0,
+				size.width, size.height,
+				data_format,
+				GL_UNSIGNED_BYTE,
+				data.data()
+			);
+	}
+
 	auto bind(const size_t slot = 0) const -> void {
 		SAGE_ASSERT(renderer_id);
 		glBindTextureUnit(slot, *renderer_id);
@@ -603,6 +648,7 @@ public:
 
 using Renderer_2D_Base = sage::graphics::renderer::Base_2D<Vertex_Array, Vertex_Buffer, Index_Buffer, Texture2D, Shader>;
 struct Renderer_2D : Renderer_2D_Base {
+public:
 	Renderer_2D()
 		: Renderer_2D_Base{{
 			.vertex_array{
@@ -638,11 +684,14 @@ struct Renderer_2D : Renderer_2D_Base {
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
 		Renderer_2D_Base::scene(cam, draws);
 	}
-	auto draw(const glm::vec3& pos, const glm::vec2& size, const Texture2D& texture) -> void {
-		Renderer_2D_Base::draw(pos, size, texture, [this] {
+
+	template <type::Any<Texture2D, glm::vec4> Drawing>
+	auto draw(const glm::vec3& pos, const glm::vec2& size, const Drawing& drawing) -> void {
+		Renderer_2D_Base::draw(pos, size, drawing, [this] {
 				const auto& index_buffer = scene_data.vertex_array.index_buffer();
 				glDrawElements(GL_TRIANGLES, index_buffer.indeces().size(), GL_UNSIGNED_INT, nullptr);
 			});
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	auto clear() -> void {

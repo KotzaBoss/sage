@@ -302,6 +302,7 @@ protected:
 
 private:
 	bool scene_active = false;
+	const Texture default_texture = Texture{Size{1ul, 1ul}};
 
 protected:
 	Base_2D(Scene_Data&& sd)
@@ -322,10 +323,21 @@ protected:
 		scene_active = false;
 	}
 
-	auto draw(const glm::vec3& pos, const glm::vec2& size, const Texture& texture, const std::function<void()>& impl) {
+	template <type::Any<Texture, glm::vec4> Drawing>
+	auto draw(const glm::vec3& pos, const glm::vec2& size, const Drawing& drawing, const std::function<void()>& impl) {
 		SAGE_ASSERT(scene_active);
 
-		scene_data.shader.bind();
+		if constexpr (std::same_as<Drawing, Texture>) {
+			drawing.bind();
+			scene_data.shader.set("u_Color", glm::vec4{1.0});
+		}
+		else if constexpr (std::same_as<Drawing, glm::vec4>) {
+			default_texture.bind();
+			scene_data.shader.set("u_Color", drawing);
+		}
+		else
+			static_assert(false, "Unhandled type");
+
 		scene_data.shader.set(
 				"u_Transform",
 				//                       rotation here|
@@ -333,8 +345,6 @@ protected:
 				//                                    V
 				glm::translate(glm::mat4{1.0f}, pos) * glm::scale(glm::mat4{1.0f}, {size.x, size.y, 1.0f})
 			);
-
-		texture.bind();
 
 		scene_data.vertex_array.bind();
 
