@@ -50,7 +50,7 @@ public:
 		for (auto tick = time::Tick{}; not stoken.stop_requested(); ) {
 			const auto delta = tick();
 
-			if (const auto event = window.pending_event();
+			if (const auto event = window.consume_pending_event();
 				event.has_value())
 			{
 				layers.event_callback(*event);

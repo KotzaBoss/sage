@@ -24,7 +24,7 @@ concept Concept =
 	requires (Window win, Properties&& properties, const Event& event) {
 		Window(std::move(properties));	// Constructor
 		{ win.update() } -> std::same_as<void>;
-		{ win.pending_event() } -> std::same_as<std::optional<Event>>;
+		{ win.consume_pending_event() } -> std::same_as<std::optional<Event>>;
 		{ win.properties() } -> std::same_as<Properties>;
 		{ win.native_handle() } -> std::convertible_to<void*>;	// Each concrete provides its own pointer type
 	}
@@ -50,8 +50,8 @@ public:
 		return _properties.load();
 	}
 
-	auto pending_event() const -> std::optional<Event> {
-		return _pending_event.load();
+	auto consume_pending_event() -> std::optional<Event> {
+		return _pending_event.exchange(std::nullopt);
 	}
 
 	auto is_minimized() const -> bool {
