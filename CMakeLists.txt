@@ -6,290 +6,41 @@ project(SAGE
 	LANGUAGES C CXX
 )
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 message("==================================================================")
 
-macro(section_start msg)
-	message(CHECK_START ${msg})
-	list(APPEND CMAKE_MESSAGE_INDENT "\t")
-endmacro()
+include(section)
 
-macro(section_next msg)
-	list(POP_BACK CMAKE_MESSAGE_INDENT)
-	message(STATUS ${msg})
-	list(APPEND CMAKE_MESSAGE_INDENT "\t")
-endmacro()
-
-macro(section_pass msg)
-	list(POP_BACK CMAKE_MESSAGE_INDENT)
-	message(CHECK_PASS ${msg})
-endmacro()
-
-macro(section_fail msg)
-	list(POP_BACK CMAKE_MESSAGE_INDENT)
-	message(CHECK_FAIL ${msg})
-endmacro()
-
-############################################ Build #
-section_start("Build")
-
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Debug")
-endif()
-
-
-section_pass("${CMAKE_BUILD_TYPE}")
-
-############################################ Generator #
-section_start("Generator")
-
-if (NOT ${CMAKE_GENERATOR} MATCHES "Ninja")
-	message(WARNING "Consider configuring cmake with `-G Ninja` for better performance")
-endif()
-
-section_pass("${CMAKE_GENERATOR}")
-
-############################################ ccache #
-section_start("ccache")
-
-option(CCACHE_ENABLED "Use ccache to speedup subsequent compilations" OFF)
-find_program(CCACHE ccache)
-if (${CCACHE_ENABLED})
-	if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-		message(WARNING "Consider not using ccache for builds other than Debug")
-	endif()
-
-	if (CCACHE)
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE})
-		section_pass(${CCACHE})
-	else()
-		set(CCACHE_ENABLED OFF)
-		section_fail("Not found")
-	endif()
+option(SAGE_VERBOSE OFF)
+if (SAGE_VERBOSE)
+	include(CMakePrintHelpers)
 else()
-	section_pass("disabled")
+	# Make the CMakePrintHelpers noop
+	function(cmake_print_variables)
+	endfunction()
+	function(cmake_print_properties)
+	endfunction()
 endif()
 
-############################################ Packages #
-section_start("Packages")
+include(build_type)
 
-#find_package(OpenGL REQUIRED)
-#find_package(GLEW REQUIRED)
-#find_package(glfw3 REQUIRED)
-find_package(Threads REQUIRED)
+include(generator)
 
-include(CTest)
-include(CMakePrintHelpers)
+include(ccache)
+#include(perf)
 
-section_pass("Ok")
+include(packages)
 
-############################################ Dependencies #
-section_start("Dependencies")
+include(dependencies)
 
-section_next("fmt")
-add_subdirectory(fmt EXCLUDE_FROM_ALL)
-include_directories(${PROJECT_SOURCE_DIR}/fmt/include)
+include(compiler)
 
-section_next("spdlog")
-set(SPDLOG_FMT_EXTERNAL ON)
-add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-include_directories(${PROJECT_SOURCE_DIR}/spdlog/include)
+include(linker)
 
-section_next("doctest")
-add_subdirectory(doctest EXCLUDE_FROM_ALL)
-include_directories(${PROJECT_SOURCE_DIR}/doctest/doctest)
+include(subdirectories)
 
-section_next("glad")
-add_subdirectory(glad/cmake EXCLUDE_FROM_ALL)
-glad_add_library(glad
-	STATIC
-	LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad/sources
-	API gl:core=4.5
-	)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/glad/sources/include)
+include(convenience)
 
-section_next("glfw")
-add_subdirectory(glfw EXCLUDE_FROM_ALL)
-include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
+include(summary)
 
-section_next("imgui")
-include_directories(${PROJECT_SOURCE_DIR}/imgui)
-include_directories(${PROJECT_SOURCE_DIR}/imgui/backends)
-
-section_next("glm")
-add_subdirectory(glm)
-include_directories(${PROJECT_SOURCE_DIR}/glm)
-
-section_next("stb")
-add_subdirectory(stb)
-include_directories(${PROJECT_SOURCE_DIR}/stb)
-
-section_pass("Ok")
-
-############################################ Compilers #
-section_start("Compilers")
-
-# Assertions
-if (NOT DEFINED CMAKE_C_COMPILER)
-	message(FATAL_ERROR "C compiler not defined")
-elseif(NOT DEFINED CMAKE_CXX_COMPILER)
-	message(FATAL_ERROR "CXX compiler not defined")
-endif()
-
-# Expectations
-set(EXPECTED_COMPILER_ID "GNU")
-set(EXPECTED_COMPILER_VERSION "13.0.0")
-set(EXPECTED_COMPILER_DEBUG "${EXPECTED_COMPILER_ID} ${EXPECTED_COMPILER_VERSION}")
-
-# Checks
-list(APPEND langs	C				CXX)
-list(APPEND compilers	${CMAKE_C_COMPILER}		${CMAKE_CXX_COMPILER})
-list(APPEND ids		${CMAKE_C_COMPILER_ID}		${CMAKE_CXX_COMPILER_ID})
-list(APPEND versions	${CMAKE_C_COMPILER_VERSION}	${CMAKE_CXX_COMPILER_VERSION})
-foreach (lang compiler id version IN ZIP_LISTS langs compilers ids versions)
-	section_next("${lang}")
-	message(CHECK_START "${compiler} ${id} ${version}")
-	if (NOT ${id} STREQUAL ${EXPECTED_COMPILER_ID})
-		message(FATAL_ERROR "Expected compiler: ${EXPECTED_COMPILER_ID} found: ${id}")
-	elseif(${version} VERSION_LESS ${EXPECTED_COMPILER_VERSION})
-		message(FATAL_ERROR "Expected compiler version: ${EXPECTED_COMPILER_VERSION} found: ${version}")
-	else()
-		message(CHECK_PASS "Ok")
-	endif()
-endforeach()
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_EXTENSIONS TRUE)
-
-add_compile_options(-Wall -Wextra -Wpedantic -pthread -fdiagnostics-color=always)
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-	add_compile_options(-fsanitize=undefined,address -fconcepts-diagnostics-depth=5)
-	# As of GCC 13 we need to link libatomic
-	add_link_options(-fsanitize=undefined,address -latomic)
-endif()
-
-section_pass("Ok")
-
-############################################ Linker #
-section_start("Linker")
-
-set(faster_linkers "lld" "mold")
-set(flag "-fuse-ld")
-if (NOT CMAKE_CXX_FLAGS)
-		message(WARNING
-			"Consider configuring cmake with `-DCMAKE_CXX_FLAGS=\"${flag}=LINKER\"` with one of ${faster_linkers} to speed up linking")
-else()
-foreach (f IN LISTS CMAKE_CXX_FLAGS)
-	message("${f}")
-	if (NOT ${f} MATCHES "${flag}=*")
-		message(WARNING
-			"Consider configuring cmake with `-DCMAKE_CXX_FLAGS=\"${flag}=LINKER\"` with one of ${faster_linkers} to speed up linking")
-		break()
-	endif()
-endforeach()
-endif()
-
-section_pass("Ok")
-
-############################################ Subdirectories #
-section_start("Subdirectories")
-
-include_directories(${PROJECT_SOURCE_DIR})
-
-section_next("src")
-include_directories(${PROJECT_SOURCE_DIR}/src)
-add_subdirectory(src)
-
-section_next("asset")
-add_subdirectory(asset)
-
-section_next("test")
-add_subdirectory(test)
-
-section_next("sandbox")
-option(BUILD_SANDBOX "Build the sandbox executable found in the sandbox directory" ON)
-if (${BUILD_SANDBOX})
-	add_subdirectory(sandbox)
-endif()
-
-section_pass("Ok")
-
-############################################ Convenience Targets #
-
-include(ProcessorCount)
-ProcessorCount(NPROC)
-if (NPROC EQUAL 0)
-	set(NPROC 1)
-else()
-	# Leave 1 process out so that we don't saturate the computer
-	math(EXPR NPROC "${NPROC} - 1")
-endif()
-
-add_custom_target(debug_sandbox
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMAND cmake --build . -- -j${NPROC} sandbox
-		COMMAND gdb ./sandbox/sandbox
-	)
-
-add_custom_target(run_sandbox
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMAND cmake --build . -- -j${NPROC} sandbox
-		COMMAND ./sandbox/sandbox
-	)
-
-add_custom_target(todo
-		ALL
-		# Keep this directory so that grep displays relative paths
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-		COMMENT "Write build/todo files"
-		COMMAND mkdir -p ${CMAKE_BINARY_DIR}/todo
-		COMMAND grep -nrE --color=always -C10 "\"(TODO|FIXME):.*\"" src sandbox test > ${CMAKE_BINARY_DIR}/todo/long
-		COMMAND grep  -nrE --only-matching --color=never "\"(TODO|FIXME):.*\"" src sandbox test
-				| sed -e "s/:/█/" -e "s/:/█/"
-				| column --separator="█" -t
-				| tee ${CMAKE_BINARY_DIR}/todo/short
-		VERBATIM
-	)
-add_dependencies(todo sandbox)
-
-############################################ Summary #
-message(STATUS "▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
-message(STATUS "	${PROJECT_NAME} ${PROJECT_VERSION}")
-message(STATUS "	${PROJECT_DESCRIPTION}")
-message(STATUS "")
-message(STATUS "Custom Details: ..................................................")
-message(STATUS "")
-cmake_print_variables(CCACHE_ENABLED CCACHE)
-cmake_print_variables(BUILD_SANDBOX)
-cmake_print_variables(NPROC)
-message(STATUS "")
-message(STATUS "CMake Details: ...................................................")
-message(STATUS "")
-cmake_print_variables(CMAKE_GENERATOR)
-cmake_print_variables(CMAKE_BUILD_TYPE)
-cmake_print_variables(CMAKE_CXX_COMPILER_ID)
-cmake_print_variables(CMAKE_CXX_COMPILER)
-cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
-cmake_print_variables(CMAKE_CXX_COMPILER_LAUNCHER)
-cmake_print_variables(CMAKE_CXX_STANDARD)
-cmake_print_variables(CMAKE_CXX_EXTENSIONS)
-cmake_print_variables(CMAKE_CXX_STANDARD)
-cmake_print_variables(CMAKE_CXX_FLAGS)
-cmake_print_properties(DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
-		PROPERTIES
-			COMPILE_OPTIONS
-			COMPILE_DEFINITIONS
-			RULE_LAUNCH_COMPILE
-			LINK_OPTIONS
-			INCLUDE_DIRECTORIES
-			LINK_DIRECTORIES
-			SUBDIRECTORIES
-	)
-message(STATUS "Convinience targets: .............................................")
-message(STATUS "")
-message(STATUS "cmake --build build -- run_sandbox")
-message(STATUS "cmake --build build -- debug_sandbox")
-message(STATUS "cmake --build build -- test")
-message(STATUS "cmake --build build -- todo")
-message(STATUS "")
-message(STATUS "▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄")

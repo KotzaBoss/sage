@@ -1,4 +1,3 @@
-message(STATUS "sandbox")
 add_executable(sandbox main.cpp)
 
 add_dependencies(sandbox shaders textures)

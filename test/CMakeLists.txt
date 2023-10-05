@@ -1,3 +1,5 @@
+include(CTest)
+
 file(GLOB TESTS
 	*.test.cpp
 	)
