@@ -15,4 +15,4 @@
 #include "graphics.hpp"
 #include "filesystem.hpp"
 #include "camera.hpp"
-
+#include "perf.hpp"
