@@ -279,10 +279,11 @@ concept Concept_2D =
 	texture::Concept<Texture>
 	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
 	and shader::Concept<Shader>
-	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const Texture& texture) {
+	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const Texture& texture, const Event& e) {
 		{ r.scene(cam, draws) } -> std::same_as<void>;
 		{ r.draw(pos, size, texture) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;
+		{ r.event_callback(e) } -> std::same_as<void>;
 	}
 	;
 

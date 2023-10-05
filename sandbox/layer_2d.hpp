@@ -37,6 +37,7 @@ public:
 	}
 
 	auto event_callback(const Event& e) -> void {
+		renderer.event_callback(e);
 		camera_controller.event_callback(e);
 	}
 

@@ -697,6 +697,15 @@ public:
 	auto clear() -> void {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
+
+	auto event_callback(const Event& e) -> void {
+		if (e.type == Event::Type::Window_Resized) {
+			SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
+
+			const auto& payload = std::get<Size<size_t>>(e.payload);
+			glViewport(0, 0, payload.width, payload.height);
+		}
+	}
 };
 
 using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;
