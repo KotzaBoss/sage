@@ -1,5 +1,4 @@
 add_custom_target(todo
-		ALL
 		# Keep this directory so that grep displays relative paths
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 		COMMENT "Write build/todo files"
@@ -13,7 +12,6 @@ add_custom_target(todo
 	)
 
 add_custom_target(usage
-		ALL
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		COMMAND echo "Show usage:     cmake --build build -- --quiet usage"
 		COMMAND echo "Build all:      cmake --build build"

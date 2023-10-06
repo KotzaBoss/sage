@@ -1,22 +1,11 @@
+section_start("Sandbox")
+
 add_executable(sandbox main.cpp)
-
 add_dependencies(sandbox shaders textures)
-
-target_include_directories(sandbox
-	PRIVATE
-		${PROJECT_SOURCE_DIR}/src
-	)
-
-target_link_libraries(sandbox
-	PRIVATE
-		doctest
-		log
-		repr
-		layer_imgui
-		linux_window
-		event
-	)
-
+target_include_directories(sandbox PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(sandbox PRIVATE doctest log repr layer_imgui linux_window event)
 target_precompile_headers(sandbox REUSE_FROM std)
 
 cmake_print_properties(TARGETS sandbox PROPERTIES SOURCES LINK_LIBRARIES)
+
+section_pass("Ok")

@@ -1,3 +1,5 @@
+section_start("shader")
+
 file(GLOB src *.glsl)
 add_custom_target(shaders SOURCES ${src})
 add_custom_command(
@@ -6,4 +8,7 @@ add_custom_command(
 		PRE_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${src} ${CMAKE_CURRENT_BINARY_DIR}
 	)
+
 cmake_print_variables(src)
+
+section_pass("Ok")

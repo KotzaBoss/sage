@@ -1,5 +1,6 @@
-section_next("shader")
-add_subdirectory(shader)
+section_start("asset")
 
-section_next("texture")
+add_subdirectory(shader)
 add_subdirectory(texture)
+
+section_pass("Ok")
