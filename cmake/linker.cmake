@@ -10,4 +10,4 @@ endif()
 # CMake seems to just invoke the compiler even for linking so this way we force the linker
 add_compile_options(-fuse-ld=$<PATH:GET_FILENAME,${CMAKE_LINKER}>)
 
-section_pass("Ok")
+section_pass(${CMAKE_LINKER})

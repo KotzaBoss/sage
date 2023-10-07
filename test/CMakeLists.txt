@@ -30,4 +30,4 @@ foreach (test ${TESTS})
 	cmake_print_properties(TARGETS ${bin} PROPERTIES SOURCES LINK_LIBRARIES)
 endforeach()
 
-section_pass("Ok")
+section_pass()

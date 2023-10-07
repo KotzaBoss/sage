@@ -8,4 +8,4 @@ target_precompile_headers(sage REUSE_FROM std)
 
 cmake_print_properties(TARGETS sage PROPERTIES SOURCES LINK_LIBRARIES)
 
-section_pass("Ok")
+section_pass()

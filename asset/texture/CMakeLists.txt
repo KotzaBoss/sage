@@ -12,4 +12,4 @@ add_custom_command(
 
 cmake_print_variables(assets)
 
-section_pass("Ok")
+section_pass()

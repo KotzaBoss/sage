@@ -48,4 +48,4 @@ endforeach()
 
 add_subdirectory(platform)
 
-section_pass("Ok")
+section_pass()

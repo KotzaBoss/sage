@@ -38,4 +38,4 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
 	add_link_options(-fsanitize=undefined,address)
 endif()
 
-section_pass("Ok")
+section_pass()

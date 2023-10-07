@@ -11,4 +11,4 @@ add_custom_command(
 
 cmake_print_variables(src)
 
-section_pass("Ok")
+section_pass()

@@ -48,16 +48,18 @@ FetchContent_Declare(doctest
 
 #
 
-section_next("fmt")
+section_start("fmt")
 FetchContent_MakeAvailable(fmt)
 include_directories(${fmt_SOURCE_DIR}/include)
+section_pass(${fmt_SOURCE_DIR})
 
-section_next("spdlog")
+section_start("spdlog")
 set(SPDLOG_FMT_EXTERNAL ON)
 FetchContent_MakeAvailable(spdlog)
 include_directories(${spdlog_SOURCE_DIR}/include)
+section_pass(${spdlog_SOURCE_DIR})
 
-section_next("glad")
+section_start("glad")
 FetchContent_MakeAvailable(glad)
 include_directories(${glad_SOURCE_DIR}/sources/include)
 add_subdirectory(${glad_SOURCE_DIR}/cmake EXCLUDE_FROM_ALL)
@@ -66,21 +68,25 @@ glad_add_library(glad
 	LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad/sources
 	API gl:core=4.5
 	)
+section_pass(${glad_SOURCE_DIR})
 
-section_next("glfw")
+section_start("glfw")
 FetchContent_MakeAvailable(glfw)
 include_directories(${glfw_SOURCE_DIR}/include)
+section_pass(${glfw_SOURCE_DIR})
 
-section_next("imgui")
+section_start("imgui")
 FetchContent_MakeAvailable(imgui)
 include_directories(${imgui_SOURCE_DIR})
 include_directories(${imgui_SOURCE_DIR}/backends)
+section_pass(${imgui_SOURCE_DIR})
 
-section_next("glm")
+section_start("glm")
 FetchContent_MakeAvailable(glm)
 include_directories(${glm_SOURCE_DIR})
+section_pass(${glm_SOURCE_DIR})
 
-section_next("stb")
+section_start("stb")
 FetchContent_MakeAvailable(stb)
 section_message("Writting ${stb_SOURCE_DIR}/stb_image.cpp library")
 file(WRITE
@@ -90,9 +96,12 @@ file(WRITE
 	)
 add_library(stb STATIC ${stb_SOURCE_DIR}/stb_image.cpp)
 include_directories(${stb_SOURCE_DIR})
+section_pass(${stb_SOURCE_DIR})
 
-section_next("doctest")
+section_start("doctest")
 FetchContent_MakeAvailable(doctest)
 include_directories(${doctest_SOURCE_DIR}/doctest)
+section_pass(${doctest_SOURCE_DIR})
 
-section_pass("Ok")
+
+section_pass()

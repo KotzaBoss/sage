@@ -35,13 +35,13 @@ endif()
 include(ccache)
 #include(perf)
 
-include(packages)
-
-include(dependencies)
-
 include(compiler)
 
 include(linker)
+
+include(packages)
+
+include(dependencies)
 
 add_subdirectory(src)
 add_subdirectory(asset)
