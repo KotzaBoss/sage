@@ -46,7 +46,7 @@ include(linker)
 add_subdirectory(src)
 add_subdirectory(asset)
 add_subdirectory(test)
-add_subdirectory(sandbox)
+add_subdirectory(bin)
 
 include(convenience)
 

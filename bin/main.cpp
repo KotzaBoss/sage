@@ -1,6 +1,3 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
-
 #include "sage.hpp"
 
 #include "platform/linux/window.hpp"
@@ -8,7 +5,7 @@
 
 using namespace sage;
 
-TEST_CASE ("App") {
+auto main() -> int {
 	static auto stop_source = std::stop_source{};
 	signal(SIGINT, [] (int) { stop_source.request_stop(); });
 
@@ -28,5 +25,5 @@ TEST_CASE ("App") {
 			std::move(layer_2d)
 		};
 
-	app.run(stop_source.get_token());
+	return app.run(stop_source.get_token());
 }
