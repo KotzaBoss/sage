@@ -13,10 +13,18 @@ add_custom_target(todo
 
 add_custom_target(usage
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMAND echo "Show usage:     cmake --build build -- --quiet usage"
-		COMMAND echo "Build all:      cmake --build build"
-		COMMAND echo "Run sandbox:    cmake --build build -- sandbox && ./build/sandbox/sandbox"
-		COMMAND echo "Build todos:    cmake --build build -- --quiet todo"
+		COMMAND echo "Show usage:"
+		COMMAND echo "    cmake --build build -- usage"
+		COMMAND echo "Build todos:"
+		COMMAND echo "    cmake --build build -- todo"
+		COMMAND echo "Build all:"
+		COMMAND echo "    cmake --build build"
+		COMMAND echo "Run sage:"
+		COMMAND echo "    cmake --build build -- sage && ./build/bin/sage"
+		COMMAND echo "Perf sage:"
+		COMMAND echo "    cmake --build build -- perf"
+		COMMAND echo "    ./build/perf/perf.sh"
+		COMMAND echo "    firefox ./build/perf/perf.svg"
 		VERBATIM
 	)
 

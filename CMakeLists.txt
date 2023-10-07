@@ -33,7 +33,6 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Ninja")
 endif()
 
 include(ccache)
-#include(perf)
 
 include(compiler)
 
@@ -46,6 +45,7 @@ include(dependencies)
 add_subdirectory(src)
 add_subdirectory(asset)
 add_subdirectory(test)
+add_subdirectory(perf)
 add_subdirectory(bin)
 
 include(convenience)
