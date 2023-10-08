@@ -1,9 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
-
-#include "layer_imgui.hpp"
-#include "time.hpp"
-#include "platform/linux/window.hpp"
+#include "test.hpp"
 
 using namespace sage;
 

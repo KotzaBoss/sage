@@ -1,11 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
-
-#include "std.hpp"
+#include "test.hpp"
 
 #include "placeholder_layers.hpp"
-#include "layer.hpp"
-#include "time.hpp"
 
 TEST_CASE ("Layer") {
 	auto layers = sage::layer::Storage<Dump_Layer, Other_Layer, Last_Layer>{

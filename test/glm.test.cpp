@@ -1,5 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
+#include "test.hpp"
 
 #include "glm/vec3.hpp" // glm::vec3
 #include "glm/vec4.hpp" // glm::vec4

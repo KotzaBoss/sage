@@ -67,16 +67,26 @@ constexpr auto variadic_pack_is_empty(auto&&... xs) -> size_t {
 
 struct Log {
 	using enum spdlog::level::level_enum;
-	using Logger = std::shared_ptr<spdlog::logger>;
 
 public:
-	static const Logger logger;
+	inline static const auto logger = spdlog::stderr_color_mt("SAGE");
 
 private:
 	static const Log log;
 
 public:
-	Log();
+	Log() {
+		// [log_type] (time) ~thread logger file:line:function: message
+		spdlog::set_pattern("%^[%-8l] (%T) ~%t %n %s:%#::%-20!!: %v%$");
+		if constexpr (build::in_debug_mode)
+			spdlog::set_level(spdlog::level::trace);
+		else
+			spdlog::set_level(spdlog::level::info);
+
+		SAGE_LOG_INFO("Logging initialized");
+	}
 };
+
+inline const Log Log::log = Log();
 
 }

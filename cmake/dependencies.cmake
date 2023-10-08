@@ -61,14 +61,14 @@ section_pass(${spdlog_SOURCE_DIR})
 
 section_start("glad")
 FetchContent_MakeAvailable(glad)
-include_directories(${glad_SOURCE_DIR}/sources/include)
 add_subdirectory(${glad_SOURCE_DIR}/cmake EXCLUDE_FROM_ALL)
 glad_add_library(glad
 	STATIC
-	LOCATION ${CMAKE_CURRENT_BINARY_DIR}/glad/sources
+	LOCATION ${glad_BINARY_DIR}/sources
 	API gl:core=4.5
 	)
-section_pass(${glad_SOURCE_DIR})
+include_directories(${glad_BINARY_DIR}/sources/include)
+section_pass(${glad_SOURCE_DIR} ${glad_BINARY_DIR}/sources/include)
 
 section_start("glfw")
 FetchContent_MakeAvailable(glfw)

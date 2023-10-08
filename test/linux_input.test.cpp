@@ -1,7 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
-#include "platform/linux/window.hpp"
-#include "platform/linux/input.hpp"
+#include "test.hpp"
 
 using namespace sage;
 

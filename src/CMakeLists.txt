@@ -4,15 +4,13 @@ add_library(std std.cpp)
 target_precompile_headers(std PRIVATE "std.hpp")
 cmake_print_properties(TARGETS std PROPERTIES SOURCES LINK_LIBRARIES)
 
-add_library(log STATIC log.cpp)
-target_include_directories(log PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(log PRIVATE spdlog::spdlog linux_window)
-cmake_print_properties(TARGETS log PROPERTIES SOURCES LINK_LIBRARIES)
-
-add_library(repr STATIC repr.cpp)
-target_include_directories(repr PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(repr PRIVATE fmt::fmt linux_window)
+add_library(repr STATIC repr.hpp)
+target_link_libraries(repr PRIVATE fmt::fmt)
 cmake_print_properties(TARGETS repr PROPERTIES SOURCES LINK_LIBRARIES)
+
+add_library(log STATIC log.hpp)
+target_link_libraries(log PRIVATE spdlog::spdlog)
+cmake_print_properties(TARGETS log PROPERTIES SOURCES LINK_LIBRARIES)
 
 add_library(layer_imgui STATIC)
 target_sources(layer_imgui PRIVATE
@@ -26,25 +24,6 @@ target_sources(layer_imgui PRIVATE
 	)
 target_include_directories(layer_imgui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 cmake_print_properties(TARGETS layer_imgui PROPERTIES SOURCES LINK_LIBRARIES)
-
-file(GLOB SRC *.cpp)
-list(FILTER SRC EXCLUDE REGEX ".*/(std|log|repr).cpp")
-foreach (src ${SRC})
-	cmake_path(GET src FILENAME src)
-	string(REPLACE ".cpp" "" lib ${src})
-
-	add_library(${lib} STATIC ${src})
-	target_include_directories(${lib} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-	target_link_libraries(${lib} PRIVATE log repr)
-
-	if (${lib} STREQUAL "window")
-		target_link_libraries(${lib} PUBLIC event)
-	endif()
-
-	target_precompile_headers(${lib} REUSE_FROM std)
-
-	cmake_print_properties(TARGETS ${lib} PROPERTIES SOURCES LINK_LIBRARIES)
-endforeach()
 
 add_subdirectory(platform)
 

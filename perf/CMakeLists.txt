@@ -28,6 +28,6 @@ else()
 			VERBATIM
 		)
 
-	section_pass("${perf_script} ${flamegraph_SOURCE_DIR}")
+	section_pass(${perf_script} ${flamegraph_SOURCE_DIR})
 endif()
 
