@@ -16,12 +16,12 @@ else()
 	add_custom_target(perf
 			DEPENDS sage
 			BYPRODUCTS ${perf_script}
-			COMMAND echo_append "" > ${perf_script}
+			COMMAND echo -n "" > ${perf_script}
 			# cmake -E echo to evaluate the generator expression
 			COMMAND cmake -E echo "${PERF} record --output=${CMAKE_CURRENT_BINARY_DIR}/perf.data -F 99 -a -g -- $<TARGET_FILE:sage>" >> ${perf_script}
 			COMMAND echo "cd ${CMAKE_CURRENT_BINARY_DIR}" >> ${perf_script}
-			COMMAND "${PERF} script | ${flamegraph_SOURCE_DIR}/stackcollapse-perf.pl >> out.perf-folded" >> ${perf_script}
-			COMMAND "${flamegraph_SOURCE_DIR}/flamegraph.pl out.perf-folded > perf.svg" >> ${perf_script}
+			COMMAND echo "${PERF} script | ${flamegraph_SOURCE_DIR}/stackcollapse-perf.pl >> out.perf-folded" >> ${perf_script}
+			COMMAND echo "${flamegraph_SOURCE_DIR}/flamegraph.pl out.perf-folded > perf.svg" >> ${perf_script}
 			COMMAND echo "cd -" >> ${perf_script}
 			COMMAND chmod +x ${perf_script}
 			COMMENT "Writing perf script: $<PATH:RELATIVE_PATH,${perf_script},${PROJECT_SOURCE_DIR}>"
