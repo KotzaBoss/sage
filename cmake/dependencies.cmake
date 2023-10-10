@@ -1,5 +1,7 @@
 section_start("Dependencies")
+section_message("")
 section_message("Each dependency may take a moment to prepare, don't be alarmed.")
+section_message("")
 
 include(FetchContent)
 
