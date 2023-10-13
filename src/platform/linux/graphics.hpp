@@ -39,14 +39,14 @@ inline auto shader_data_type_to_opengl(const sage::graphics::shader::data::Type&
 
 struct OpenGL_Context {
 private:
-	GLFWwindow** glfw;
+	GLFWwindow* glfw;
 
 public:
-	OpenGL_Context(GLFWwindow** w)
+	OpenGL_Context(GLFWwindow* w)
 		: glfw{w}
 	{
 		SAGE_ASSERT(glfw);
-		glfwMakeContextCurrent(*glfw);
+		glfwMakeContextCurrent(glfw);
 
 		const auto version = gladLoadGL(glfwGetProcAddress);
 		SAGE_ASSERT(version);
@@ -73,9 +73,13 @@ public:
 		SAGE_ASSERT(gl_version.contains("4.6"));
 	}
 
+	OpenGL_Context(OpenGL_Context&& other)
+		: glfw{std::exchange(other.glfw, nullptr)}
+	{}
+
 public:
 	auto swap_buffers() -> void {
-		glfwSwapBuffers(*glfw);
+		glfwSwapBuffers(glfw);
 	}
 
 private:

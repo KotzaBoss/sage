@@ -26,7 +26,7 @@ struct App {
 	using Layers = sage::layer::Array<layer::ImGui, Ls...>;
 
 private:
-	Window&& window;
+	Window window;
 
 	Layers layers;
 
