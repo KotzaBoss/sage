@@ -2,6 +2,7 @@
 
 #include "std.hpp"
 
+#include "graphics.hpp"
 #include "window.hpp"
 #include "input.hpp"
 #include "layer.hpp"
@@ -12,20 +13,20 @@
 #include "log.hpp"
 #include "repr.hpp"
 
-#include "platform/linux/graphics.hpp"
-
 namespace sage::inline app {
 
 template <
 		window::Concept Window,
-		sage::layer::Concept... Ls
+		graphics::renderer::Rendering R,
+		layer::Spec... Ls
 	>
 	requires
-		(not type::Any<layer::ImGui, Ls...>)	// The ImGui layer will always be provided by sage as the "overlay"
+		(not type::Any<layer::ImGui, typename Ls::Layer...>)	// The ImGui layer will always be provided by sage as the "overlay"
 struct App {
-	using Layers = sage::layer::Array<layer::ImGui, Ls...>;
+	using Layers = sage::layer::Array<layer::ImGui::Spec<R>, Ls...>;
 
 private:
+	R::Renderer renderer;
 	Window window;
 
 	Layers layers;
@@ -37,7 +38,7 @@ private:
 	layer::ImGui& imgui;
 
 public:
-	App(Window&& w, type::Any<Ls...> auto&&... ls)
+	App(Window&& w, type::Any<typename Ls::Layer...> auto&&... ls)
 		: window{std::move(w)}
 		, layers{layer::ImGui{&window}, std::move(ls)...}
 		, imgui{layers.front()}
@@ -54,12 +55,14 @@ public:
 				event.has_value())
 			{
 				layers.event_callback(*event);
+				renderer.event_callback(*event);
 			}
 
 			// As layers get more interesting this if may change but for now keep it
 			// very strict: no window, no work
 			if (not window.is_minimized()) {
 				layers.update(delta);
+				layers.render(renderer);
 			}
 
 			imgui.new_frame([this] {
@@ -78,8 +81,8 @@ public:
 	}
 
 public:
-	friend REPR_DEF_FMT(App<Window, Ls...>)
-	friend FMT_FORMATTER(App<Window, Ls...>);
+	friend REPR_DEF_FMT(App<Window, R, Ls...>)
+	friend FMT_FORMATTER(App<Window, R, Ls...>);
 };
 
 }// sage

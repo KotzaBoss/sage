@@ -2,6 +2,7 @@
 
 #include "std.hpp"
 
+#include "graphics.hpp"
 #include "event.hpp"
 #include "ref_wrapper.hpp"
 #include "util.hpp"
@@ -11,10 +12,13 @@
 namespace sage::layer {
 
 #pragma message "TODO: Maybe pass optional<Event> to allow for functional chaining?"
-template <typename Layer>
+#pragma message "TODO: Maybe pass renderer::Concept to .render()? Can there be multiple renderers?"
+template <typename Layer, typename Rendering>
 concept Concept =
-	requires (Layer l, const Event& event, const std::chrono::milliseconds delta) {
+	graphics::renderer::Rendering<Rendering>
+	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Rendering::Renderer& renderer) {
 		{ l.update(delta) } -> std::same_as<void>;
+		{ l.render(renderer) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
 		{ l.imgui_prepare() } -> std::same_as<void>;
 		// layers.event_callback(window.pending_event());
@@ -23,13 +27,38 @@ concept Concept =
 	}
 	;
 
+// Convinence to pack together template information:
+//
+// template <Rendering Ring, Spec... Ls>
+// struct App {
+// };
+//
+// struct Some_Rendering {
+//		using Renderer = Linux_Renderer;
+//		using Drawings = std::tuple<Linux_Texture, glm::vec4, int>;
+// };
+//
+// struct Some_Layer_Spec {
+//		using Layer = Some_Layer;
+//		using Rendering = Some_Rendering;
+// };
+//
+// using App<Some_Rendering,
+//			Some_Layer_Spec
+//     >;
+//
+template <typename L>
+concept Spec =
+		requires { typename L::Rendering; } and graphics::renderer::Rendering<typename L::Rendering>
+	and requires { typename L::Layer; } and layer::Concept<typename L::Layer, typename L::Rendering>
+	;
 
-template <layer::Concept... Ls>
-struct Array : util::Polymorphic_Array<Ls...> {
-	using Base = util::Polymorphic_Array<Ls...>;
+template <layer::Spec... Ls>
+struct Array : util::Polymorphic_Array<typename Ls::Layer...> {
+	using Base = util::Polymorphic_Array<typename Ls::Layer...>;
 
 public:
-	Array(type::Any<Ls...> auto&&... ls)
+	Array(type::Any<typename Ls::Layer...> auto&&... ls)
 		: Base{std::move(ls)...}
 	{}
 
@@ -37,6 +66,12 @@ public:
 	auto update(const std::chrono::milliseconds delta) -> void {
 		Base::apply([=] (auto& layer) {
 				layer.update(delta);
+			});
+	}
+
+	auto render(auto& renderer) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.render(renderer);
 			});
 	}
 
@@ -58,15 +93,12 @@ public:
 
 };
 
-template <layer::Concept... Ls>
-struct Storage : util::Polymorphic_Storage<Ls...> {
-	using Base = util::Polymorphic_Storage<Ls...>;
-
-	template<layer::Concept L>
-	using Vector = typename Base::Vector<L>;
+template <layer::Spec... Ls>
+struct Storage : util::Polymorphic_Storage<typename Ls::Layer...> {
+	using Base = util::Polymorphic_Storage<typename Ls::Layer...>;
 
 public:
-	Storage(Vector<Ls>&&... layers)
+	Storage(typename Base::Vector<typename Ls::Layer>&&... layers)
 		: Base{std::move(layers)...}
 	{}
 
@@ -96,7 +128,7 @@ public:
 
 }// sage::layer
 
-template <sage::layer::Concept... Ls>
+template <typename... Ls>
 FMT_FORMATTER(sage::layer::Array<Ls...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
@@ -105,7 +137,7 @@ FMT_FORMATTER(sage::layer::Array<Ls...>) {
 	}
 };
 
-template <sage::layer::Concept... Ls>
+template <typename... Ls>
 FMT_FORMATTER(sage::layer::Storage<Ls...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 

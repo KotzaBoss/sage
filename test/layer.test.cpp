@@ -3,8 +3,11 @@
 
 #include "placeholder_layers.hpp"
 
+using namespace sage;
+
 TEST_CASE ("Layer") {
-	auto layers = sage::layer::Storage<Dump_Layer, Other_Layer, Last_Layer>{
+	using Null_Rendering = graphics::renderer::Null_Rendering;
+	auto layers = sage::layer::Storage<Dump_Layer::Spec<Null_Rendering>, Other_Layer::Spec<Null_Rendering>, Last_Layer::Spec<Null_Rendering>>{
 		{
 			Dump_Layer{1},
 			Dump_Layer{2},

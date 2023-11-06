@@ -11,6 +11,11 @@
 namespace sage::layer {
 
 struct ImGui {
+	template <typename _Rendering>
+	struct Spec {
+		using Layer = ImGui;
+		using Rendering = _Rendering;
+	};
 
 private:
 	float time = 0.0f;
@@ -59,6 +64,7 @@ public:
 
 public:
 	auto update(const std::chrono::milliseconds) -> void {}
+	auto render(auto&) -> void {}
 
 	auto event_callback(const Event& e) -> void {
 		using namespace sage;
@@ -121,6 +127,7 @@ public:
 		}
 	}
 
+	#pragma message "TODO: ImGui is abit special but is there a way to integrate this in .render()?"
 	// There can be different inputs as the engine proceeds, for example
 	// a view so that it can be created by filtering etc.
 	template <std::invocable Fn>
@@ -150,8 +157,8 @@ public:
 	}
 
 	auto imgui_prepare() {
-		static auto show = true;
-		::ImGui::ShowDemoWindow(&show);
+		//static auto show = true;
+		//::ImGui::ShowDemoWindow(&show);
 	}
 
 public:

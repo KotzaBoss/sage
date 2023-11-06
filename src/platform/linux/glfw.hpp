@@ -96,6 +96,7 @@ constexpr auto is_expected(const int m) -> bool {
 		or m == GLFW_KEY_S
 		or m == GLFW_KEY_D
 		or m == GLFW_KEY_LEFT_CONTROL
+		or m == GLFW_KEY_SPACE
 		;
 }
 
@@ -118,6 +119,7 @@ public:
 		_map[GLFW_KEY_S]			= sage::input::Key::S;
 		_map[GLFW_KEY_W]			= sage::input::Key::W;
 		_map[GLFW_KEY_LEFT_CONTROL]	= sage::input::Key::Left_Ctrl;
+		_map[GLFW_KEY_SPACE]		= sage::input::Key::Space;
 	}
 
 public:

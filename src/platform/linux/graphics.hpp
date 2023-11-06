@@ -3,7 +3,7 @@
 #include "src/graphics.hpp"
 #include "src/filesystem.hpp"
 
-#include "glm/gtc/type_ptr.hpp"
+#include "math.hpp"
 
 #include "glad/gl.h"
 #include "glfw.hpp"
@@ -650,11 +650,15 @@ public:
 	auto unbind() const -> void {}
 };
 
-using Renderer_2D_Base = sage::graphics::renderer::Base_2D<Vertex_Array, Vertex_Buffer, Index_Buffer, Texture2D, Shader>;
-struct Renderer_2D : Renderer_2D_Base {
+struct Renderer_2D : sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader> {
+	using Base = sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader>;
+	using Vertex_Array = Base::Vertex_Array;
+	using Shader = Base::Shader;
+	using Draw_Args = Base::Draw_Args;
+
 public:
 	Renderer_2D()
-		: Renderer_2D_Base{{
+		: Base{{
 			.vertex_array{
 				Vertex_Buffer{
 					Vertex_Buffer::Vertices{
@@ -679,6 +683,10 @@ public:
 			.shader{"asset/shader/texture.glsl"}
 		}}
 	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_DEPTH_TEST);
+
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 
 		scene_data.shader.bind();
@@ -686,12 +694,12 @@ public:
 	}
 
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
-		Renderer_2D_Base::scene(cam, draws);
+		Base::scene(cam, draws);
 	}
 
 	template <type::Any<Texture2D, glm::vec4> Drawing>
-	auto draw(const glm::vec3& pos, const glm::vec2& size, const Drawing& drawing) -> void {
-		Renderer_2D_Base::draw(pos, size, drawing, [this] {
+	auto draw(const Drawing& drawing, const Base::Draw_Args& args) {
+		Base::draw(drawing, args, [this] {
 				const auto& index_buffer = scene_data.vertex_array.index_buffer();
 				glDrawElements(GL_TRIANGLES, index_buffer.indeces().size(), GL_UNSIGNED_INT, nullptr);
 			});
@@ -712,8 +720,9 @@ public:
 	}
 };
 
-using Renderer_Base = sage::graphics::renderer::Base<Shader, Vertex_Array, Vertex_Buffer, Index_Buffer>;
+using Renderer_Base = sage::graphics::renderer::Base<Shader, oslinux::Vertex_Array>;
 struct Renderer : Renderer_Base {
+	using Vertex_Array = oslinux::Vertex_Array;
 
 public:
 	Renderer() {

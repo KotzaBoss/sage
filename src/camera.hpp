@@ -4,10 +4,7 @@
 
 #include "repr.hpp"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include <glm/gtx/string_cast.hpp>
+#include "math.hpp"
 
 #include "event.hpp"
 #include "input.hpp"
@@ -90,7 +87,7 @@ public:
 		Zoom zoom = {
 				.min = 0.25f,
 				.max = 10.f,
-				.level = 1.f
+				.level = 10.f
 			};
 		glm::vec3&& position = {0, 0, 0};
 		Rotation rotation = {
@@ -132,7 +129,7 @@ public:
 			case Event::Type::Mouse_Scrolled:
 				SAGE_ASSERT(std::holds_alternative<input::Mouse::Scroll>(e.payload));
 
-				zoom.level = std::clamp(zoom.level - 0.5 * std::get<input::Mouse::Scroll>(e.payload).offset.y, 0.25, 10.0);
+				zoom.level = std::clamp(zoom.level - 0.5 * std::get<input::Mouse::Scroll>(e.payload).offset.y, 0.25, 30.0);
 				move_speed = zoom.level;
 				break;
 			case Event::Type::Window_Resized: {

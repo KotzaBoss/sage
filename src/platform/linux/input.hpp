@@ -16,6 +16,7 @@ struct Input {
 #pragma GCC diagnostic ignored "-Wpedantic"
 	static constexpr int key_map[] = {
 			[std::to_underlying(Key::Left_Ctrl)] = GLFW_KEY_LEFT_CONTROL,
+			[std::to_underlying(Key::Space)] = GLFW_KEY_SPACE,
 			[std::to_underlying(Key::Q)]	= GLFW_KEY_Q,
 			[std::to_underlying(Key::E)]	= GLFW_KEY_E,
 			[std::to_underlying(Key::W)]	= GLFW_KEY_W,

@@ -2,7 +2,7 @@
 
 #include "std.hpp"
 
-#include "glm/glm.hpp"
+#include "math.hpp"
 
 #include "camera.hpp"
 #include "repr.hpp"
@@ -55,6 +55,13 @@ concept Concept =
 		{ s.set(uniform_name, uniform) } -> std::same_as<void>;
 	}
 	;
+
+struct Null {
+	auto bind() {}
+	auto unbind() {}
+	auto upload_uniform(const auto&, const auto&) {}
+	auto set(const auto&, const auto&) {}
+};
 
 struct Base {
 protected:
@@ -215,11 +222,24 @@ using Vertices = std::vector<float>;
 
 template <typename VB>
 concept Concept =
-	requires (VB vb, Vertices&& vertices, buffer::Layout&& layout) {
+	requires (VB vb) {
 		{ vb.bind() } -> std::same_as<void>;
 		{ vb.unbind() } -> std::same_as<void>;
+		{ vb.vertices() } -> std::same_as<const Vertices&>;
+		{ vb.layout() } -> std::same_as<const Layout&>;
 	}
 	;
+
+struct Null {
+private:
+	Vertices vert;
+	Layout lay;
+public:
+	auto bind() {}
+	auto unbind() {}
+	auto vertices() -> const Vertices& { return vert; }
+	auto layout() -> const Layout& { return lay; }
+};
 
 }//buffer::vertex
 
@@ -236,6 +256,17 @@ concept Concept =
 	}
 	;
 
+struct Null {
+private:
+	Indeces idxs;
+public:
+	auto bind() {}
+	auto unbind() {}
+	auto indeces() -> const Indeces& {
+		return idxs;
+	}
+};
+
 }//buffer::index
 
 }// buffer
@@ -244,17 +275,22 @@ concept Concept =
 // really shared by rendering APIs besides OpenGL
 namespace array::vertex {
 
-template <typename A, typename Vertex_Buffer, typename Index_Buffer>
+template <typename A>
 concept Concept =
-	buffer::vertex::Concept<Vertex_Buffer>
-	and buffer::index::Concept<Index_Buffer>
-	and requires (A a, Vertex_Buffer&& vb, Index_Buffer&& ib) {
-		requires std::same_as<typename A::Vertex_Buffer, Vertex_Buffer>;
-		requires std::same_as<typename A::Index_Buffer, Index_Buffer>;
+	requires { typename A::Vertex_Buffer; } and buffer::vertex::Concept<typename A::Vertex_Buffer>
+	and requires { typename A::Index_Buffer; } and buffer::index::Concept<typename A::Index_Buffer>
+	and requires (A a) {
 		{ a.bind() } -> std::same_as<void>;
 		{ a.unbind() } -> std::same_as<void>;
 	}
 	;
+
+struct Null {
+	using Vertex_Buffer = buffer::vertex::Null;
+	using Index_Buffer = buffer::index::Null;
+	auto bind() {}
+	auto unbind() {}
+};
 
 }// array::vertex
 
@@ -274,25 +310,79 @@ concept Concept =
 
 namespace renderer {
 
-template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Texture, typename Shader>
+template <typename R, typename... Drawings>
 concept Concept_2D =
-	texture::Concept<Texture>
-	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
-	and shader::Concept<Shader>
-	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const glm::vec3& pos, const glm::vec2& size, const Texture& texture, const Event& e) {
+	requires { typename R::Shader; } and shader::Concept<typename R::Shader>
+	and requires { typename R::Vertex_Array; } and array::vertex::Concept<typename R::Vertex_Array>
+	and requires { typename R::Draw_Args; }
+	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const Event& e) {
 		{ r.scene(cam, draws) } -> std::same_as<void>;
-		{ r.draw(pos, size, texture) } -> std::same_as<void>;
 		{ r.clear() } -> std::same_as<void>;
 		{ r.event_callback(e) } -> std::same_as<void>;
 	}
+	and (sizeof...(Drawings) > 0)
+	and (requires (R r, const Drawings& drawing, const typename R::Draw_Args& args) {
+			{ r.draw(drawing, args) } -> std::same_as<void>;
+		} and ...)
 	;
 
-template <typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Texture, typename Shader>
+struct Null {
+	using Shader = shader::Null;
+};
+
+namespace detail {
+
+template <typename Renderer, typename Drawings, size_t... Idxs>
+consteval auto _renderer_can_draw(const std::index_sequence<Idxs...>&) -> bool {
+	if constexpr (sizeof...(Idxs) > 0)
+		return renderer::Concept_2D<Renderer, std::tuple_element_t<Idxs, Drawings>...>;
+	else
+		return true;
+}
+
+template <typename Renderer, typename Drawings>
+constexpr auto renderer_can_draw = _renderer_can_draw<Renderer, Drawings>(std::make_index_sequence<std::tuple_size_v<Drawings>>{});
+
+}// renderer::detail
+
+// Convinence to pack together template information:
+//
+// template <Rendering Ring, typename... Stuff>
+// struct App {
+//		Ring::Renderer renderer;
+// };
+//
+// struct Some_Rendering {
+//		using Renderer = Linux_Renderer;
+//		using Drawings = std::tuple<Linux_Texture, glm::vec4, int>;
+// };
+//
+// using A = App<Some_Rendering, ...>
+//
+template <typename R>
+concept Rendering =
+		requires { typename R::Renderer; }
+	and requires { typename R::Drawings; } // and std::same_as<typename R::Drawings, std::tuple<...>> // Im not gonna try to make this work syntactically...
+	and detail::renderer_can_draw<typename R::Renderer, typename R::Drawings>
+	;
+
+struct Null_Rendering {
+	using Renderer = renderer::Null;
+	using Drawings = std::tuple<>;
+};
+
+template <typename _Vertex_Array, typename _Texture, typename _Shader>
 	requires
-		texture::Concept<Texture>
-		and shader::Concept<Shader>
-		and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
+			array::vertex::Concept<_Vertex_Array>
+		and texture::Concept<_Texture>
+		and shader::Concept<_Shader>
 struct Base_2D {
+protected:
+	using Vertex_Array = _Vertex_Array;
+	using Texture = _Texture;
+	using Shader = _Shader;
+
+protected:
 	struct Scene_Data {
 		Vertex_Array vertex_array;
 		Shader shader;
@@ -311,8 +401,27 @@ protected:
 	{}
 
 protected:
+	// Should be called once, usually by some layer (see layer::Concept)
+	//
+	// struct Magic {
+	//   Renderer& renderer;
+	//   auto render() { renderer.draw(...); }
+	// };
+	//
+	// struct Magic_Layer {
+	//		Renderer& renderer;
+	//   	Camera& camera;
+	//   	Magic magic;
+	//
+	//   	auto render() {
+	//	 	   renderer.scene(camera, [&] {
+	//	 	   		magic.render();
+	//	 	   	});
+	//	 	}
+	//	};
+	//
 	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
-		SAGE_ASSERT(not scene_active);
+		SAGE_ASSERT(not scene_active, "Must only call scene once: renderer.scene(camera, [] { render1(); render2(); });");
 
 		scene_active = true;
 
@@ -324,13 +433,19 @@ protected:
 		scene_active = false;
 	}
 
-	template <type::Any<Texture, glm::vec4> Drawing>
-	auto draw(const glm::vec3& pos, const glm::vec2& size, const Drawing& drawing, const std::function<void()>& impl) {
+	struct Draw_Args {
+		const glm::vec3& position;
+		const glm::vec2& size;
+		float rotation = 0.f;
+	};
+
+	template <type::Any<Texture, glm::vec4> Drawing, std::invocable Impl>
+	auto draw(const Drawing& drawing, const Draw_Args& args, Impl&& impl) {
 		SAGE_ASSERT(scene_active);
 
 		if constexpr (std::same_as<Drawing, Texture>) {
 			drawing.bind();
-			scene_data.shader.set("u_Color", glm::vec4{1.0});
+			scene_data.shader.set("u_Color", glm::vec4{1.0f});
 		}
 		else if constexpr (std::same_as<Drawing, glm::vec4>) {
 			default_texture.bind();
@@ -341,23 +456,22 @@ protected:
 
 		scene_data.shader.set(
 				"u_Transform",
-				//                       rotation here|
-				//                                    |
-				//                                    V
-				glm::translate(glm::mat4{1.0f}, pos) * glm::scale(glm::mat4{1.0f}, {size.x, size.y, 1.0f})
+				glm::translate(glm::mat4{1.0f}, args.position)
+				* glm::rotate(glm::mat4{1.0f}, glm::radians(args.rotation), {0.0f, 0.0f, 1.0f})
+				* glm::scale(glm::mat4{1.0f}, {args.size.x, args.size.y, 1.0f})
 			);
 
 		scene_data.vertex_array.bind();
 
-		impl();
+		std::invoke(std::forward<Impl>(impl));
 	}
 };
 
-template <typename R, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer, typename Shader>
+template <typename R, typename Shader>
 concept Concept =
 	shader::Concept<Shader>
-	and array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
-	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const Vertex_Array& va, const glm::mat4& transform, const Event& event) {
+	and requires { typename R::Vertex_Array; } and array::vertex::Concept<typename R::Vertex_Array>
+	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& submissions, const Shader& shader, const glm::vec4& color, const typename R::Vertex_Array& va, const glm::mat4& transform, const Event& event) {
 		{ r.event_callback(event) } -> std::same_as<void>;
 		{ r.scene(cam, submissions) } -> std::same_as<void>;
 		{ r.submit(shader, va, transform) } -> std::same_as<void>;
@@ -366,8 +480,8 @@ concept Concept =
 	}
 	;
 
-template <shader::Concept Shader, typename Vertex_Array, typename Vertex_Buffer, typename Index_Buffer>
-	requires array::vertex::Concept<Vertex_Array, Vertex_Buffer, Index_Buffer>
+template <shader::Concept Shader, typename Vertex_Array>
+	requires array::vertex::Concept<Vertex_Array>
 struct Base {
 	struct Scene_Data {
 		glm::mat4 view_proj_mat;

@@ -4,6 +4,13 @@
 #include "imgui.h"
 
 struct Dump_Layer {
+	template <typename _Rendering>
+	struct Spec {
+		using Layer = Dump_Layer;
+		using Rendering = _Rendering;
+	};
+
+public:
 	size_t id;
 
 	Dump_Layer(const size_t _id)
@@ -15,6 +22,7 @@ struct Dump_Layer {
 	~Dump_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
 	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("DUMP Updating {}", id, delta); }
+	auto render(auto&) {}
 	auto imgui_prepare() -> void {
 		// Create a window called "My First Tool", with a menu bar.
 		static auto my_tool_active = true;
@@ -66,6 +74,13 @@ FMT_FORMATTER(Dump_Layer) {
 REPR_DEF_FMT(Dump_Layer);
 
 struct Other_Layer {
+	template <typename _Rendering>
+	struct Spec {
+		using Layer = Other_Layer;
+		using Rendering = _Rendering;
+	};
+
+public:
 	size_t id;
 
 	Other_Layer(const size_t _id)
@@ -77,6 +92,7 @@ struct Other_Layer {
 	~Other_Layer() { MESSAGE("OTHER Tearing down ", id); }
 
 	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("OTHER Updating {}", id, delta); }
+	auto render(auto&) {}
 	auto imgui_prepare() -> void {
 		ImGui::Text("Hello, world %d", 123);
 		if (ImGui::Button("Save"))
@@ -103,6 +119,13 @@ FMT_FORMATTER(Other_Layer) {
 REPR_DEF_FMT(Other_Layer);
 
 struct Last_Layer {
+	template <typename _Rendering>
+	struct Spec {
+		using Layer = Last_Layer;
+		using Rendering = _Rendering;
+	};
+
+public:
 	size_t id;
 
 	Last_Layer(const size_t _id)
@@ -114,6 +137,7 @@ struct Last_Layer {
 	~Last_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
 	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("LAST Updating {}", id, delta); }
+	auto render(auto&) {}
 	auto imgui_prepare() -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}

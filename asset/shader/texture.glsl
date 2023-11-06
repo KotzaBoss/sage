@@ -26,5 +26,5 @@ uniform sampler2D u_Texture;
 //uniform texture_scale to: v_TexCoord * scale
 
 void main() {
-	color = texture(u_Texture, v_TexCoord * 5.0) * u_Color;
+	color = texture(u_Texture, v_TexCoord) * u_Color;
 }

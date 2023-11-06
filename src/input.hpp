@@ -10,6 +10,7 @@ namespace sage::input {
 enum class Key {
 	None = -1,
 	Left_Ctrl,
+	Space,
 	// Letters
 	Q, E, W, A, S, D,
 };
