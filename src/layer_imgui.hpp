@@ -11,10 +11,11 @@
 namespace sage::layer {
 
 struct ImGui {
-	template <typename _Rendering>
+	template <typename _Input, typename _Rendering>
 	struct Spec {
 		using Layer = ImGui;
 		using Rendering = _Rendering;
+		using Input = _Input;
 	};
 
 private:
@@ -63,7 +64,7 @@ public:
 	}
 
 public:
-	auto update(const std::chrono::milliseconds) -> void {}
+	auto update(const std::chrono::milliseconds, input::Concept auto&) -> void {}
 	auto render(auto&) -> void {}
 
 	auto event_callback(const Event& e) -> void {

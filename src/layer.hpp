@@ -4,7 +4,7 @@
 
 #include "graphics.hpp"
 #include "event.hpp"
-#include "ref_wrapper.hpp"
+#include "input.hpp"
 #include "util.hpp"
 
 #include "repr.hpp"
@@ -13,11 +13,12 @@ namespace sage::layer {
 
 #pragma message "TODO: Maybe pass optional<Event> to allow for functional chaining?"
 #pragma message "TODO: Maybe pass renderer::Concept to .render()? Can there be multiple renderers?"
-template <typename Layer, typename Rendering>
+template <typename Layer, typename Input, typename Rendering>
 concept Concept =
-	graphics::renderer::Rendering<Rendering>
-	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Rendering::Renderer& renderer) {
-		{ l.update(delta) } -> std::same_as<void>;
+		input::Concept<Input>
+	and graphics::renderer::Rendering<Rendering>
+	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Rendering::Renderer& renderer, Input& input) {
+		{ l.update(delta, input) } -> std::same_as<void>;
 		{ l.render(renderer) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
 		{ l.imgui_prepare() } -> std::same_as<void>;
@@ -49,13 +50,16 @@ concept Concept =
 //
 template <typename L>
 concept Spec =
-		requires { typename L::Rendering; } and graphics::renderer::Rendering<typename L::Rendering>
-	and requires { typename L::Layer; } and layer::Concept<typename L::Layer, typename L::Rendering>
+		requires { typename L::Input; } and input::Concept<typename L::Input>
+	and requires { typename L::Rendering; } and graphics::renderer::Rendering<typename L::Rendering>
+	and requires { typename L::Layer; } and layer::Concept<typename L::Layer, typename L::Input, typename L::Rendering>
 	;
 
 template <layer::Spec... Ls>
+	requires type::All<typename Ls::Input...>
 struct Array : util::Polymorphic_Array<typename Ls::Layer...> {
 	using Base = util::Polymorphic_Array<typename Ls::Layer...>;
+	using Input = std::tuple_element_t<0, std::tuple<typename Ls::Input...>>;
 
 public:
 	Array(type::Any<typename Ls::Layer...> auto&&... ls)
@@ -63,9 +67,9 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta) -> void {
-		Base::apply([=] (auto& layer) {
-				layer.update(delta);
+	auto update(const std::chrono::milliseconds delta, Input& input) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.update(delta, input);
 			});
 	}
 
@@ -94,8 +98,10 @@ public:
 };
 
 template <layer::Spec... Ls>
+	requires type::All<typename Ls::Input...>
 struct Storage : util::Polymorphic_Storage<typename Ls::Layer...> {
 	using Base = util::Polymorphic_Storage<typename Ls::Layer...>;
+	using Input = std::tuple_element_t<0, std::tuple<typename Ls::Input...>>;
 
 public:
 	Storage(typename Base::Vector<typename Ls::Layer>&&... layers)
@@ -103,9 +109,9 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta) -> void {
-		Base::apply([=] (auto& layer) {
-				layer.update(delta);
+	auto update(const std::chrono::milliseconds delta, Input& input) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.update(delta, input);
 			});
 	}
 

@@ -4,10 +4,11 @@
 #include "imgui.h"
 
 struct Dump_Layer {
-	template <typename _Rendering>
+	template <typename _Input, typename _Rendering>
 	struct Spec {
 		using Layer = Dump_Layer;
 		using Rendering = _Rendering;
+		using Input = _Input;
 	};
 
 public:
@@ -21,7 +22,7 @@ public:
 
 	~Dump_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("DUMP Updating {}", id, delta); }
+	auto update(const std::chrono::milliseconds delta, auto&) -> void { MESSAGE("DUMP Updating {}", id, delta); }
 	auto render(auto&) {}
 	auto imgui_prepare() -> void {
 		// Create a window called "My First Tool", with a menu bar.
@@ -74,10 +75,11 @@ FMT_FORMATTER(Dump_Layer) {
 REPR_DEF_FMT(Dump_Layer);
 
 struct Other_Layer {
-	template <typename _Rendering>
+	template <typename _Input, typename _Rendering>
 	struct Spec {
 		using Layer = Other_Layer;
 		using Rendering = _Rendering;
+		using Input = _Input;
 	};
 
 public:
@@ -91,7 +93,7 @@ public:
 
 	~Other_Layer() { MESSAGE("OTHER Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("OTHER Updating {}", id, delta); }
+	auto update(const std::chrono::milliseconds delta, auto&) -> void { MESSAGE("OTHER Updating {}", id, delta); }
 	auto render(auto&) {}
 	auto imgui_prepare() -> void {
 		ImGui::Text("Hello, world %d", 123);
@@ -119,10 +121,11 @@ FMT_FORMATTER(Other_Layer) {
 REPR_DEF_FMT(Other_Layer);
 
 struct Last_Layer {
-	template <typename _Rendering>
+	template <typename _Input, typename _Rendering>
 	struct Spec {
 		using Layer = Last_Layer;
 		using Rendering = _Rendering;
+		using Input = _Input;
 	};
 
 public:
@@ -136,7 +139,7 @@ public:
 
 	~Last_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta) -> void { MESSAGE("LAST Updating {}", id, delta); }
+	auto update(const std::chrono::milliseconds delta, auto&) -> void { MESSAGE("LAST Updating {}", id, delta); }
 	auto render(auto&) {}
 	auto imgui_prepare() -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());

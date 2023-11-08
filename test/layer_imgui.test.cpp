@@ -12,7 +12,7 @@ TEST_CASE ("ImGui Layer") {
 
 	const auto start = std::chrono::steady_clock::now();
 	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
-		imgui.update(tick());
+		imgui.update(tick(), input::null);
 		imgui.new_frame([&] {
 				imgui.imgui_prepare();
 			});

@@ -46,6 +46,22 @@ concept Concept =
 	}
 	;
 
+struct Null {
+	auto is_key_pressed(const Key&) -> bool {
+		return false;
+	}
+
+	auto is_mouse_button_pressed(const Mouse::Button&) -> bool {
+		return false;
+	}
+
+	auto mouse_pos() -> Mouse::Pos {
+		return {0, 0};
+	}
+};
+
+inline Null null;
+
 } //sage::input
 
 template <>

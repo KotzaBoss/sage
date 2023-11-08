@@ -9,8 +9,6 @@ using namespace sage;
 
 struct Player {
 private:
-	oslinux::Input& input;
-
 	// TODO: What to encapsulate, player.update(), player knows renderer?
 	glm::vec3 _position = {0.f, 0.f, 0.f};
 	glm::vec2 velocity = {0.f, 0.f};
@@ -21,12 +19,7 @@ private:
 	oslinux::Texture2D texture = {"asset/texture/Ship.png"};
 
 public:
-	Player(oslinux::Input& i)
-		: input{i}
-	{}
-
-public:
-	auto update([[maybe_unused]] const std::chrono::milliseconds delta) {
+	auto update([[maybe_unused]] const std::chrono::milliseconds delta, oslinux::Input& input) {
 		if (input.is_key_pressed(input::Key::Space))
 			velocity.y += engine_power;
 		else
@@ -79,7 +72,7 @@ public:
 	auto operator= (Obstacle&&) -> Obstacle& = default;
 
 public:
-	auto update(const std::chrono::milliseconds delta) {
+	auto update(const std::chrono::milliseconds delta, input::Concept auto&) {
 		const auto dt_coeff = std::chrono::duration<float, std::chrono::seconds::period>{delta}.count();
 
 		_position.x -= move_speed * dt_coeff;
@@ -106,9 +99,7 @@ private:
 	static constexpr auto rand_y = [] { return glm::linearRand(-4.f, 4.f); };
 
 public:
-	Level(oslinux::Input& i)
-		: player{i}
-	{
+	Level() {
 		obstacles.reserve(5);
 		rg::generate_n(std::back_inserter(obstacles), obstacles.capacity(),
 				[&] mutable {
@@ -118,9 +109,9 @@ public:
 	}
 
 public:
-	auto update(const std::chrono::milliseconds delta) {
-		player.update(delta);
-		rg::for_each(obstacles, [&] (auto& o) { o.update(delta); });
+	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) {
+		player.update(delta, input);
+		rg::for_each(obstacles, [&] (auto& o) { o.update(delta, input); });
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
@@ -165,15 +156,9 @@ public:
 	Level level;
 
 public:
-	Layer_2D(oslinux::Input& input)
-		: camera_controller{input}
-		, level{input}
-	{}
-
-public:
-	auto update(const std::chrono::milliseconds delta) -> void {
-		camera_controller.update(delta);
-		level.update(delta);
+	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) -> void {
+		camera_controller.update(delta, input);
+		level.update(delta, input);
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) -> void {

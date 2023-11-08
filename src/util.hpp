@@ -169,16 +169,30 @@ inline namespace comp {
 template <typename Needle, typename... Haystack>
 concept Any = (std::same_as<Needle, Haystack> or ...);
 
+namespace detail {
+template <typename Needle, typename... Haystack>
+concept All = (std::same_as<Needle, Haystack> and ...);
+
+template <typename...>
+inline constexpr auto all = true;
+
+template <typename T, typename... Rest>
+inline constexpr auto all<T, Rest...> = All<T, Rest...> and all<Rest...>;
+}// detail
+
+template <typename... T>
+concept All = detail::all<T...>;
+
 template <typename Needle, typename... Haystack>
 concept Not_In = not Any<Needle, Haystack...>;
 
 // Needed to be able to define Unique as Unique<typename...> and not Unique<typename Needle, typename... Haystack>
 namespace detail {
-	template <typename...>
-	inline constexpr auto unique = true;
+template <typename...>
+inline constexpr auto unique = true;
 
-	template <typename T, typename... Rest>
-	inline constexpr auto unique<T, Rest...> = Not_In<T, Rest...> and unique<Rest...>;
+template <typename T, typename... Rest>
+inline constexpr auto unique<T, Rest...> = Not_In<T, Rest...> and unique<Rest...>;
 }
 
 template <typename... T>

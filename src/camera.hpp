@@ -73,7 +73,6 @@ struct Controller {
 	};
 
 private:
-	Input& input;
 	float aspect_ratio;
 	Zoom zoom;
 	glm::vec3 position;
@@ -96,20 +95,17 @@ public:
 			};
 		float move_speed = zoom.level;
 	};
-	Controller(Input& _input, Controller_Args&& args = {})
-		: input{_input}
-		, aspect_ratio{args.aspect_ratio}
+	Controller(Controller_Args&& args = {})
+		: aspect_ratio{args.aspect_ratio}
 		, zoom{args.zoom}
 		, position{args.position}
 		, move_speed{args.move_speed}
 		, rotation{args.rotation}
 		, _camera{projection_mat_args()}
-	{
-
-	}
+	{}
 
 public:
-	auto update(const std::chrono::milliseconds dt) -> void {
+	auto update(const std::chrono::milliseconds dt, Input& input) -> void {
 		const auto dt_coeff = std::chrono::duration<float, std::chrono::seconds::period>{dt}.count();
 
 		if		(input.is_key_pressed(input::Key::W))	position.y += move_speed * dt_coeff;

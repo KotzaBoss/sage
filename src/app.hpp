@@ -17,30 +17,32 @@ namespace sage::inline app {
 
 template <
 		window::Concept Window,
+		input::Concept Input,
 		graphics::renderer::Rendering R,
 		layer::Spec... Ls
 	>
 	requires
-		(not type::Any<layer::ImGui, typename Ls::Layer...>)	// The ImGui layer will always be provided by sage as the "overlay"
+			type::Not_In<layer::ImGui, typename Ls::Layer...>	// The ImGui layer will always be provided by sage as the "overlay"
+		and type::All<typename Ls::Input...>
 struct App {
-	using Layers = sage::layer::Array<layer::ImGui::Spec<R>, Ls...>;
+	using Layers = sage::layer::Array<layer::ImGui::Spec<Input, R>, Ls...>;
 
 private:
-	R::Renderer renderer;
 	Window window;
+
+	Input input;
+
+	R::Renderer renderer;
 
 	Layers layers;
 
-	// We wont be moving the ImGui vector in the tuple so its ok to reference.
-	// If something more complex is needed in the future, we should prefer an Iterator
-	// which is re-assigned if we tweak the ImGui vector (dont forget vector iterators can get
-	// invalidated).
 	layer::ImGui& imgui;
 
 public:
-	App(Window&& w, type::Any<typename Ls::Layer...> auto&&... ls)
+	App(Window&& w, Input&& i)
 		: window{std::move(w)}
-		, layers{layer::ImGui{&window}, std::move(ls)...}
+		, input{std::move(i)}
+		, layers{layer::ImGui{&window}, typename Ls::Layer{}...}
 		, imgui{layers.front()}
 	{
 		SAGE_LOG_DEBUG(*this);
@@ -61,7 +63,7 @@ public:
 			// As layers get more interesting this if may change but for now keep it
 			// very strict: no window, no work
 			if (not window.is_minimized()) {
-				layers.update(delta);
+				layers.update(delta, input);
 				layers.render(renderer);
 			}
 
@@ -81,8 +83,8 @@ public:
 	}
 
 public:
-	friend REPR_DEF_FMT(App<Window, R, Ls...>)
-	friend FMT_FORMATTER(App<Window, R, Ls...>);
+	friend REPR_DEF_FMT(App<Window, Input, R, Ls...>)
+	friend FMT_FORMATTER(App<Window, Input, R, Ls...>);
 };
 
 }// sage
