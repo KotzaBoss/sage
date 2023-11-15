@@ -220,6 +220,22 @@ namespace vertex {
 
 using Vertices = std::vector<float>;
 
+// Quad fields must match the layout
+struct Quad {
+	glm::vec3 position;
+	glm::vec4 color;
+	glm::vec2 tex_coord;
+	// id, mask, ...
+
+	static constexpr auto layout() -> Layout {
+		return Layout{{
+				buffer::Element{{ .name = "a_Position",	.type = shader::data::Type::Float3 }},
+				buffer::Element{{ .name = "a_Color",	.type = shader::data::Type::Float4 }},
+				buffer::Element{{ .name = "a_TexCoord", .type = shader::data::Type::Float2 }},
+			}};
+	}
+};
+
 template <typename VB>
 concept Concept =
 	requires (VB vb) {
@@ -388,17 +404,42 @@ protected:
 		Shader shader;
 	};
 
+	struct Batch {
+		using Vertices = std::vector<buffer::vertex::Quad>;
+
+	public:
+		static constexpr auto max_quads = 10'000;
+		static constexpr auto max_vertices = max_quads * 4;
+		static constexpr auto max_indeces = max_quads * 6;
+
+	private:
+		Vertices vertices;
+
+	public:
+		auto indexes() const -> size_t {
+			return vertices.size() * 6;
+		}
+
+	public:
+		friend struct Base_2D;	// A bit clunky but we simply want _just_ the Base to have direct access
+	};
+
 protected:
 	Scene_Data scene_data;
+	Batch batch;
 
 private:
 	bool scene_active = false;
+
+private:
 	const Texture default_texture = Texture{Size{1ul, 1ul}};
 
 protected:
 	Base_2D(Scene_Data&& sd)
 		: scene_data{std::move(sd)}
-	{}
+	{
+		batch.vertices.reserve(Batch::max_vertices);
+	}
 
 protected:
 	// Should be called once, usually by some layer (see layer::Concept)
@@ -420,15 +461,20 @@ protected:
 	//	 	}
 	//	};
 	//
-	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
+	template <std::invocable Draws, std::invocable Flush>
+	auto scene(const camera::Orthographic& cam, Draws&& draws, Flush&& impl) -> void {
 		SAGE_ASSERT(not scene_active, "Must only call scene once: renderer.scene(camera, [] { render1(); render2(); });");
 
 		scene_active = true;
+
+		batch.vertices.clear();
 
 		scene_data.shader.bind();
 		scene_data.shader.set("u_ViewProjection", cam.view_proj_mat());
 
 		draws();
+
+		flush(std::forward<Flush>(impl));
 
 		scene_active = false;
 	}
@@ -439,6 +485,22 @@ protected:
 		float rotation = 0.f;
 	};
 
+	// Drawing is drawn with its center at `args.position` expanding outward.
+	// Example (size width/height chose to make the code diagram legible)
+	//
+	// draw(color, { .position = { 5.f, 1.f }, .size = { 6.f, 4.f } }, ...);
+	//
+	//                |
+	//                |  (2, -1)       (8, -1)
+	//                |   |-----------|
+	//  - - - - - - - + - + - - - - - + - - - - >
+	//                |   |     o     |
+	//                |   |           |
+	//                |   |-----------|
+	//                |  (2, 3)       (8, 3)
+	//                |
+	//                V
+	//
 	template <type::Any<Texture, glm::vec4> Drawing, std::invocable Impl>
 	auto draw(const Drawing& drawing, const Draw_Args& args, Impl&& impl) {
 		SAGE_ASSERT(scene_active);
@@ -449,19 +511,44 @@ protected:
 		}
 		else if constexpr (std::same_as<Drawing, glm::vec4>) {
 			default_texture.bind();
-			scene_data.shader.set("u_Color", drawing);
+
+			// Batch a quad's 4 vertices
+			batch.vertices.push_back({
+					.position = { args.position.x - args.size.x / 2, args.position.y - args.size.y / 2, 0 },
+					.color = drawing,
+					.tex_coord = { 0.f, 0.f }
+				});
+
+			batch.vertices.push_back({
+					.position = { args.position.x + args.size.x / 2, args.position.y - args.size.y / 2, 0 },
+					.color = drawing,
+					.tex_coord = { 1.f, 0.f }
+				});
+
+			batch.vertices.push_back({
+					.position = { args.position.x + args.size.x / 2, args.position.y + args.size.y / 2, 0 },
+					.color = drawing,
+					.tex_coord = { 1.f, 1.f }
+				});
+
+			batch.vertices.push_back({
+					.position = { args.position.x - args.size.x / 2, args.position.y + args.size.y / 2, 0 },
+					.color = drawing,
+					.tex_coord = { 0, 1.f }
+				});
 		}
 		else
 			static_assert(false, "Unhandled type");
+	}
 
-		scene_data.shader.set(
-				"u_Transform",
-				glm::translate(glm::mat4{1.0f}, args.position)
-				* glm::rotate(glm::mat4{1.0f}, glm::radians(args.rotation), {0.0f, 0.0f, 1.0f})
-				* glm::scale(glm::mat4{1.0f}, {args.size.x, args.size.y, 1.0f})
-			);
+	template <std::invocable Impl>
+	auto flush(Impl&& impl) -> void {
+		const auto data = reinterpret_cast<const std::byte*>(batch.vertices.data());
+		const auto bytes = batch.vertices.size() * sizeof(typename Batch::Vertices::value_type);
 
-		scene_data.vertex_array.bind();
+		scene_data.vertex_array.vertex_buffer()
+			.set_vertices({data, bytes})
+			;
 
 		std::invoke(std::forward<Impl>(impl));
 	}

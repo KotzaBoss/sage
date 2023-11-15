@@ -102,6 +102,7 @@ private:
 
 };
 
+#pragma message "TODO: Split dynamic/static vertex_buffer?"
 struct Vertex_Buffer {
 	using Layout = sage::graphics::buffer::Layout;
 	using Vertices = sage::graphics::buffer::vertex::Vertices;
@@ -112,6 +113,20 @@ private:
 	Layout _layout;
 
 public:
+	Vertex_Buffer(const size_t size, Layout&& l)
+		: _layout{std::move(l)}
+	{
+		renderer_id.emplace();
+		glCreateBuffers(1, &renderer_id.value());
+		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		glBufferData(
+				GL_ARRAY_BUFFER,
+				size,
+				nullptr,
+				GL_DYNAMIC_DRAW
+			);
+	}
+
 	Vertex_Buffer(Vertices&& v, Layout&& l)
 		: _vertices{std::move(v)}
 		, _layout{std::move(l)}
@@ -153,6 +168,12 @@ public:
 		return _vertices;
 	}
 
+	auto set_vertices(const std::span<const std::byte> bytes) -> void {
+		SAGE_ASSERT(*renderer_id);
+		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, bytes.size(), bytes.data());
+	}
+
 	auto layout() const -> const Layout& {
 		return _layout;
 	}
@@ -167,7 +188,6 @@ struct Index_Buffer {
 
 private:
 	glfw::ID renderer_id;
-	size_t _size = 0;
 	Indeces _indeces;
 
 public:
@@ -176,18 +196,55 @@ public:
 	{
 		renderer_id.emplace();
 		glCreateBuffers(1, &renderer_id.value());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *renderer_id);
+
+		// GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
+		// Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
+		// Thanks: TheCherno/Hazel
+		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
 		glBufferData(
-				GL_ELEMENT_ARRAY_BUFFER,
+				GL_ARRAY_BUFFER,
 				_indeces.size() * sizeof(Indeces::value_type),
 				_indeces.data(),
 				GL_STATIC_DRAW
 			);
+
+		if constexpr (build::release)
+			_indeces.clear();
 	}
+
+	constexpr
+	Index_Buffer(const size_t size)
+		: Index_Buffer{std::invoke([&] {
+				#pragma message "TODO: This could be a range::chunk or range::slide in c++23?"
+				auto indeces = Indeces{};
+				indeces.reserve(size);
+
+				for (auto offset = 0ul, i = 0ul;
+					i < indeces.capacity();
+					offset += 4, i += 6)
+				{
+					const auto idxs = {
+							offset + 0ul,
+							offset + 1ul,
+							offset + 2ul,
+
+							offset + 2ul,
+							offset + 3ul,
+							offset + 0ul,
+						};
+
+					SAGE_ASSERT(indeces.end() + idxs.size() <= indeces.begin() + indeces.capacity(),
+							"Writing past end of indeces buffer, Index_Buffer size must be divisible by {}", idxs.size());
+
+					indeces.insert(indeces.end(), idxs.begin(), idxs.end());
+				}
+
+				return indeces;
+			})}
+	{}
 
 	Index_Buffer(Index_Buffer&& other)
 		: renderer_id{std::move(other.renderer_id)}
-		, _size{other._size}
 		, _indeces{std::move(other._indeces)}
 	{}
 
@@ -280,9 +337,8 @@ public:
 	}
 
 public:
-	auto vertex_buffer() const -> const Vertex_Buffer& {
-		return _vertex_buffer;
-	}
+	auto vertex_buffer() const	-> const Vertex_Buffer&	{ return _vertex_buffer; }
+	auto vertex_buffer()		-> Vertex_Buffer&		{ return _vertex_buffer; }
 
 	auto index_buffer() const -> const Index_Buffer& {
 		return _index_buffer;
@@ -652,6 +708,7 @@ public:
 
 struct Renderer_2D : sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader> {
 	using Base = sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader>;
+	using Batch = Base::Batch;
 	using Vertex_Array = Base::Vertex_Array;
 	using Shader = Base::Shader;
 	using Draw_Args = Base::Draw_Args;
@@ -661,24 +718,10 @@ public:
 		: Base{{
 			.vertex_array{
 				Vertex_Buffer{
-					Vertex_Buffer::Vertices{
-						-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-						 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-						 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-						-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-					},
-					sage::graphics::buffer::Layout{{
-						sage::graphics::buffer::Element{{
-								.name = "a_Position",
-								.type = sage::graphics::shader::data::Type::Float3
-							}},
-						sage::graphics::buffer::Element{{
-								.name = "a_TexCoord",
-								.type = sage::graphics::shader::data::Type::Float2
-							}},
-					}}
+					Batch::max_quads * sizeof(sage::graphics::buffer::vertex::Quad),
+					sage::graphics::buffer::vertex::Quad::layout()
 				},
-				Index_Buffer{{0, 1, 2, 2, 3, 0}}
+				Index_Buffer{Batch::max_indeces}
 			},
 			.shader{"asset/shader/texture.glsl"}
 		}}
@@ -688,13 +731,13 @@ public:
 		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-
-		scene_data.shader.bind();
-		scene_data.shader.set("u_Texture", 0);
 	}
 
-	auto scene(const camera::Orthographic& cam, const std::function<void()>& draws) -> void {
-		Base::scene(cam, draws);
+	auto scene(const camera::Orthographic& cam, auto&& draws) -> void {
+		Base::scene(cam, draws, [this] {
+				glDrawElements(GL_TRIANGLES, batch.indexes(), GL_UNSIGNED_INT, nullptr);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			});
 	}
 
 	template <type::Any<Texture2D, glm::vec4> Drawing>

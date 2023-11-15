@@ -78,7 +78,7 @@ public:
 	Log() {
 		// [log_type] (time) ~thread logger file:line:function: message
 		spdlog::set_pattern("%^[%-8l] (%T) ~%t %n %s:%#::%-20!!: %v%$");
-		if constexpr (build::in_debug_mode)
+		if constexpr (build::debug)
 			spdlog::set_level(spdlog::level::trace);
 		else
 			spdlog::set_level(spdlog::level::info);

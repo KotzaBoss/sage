@@ -136,12 +136,14 @@ using namespace std::literals;
 
 namespace build {
 
-inline constexpr auto in_debug_mode =
+constexpr auto debug =
 #ifdef NDEBUG
 	false
 #else
 	true
 #endif
 	;
+
+constexpr auto release = not debug;
 
 }// build
