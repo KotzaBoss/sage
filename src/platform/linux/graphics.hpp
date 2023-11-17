@@ -733,7 +733,7 @@ public:
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 	}
 
-	auto scene(const camera::Orthographic& cam, auto&& draws) -> void {
+	auto scene(const camera::Orthographic& cam, std::invocable auto&& draws) -> void {
 		Base::scene(cam, draws, [this] {
 				glDrawElements(GL_TRIANGLES, batch.indexes(), GL_UNSIGNED_INT, nullptr);
 				glBindTexture(GL_TEXTURE_2D, 0);
@@ -742,11 +742,7 @@ public:
 
 	template <type::Any<Texture2D, glm::vec4> Drawing>
 	auto draw(const Drawing& drawing, const Base::Draw_Args& args) {
-		Base::draw(drawing, args, [this] {
-				const auto& index_buffer = scene_data.vertex_array.index_buffer();
-				glDrawElements(GL_TRIANGLES, index_buffer.indeces().size(), GL_UNSIGNED_INT, nullptr);
-			});
-		glBindTexture(GL_TEXTURE_2D, 0);
+		Base::draw(drawing, args);
 	}
 
 	auto clear() -> void {

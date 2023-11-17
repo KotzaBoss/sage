@@ -136,14 +136,13 @@ using namespace std::literals;
 
 namespace build {
 
-constexpr auto debug =
 #ifdef NDEBUG
-	false
+#define SAGE_DEBUG false
 #else
-	true
+#define SAGE_DEBUG true
 #endif
-	;
 
+constexpr auto debug = SAGE_DEBUG;
 constexpr auto release = not debug;
 
 }// build

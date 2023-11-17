@@ -429,6 +429,7 @@ protected:
 	Batch batch;
 
 private:
+	#pragma message "TODO: Use scene_active only in debug mode"
 	bool scene_active = false;
 
 private:
@@ -501,8 +502,8 @@ protected:
 	//                |
 	//                V
 	//
-	template <type::Any<Texture, glm::vec4> Drawing, std::invocable Impl>
-	auto draw(const Drawing& drawing, const Draw_Args& args, Impl&& impl) {
+	template <type::Any<Texture, glm::vec4> Drawing>
+	auto draw(const Drawing& drawing, const Draw_Args& args) {
 		SAGE_ASSERT(scene_active);
 
 		if constexpr (std::same_as<Drawing, Texture>) {
@@ -541,8 +542,9 @@ protected:
 			static_assert(false, "Unhandled type");
 	}
 
-	template <std::invocable Impl>
-	auto flush(Impl&& impl) -> void {
+private:
+	template <std::invocable Draw_Call>
+	auto flush(Draw_Call&& draw) -> void {
 		const auto data = reinterpret_cast<const std::byte*>(batch.vertices.data());
 		const auto bytes = batch.vertices.size() * sizeof(typename Batch::Vertices::value_type);
 
@@ -550,7 +552,7 @@ protected:
 			.set_vertices({data, bytes})
 			;
 
-		std::invoke(std::forward<Impl>(impl));
+		std::invoke(std::forward<Draw_Call>(draw));
 	}
 };
 
