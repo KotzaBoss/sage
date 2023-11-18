@@ -11,7 +11,7 @@
 
 namespace sage::glfw {
 
-using ID = sage::util::ID<uint32_t>;
+using ID = sage::util::ID;
 
 // Make sure its constructed before any other glfw operations are performed.
 struct Handle {

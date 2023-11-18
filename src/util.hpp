@@ -7,17 +7,21 @@
 
 namespace sage::inline util {
 
-template <std::unsigned_integral I>
-struct ID : std::optional<I> {
-	using std::optional<I>::optional;
+struct ID : std::optional<uint32_t> {
+	using Rep = uint32_t;
+	using std::optional<Rep>::optional;
+
+	constexpr ID(const ID&) = default;
 
 	constexpr ID(ID&& other)
-		: std::optional<I>::optional{std::move(other)}
+		: std::optional<Rep>::optional{std::move(other)}
 	{
 		other.reset();
 	}
 
 	constexpr auto operator= (const ID&) -> ID& = default;
+
+	constexpr auto operator<=> (const ID&) const = default;
 };
 
 

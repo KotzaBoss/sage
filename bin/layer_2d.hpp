@@ -31,7 +31,7 @@ public:
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		renderer.draw(glm::vec4{0.f, 1.f, 0.f, 1.f}, {
+		renderer.draw(texture, {
 				.position = _position,
 				.size = {1.0f, 1.3f},
 				.rotation = 3.f * velocity.y - 90.f,
@@ -115,7 +115,7 @@ public:
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		renderer.draw(glm::vec4{1.f, 1.f, 1.f, 1.f}, {
+		renderer.draw(glm::vec4{0.f, 1.f, 1.f, 1.f}, {
 				.position = {player.position().x, 10.f, 0.f},
 				.size = {50.f, 10.f},
 			});
@@ -135,7 +135,7 @@ public:
 				};
 		}
 
-		renderer.draw(glm::vec4{1.f, 1.f, 1.f, 1.f}, {
+		renderer.draw(glm::vec4{0.f, 1.f, 1.f, 1.f}, {
 				.position = {player.position().x, -10.f, 0.f},
 				.size = {50.f, 10.f},
 			});

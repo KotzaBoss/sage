@@ -502,6 +502,12 @@ public:
 								u
 							);
 					},
+					[&] (const std::span<const int> v) {
+						glUniform1iv(loc,
+								v.size(),
+								v.data()
+							);
+					},
 					[&] (float u) {
 						glUniform1f(loc,
 								u
@@ -704,6 +710,10 @@ public:
 		glBindTextureUnit(slot, *renderer_id);
 	}
 	auto unbind() const -> void {}
+
+	auto operator== (const Texture2D& other) const -> bool {
+		return renderer_id == other.renderer_id;
+	}
 };
 
 struct Renderer_2D : sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader> {
@@ -731,12 +741,17 @@ public:
 		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+
+		scene_data.shader.bind();
+		// Make an iota array to fill the Sampler2Ds
+		auto iota = std::array<int, Base::Batch::max_texture_slots>{};
+		rg::iota(iota, 0);
+		scene_data.shader.upload_uniform("u_Textures", std::span{iota});
 	}
 
 	auto scene(const camera::Orthographic& cam, std::invocable auto&& draws) -> void {
 		Base::scene(cam, draws, [this] {
 				glDrawElements(GL_TRIANGLES, batch.indexes(), GL_UNSIGNED_INT, nullptr);
-				glBindTexture(GL_TEXTURE_2D, 0);
 			});
 	}
 

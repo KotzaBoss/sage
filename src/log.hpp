@@ -45,6 +45,8 @@
 	}\
 	(void)0
 
+#define SAGE_DIE(...)	SAGE_ASSERT(false, __VA_ARGS__)
+
 #define SAGE_ASSERT_PATH_EXISTS(path)	SAGE_ASSERT(fs::exists(path), "{}", fs::current_path()/path);
 
 // Check potential errors when reading the file_size of path

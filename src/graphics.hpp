@@ -3,6 +3,7 @@
 #include "std.hpp"
 
 #include "math.hpp"
+#include "util.hpp"
 
 #include "camera.hpp"
 #include "repr.hpp"
@@ -21,6 +22,7 @@ namespace shader {
 // FIXME: Is the uniform different from the shader::data::Types?
 using Uniform = std::variant<
 		int,
+		std::span<const int>,
 		float,
 		glm::vec2,
 		glm::vec3,
@@ -224,14 +226,19 @@ using Vertices = std::vector<float>;
 struct Quad {
 	glm::vec3 position;
 	glm::vec4 color;
-	glm::vec2 tex_coord;
+	struct Texture {
+		glm::vec2 coord;
+		float index = 0;	// Not sure why uints do not work...
+	} texture;
+
 	// id, mask, ...
 
 	static constexpr auto layout() -> Layout {
 		return Layout{{
-				buffer::Element{{ .name = "a_Position",	.type = shader::data::Type::Float3 }},
-				buffer::Element{{ .name = "a_Color",	.type = shader::data::Type::Float4 }},
-				buffer::Element{{ .name = "a_TexCoord", .type = shader::data::Type::Float2 }},
+				buffer::Element{{ .name = "a_Position",	.type = shader::data::Type::Float3	}},
+				buffer::Element{{ .name = "a_Color",	.type = shader::data::Type::Float4	}},
+				buffer::Element{{ .name = "a_TexCoord", .type = shader::data::Type::Float2	}},
+				buffer::Element{{ .name = "a_TexIndex",	.type = shader::data::Type::Float	}},
 			}};
 	}
 };
@@ -314,11 +321,12 @@ namespace texture {
 
 template <typename T>
 concept Concept =
-	requires (T t, const fs::path& path, const size_t slot) {
+	requires (T t, T other, const fs::path& path, const size_t slot) {
 		{ t.width() } -> std::same_as<size_t>;
 		{ t.height() } -> std::same_as<size_t>;
 		{ t.bind(slot) } -> std::same_as<void>;
 		{ t.unbind() } -> std::same_as<void>;
+		{ t == other } -> std::same_as<bool>;
 	}
 	;
 
@@ -406,22 +414,54 @@ protected:
 
 	struct Batch {
 		using Vertices = std::vector<buffer::vertex::Quad>;
+		#pragma message "TODO: Proper asset system and asset handles"
+		using Texture_Slots = std::vector<const Texture*>;
 
 	public:
 		static constexpr auto max_quads = 10'000;
 		static constexpr auto max_vertices = max_quads * 4;
 		static constexpr auto max_indeces = max_quads * 6;
+		#pragma message "TODO: Query from GPU"
+		static constexpr auto max_texture_slots = 32u;
 
 	private:
 		Vertices vertices;
+		Texture_Slots texture_slots;
+
+		const Texture default_texture = Texture{Size{1ul, 1ul}};
 
 	public:
+		struct Capacity_Args { size_t verteces, texture_slots; };
+		Batch(Capacity_Args&& caps)
+		{
+			vertices.reserve(caps.verteces);
+			texture_slots.reserve(caps.texture_slots);
+
+			texture_slots.push_back(&default_texture);
+		}
+
+	public:
+		#pragma message "TODO: More type safety"
+		auto push_texture(const Texture* tex) -> decltype(buffer::vertex::Quad::Texture::index) {
+			SAGE_ASSERT(texture_slots.size() < texture_slots.capacity(), "Pushing more than {} textures, flush first and retry", texture_slots.capacity());
+
+			const auto i = rg::find_if(
+					texture_slots | vw::drop(1),	// Scan after default texture
+					[&] (const auto& x) { return *tex == *x; }
+				);
+
+			if (i == texture_slots.end())
+				texture_slots.push_back(tex);
+
+			return std::distance(texture_slots.begin(), i);
+		}
+
 		auto indexes() const -> size_t {
 			return vertices.size() * 6;
 		}
 
 	public:
-		friend struct Base_2D;	// A bit clunky but we simply want _just_ the Base to have direct access
+		friend struct Base_2D;	// A bit clunky but we want _just_ the Base to have direct access
 	};
 
 protected:
@@ -432,15 +472,11 @@ private:
 	#pragma message "TODO: Use scene_active only in debug mode"
 	bool scene_active = false;
 
-private:
-	const Texture default_texture = Texture{Size{1ul, 1ul}};
-
 protected:
 	Base_2D(Scene_Data&& sd)
 		: scene_data{std::move(sd)}
-	{
-		batch.vertices.reserve(Batch::max_vertices);
-	}
+		, batch{{ .verteces = Batch::max_vertices, .texture_slots = Batch::max_texture_slots }}
+	{}
 
 protected:
 	// Should be called once, usually by some layer (see layer::Concept)
@@ -506,51 +542,63 @@ protected:
 	auto draw(const Drawing& drawing, const Draw_Args& args) {
 		SAGE_ASSERT(scene_active);
 
-		if constexpr (std::same_as<Drawing, Texture>) {
-			drawing.bind();
-			scene_data.shader.set("u_Color", glm::vec4{1.0f});
-		}
-		else if constexpr (std::same_as<Drawing, glm::vec4>) {
-			default_texture.bind();
+		constexpr auto verteces = 4ul;
 
-			// Batch a quad's 4 vertices
-			batch.vertices.push_back({
-					.position = { args.position.x - args.size.x / 2, args.position.y - args.size.y / 2, 0 },
-					.color = drawing,
-					.tex_coord = { 0.f, 0.f }
-				});
+		const auto positions = std::invoke([&] {
+				const auto offset = args.size / 2;
 
-			batch.vertices.push_back({
-					.position = { args.position.x + args.size.x / 2, args.position.y - args.size.y / 2, 0 },
-					.color = drawing,
-					.tex_coord = { 1.f, 0.f }
-				});
+				return std::array{
+					glm::vec2{ args.position.x - offset.x, args.position.y - offset.y },	// top left
+					glm::vec2{ args.position.x + offset.x, args.position.y - offset.y },	// top right
+					glm::vec2{ args.position.x + offset.x, args.position.y + offset.y },	// bottom right
+					glm::vec2{ args.position.x - offset.x, args.position.y + offset.y },	// bottom left
+				};
+			});
 
-			batch.vertices.push_back({
-					.position = { args.position.x + args.size.x / 2, args.position.y + args.size.y / 2, 0 },
-					.color = drawing,
-					.tex_coord = { 1.f, 1.f }
-				});
+		constexpr auto coords = std::array{ glm::vec2{ 0.f, 0.f }, glm::vec2{ 1.f, 0.f }, glm::vec2{ 1.f, 1.f }, glm::vec2{ 0.f, 1.f }, };
 
+		const auto [color, tex_index] = std::invoke([&] {
+				if constexpr (std::same_as<Drawing, Texture>) {
+					constexpr auto default_color = glm::vec4{ 1.f, 1.f, 1.f, 1.f };
+
+					return std::make_tuple(default_color, batch.push_texture(&drawing));
+				}
+				else if constexpr (std::same_as<Drawing, glm::vec4>)
+					return std::make_tuple(drawing, 0.f);
+				else
+					static_assert(false, "Unhandled type");
+			});
+
+		SAGE_ASSERT(positions.size() == coords.size() and coords.size() == verteces);
+
+		for (const auto vertex : vw::iota(0ul, verteces))
 			batch.vertices.push_back({
-					.position = { args.position.x - args.size.x / 2, args.position.y + args.size.y / 2, 0 },
-					.color = drawing,
-					.tex_coord = { 0, 1.f }
+					.position = { positions[vertex], 0.f },
+					.color = color,
+					.texture = {
+						.coord = coords[vertex],
+						.index = tex_index,
+					},
 				});
-		}
-		else
-			static_assert(false, "Unhandled type");
 	}
 
 private:
 	template <std::invocable Draw_Call>
 	auto flush(Draw_Call&& draw) -> void {
+		SAGE_ASSERT(scene_active);
+
+		scene_data.vertex_array.bind();
 		const auto data = reinterpret_cast<const std::byte*>(batch.vertices.data());
 		const auto bytes = batch.vertices.size() * sizeof(typename Batch::Vertices::value_type);
-
 		scene_data.vertex_array.vertex_buffer()
 			.set_vertices({data, bytes})
 			;
+
+		// Poor man's enumerate
+		rg::for_each(batch.texture_slots, [i = 0ul] (const auto& tex) mutable {
+				tex->bind(i++);
+			});
+
 
 		std::invoke(std::forward<Draw_Call>(draw));
 	}
