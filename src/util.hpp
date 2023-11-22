@@ -99,7 +99,7 @@ auto atomic_delta_store(std::atomic<T>& a, const std::invocable<T&> auto& delta)
 	return a;
 }
 
-#define LOCK_GUARD(mutex) const auto _ = std::lock_guard{m}
+#define LOCK_GUARD(_mutex_) const auto _ = std::lock_guard{_mutex_}
 
 // Inspired by Herb Sutter: https://stackoverflow.com/questions/60522330/how-does-herb-sutters-monitor-class-work
 template<typename T>
@@ -213,10 +213,6 @@ constexpr auto real_name() -> Real_Name_Ptr {
 	return Real_Name_Ptr{ _real_name };
 }
 
-constexpr auto real_name(auto&& x) -> Real_Name_Ptr {
-	return real_name<decltype(x)>();
-}
-
 template <typename X>
 struct Counter {
 	using Type = X;
@@ -239,8 +235,7 @@ public:
 	}
 };
 
-// See below (outside of namespace sage) for the specialization of tuple_size, to make
-// gcc happy...
+// See below (outside of namespace sage) for the specialization of tuple_size, to make gcc happy...
 template <typename... Ts>
 struct Counters : std::tuple<Counter<Ts>...> {
 

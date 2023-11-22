@@ -497,54 +497,15 @@ public:
 		SAGE_ASSERT(loc != -1, "Cannot find uniform {:?}", name);
 
 		std::visit(Overloaded {
-					[&] (int u) {
-						glUniform1i(loc,
-								u
-							);
-					},
-					[&] (const std::span<const int> v) {
-						glUniform1iv(loc,
-								v.size(),
-								v.data()
-							);
-					},
-					[&] (float u) {
-						glUniform1f(loc,
-								u
-							);
-					},
-					[&] (const glm::vec2& u) {
-						glUniform2f(loc,
-								u.x, u.y
-							);
-					},
-					[&] (const glm::vec3& u) {
-						glUniform3f(loc,
-								u.x, u.y, u.z
-							);
-					},
-					[&] (const glm::vec4& u) {
-						glUniform4f(loc,
-								u.x, u.y, u.z, u.w
-							);
-					},
-					[&] (const glm::mat3& u) {
-						glUniformMatrix3fv(loc,
-								1,
-								GL_FALSE,
-								glm::value_ptr(u)
-							);
-					},
-					[&] (const glm::mat4& u) {
-						glUniformMatrix4fv(loc,
-								1,
-								GL_FALSE,
-								glm::value_ptr(u)
-							);
-					},
-					[&] (auto&& x) {
-						SAGE_ASSERT(false, "{}", type::real_name(std::move(x)));
-					}
+					[&] (const int u)					{ glUniform1i (loc, u);										},
+					[&] (const std::span<const int> v)	{ glUniform1iv(loc, v.size(), v.data() );					},
+					[&] (const float u)					{ glUniform1f (loc, u);										},
+					[&] (const glm::vec2& u)			{ glUniform2f (loc, u.x, u.y); 								},
+					[&] (const glm::vec3& u) 			{ glUniform3f (loc, u.x, u.y, u.z);							},
+					[&] (const glm::vec4& u) 			{ glUniform4f (loc, u.x, u.y, u.z, u.w );					},
+					[&] (const glm::mat3& u) 			{ glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(u));	},
+					[&] (const glm::mat4& u) 			{ glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(u));	},
+					[&] <typename T> (T&& x)			{ SAGE_DIE("{}", type::real_name<T>());		}
 				},
 				uniform
 			);
