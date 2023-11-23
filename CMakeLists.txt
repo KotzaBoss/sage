@@ -12,6 +12,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 message("==================================================================")
 
 include(section)
+include(docs)
 
 option(SAGE_VERBOSE OFF)
 if (SAGE_VERBOSE)

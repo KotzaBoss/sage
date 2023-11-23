@@ -28,6 +28,12 @@ else()
 			VERBATIM
 		)
 
+	docs(SET TARGET perf DOCS
+			"    cmake --build build -- perf && \\"
+			"    ${perf_script} && \\"
+			"    firefox ${CMAKE_CURRENT_BINARY_DIR}/perf.svg"
+		)
+
 	section_pass(${perf_script} ${flamegraph_SOURCE_DIR})
 endif()
 

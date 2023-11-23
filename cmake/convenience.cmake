@@ -11,20 +11,27 @@ add_custom_target(todo
 		VERBATIM
 	)
 
+docs(GET sage_docs TARGET sage ESCAPE_NEWLINE)
+docs(GET perf_docs TARGET perf ESCAPE_NEWLINE)
+docs(SET GLOBAL DOCS
+		"Show usage:"
+		"    cmake --build build -- usage"
+		"Build todos:"
+		"    cmake --build build -- todo"
+		"Build all:"
+		"    cmake --build build"
+		"Run tests:"
+		"    ctest --test-dir ${CMAKE_BINARY_DIR}/test"
+		"Run sage:"
+		"${sage_docs}"
+		"Perf sage:"
+		"${perf_docs}"
+	)
+
+docs(GET usage GLOBAL ESCAPE_NEWLINE)
 add_custom_target(usage
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMAND echo "Show usage:"
-		COMMAND echo "    cmake --build build -- usage"
-		COMMAND echo "Build todos:"
-		COMMAND echo "    cmake --build build -- todo"
-		COMMAND echo "Build all:"
-		COMMAND echo "    cmake --build build"
-		COMMAND echo "Run sage:"
-		COMMAND echo "    cmake --build build -- sage && ./build/bin/sage"
-		COMMAND echo "Perf sage:"
-		COMMAND echo "    cmake --build build -- perf"
-		COMMAND echo "    ./build/perf/perf.sh"
-		COMMAND echo "    firefox ./build/perf/perf.svg"
+		COMMAND echo -e "${usage}"
 		VERBATIM
 	)
 
