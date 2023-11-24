@@ -1,7 +1,7 @@
 # Why this is not in standard cmake we will never know...
 # At least global and target have the same length :D
-define_property(GLOBAL PROPERTY DOC BRIEF_DOCS "Global documentation")
-define_property(TARGET PROPERTY DOC BRIEF_DOCS "Target documentation")
+define_property(GLOBAL PROPERTY DOC BRIEF_DOCS "Global documentation property")
+define_property(TARGET PROPERTY DOC BRIEF_DOCS "Target documentation property")
 
 function (docs)
 	set(options SET GLOBAL ESCAPE_NEWLINE)

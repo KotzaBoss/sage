@@ -1,6 +1,7 @@
-# Un-noop the print helpers just for the summary
+# Force inclusion of print helpers
 include(CMakePrintHelpers)
 
+message("")
 message(STATUS "▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
 message(STATUS "	${PROJECT_NAME} ${PROJECT_VERSION}")
 message(STATUS "	${PROJECT_DESCRIPTION}")
@@ -8,14 +9,17 @@ message(STATUS "")
 message(STATUS "CMake Details: ...................................................")
 message(STATUS "")
 cmake_print_variables(CMAKE_MODULE_PATH)
+message(STATUS "")
 cmake_print_variables(CMAKE_GENERATOR)
 cmake_print_variables(CMAKE_BUILD_TYPE)
+message(STATUS "")
 cmake_print_variables(CMAKE_CXX_COMPILER)
 cmake_print_variables(CMAKE_CXX_COMPILER_ID)
 cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
 cmake_print_variables(CMAKE_CXX_STANDARD)
+cmake_print_variables(CMAKE_CXX_STANDARD_REQUIRED)
 cmake_print_variables(CMAKE_CXX_EXTENSIONS)
-cmake_print_variables(CMAKE_CXX_STANDARD)
+message(STATUS "")
 cmake_print_variables(CMAKE_LINKER)
 cmake_print_properties(DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 		PROPERTIES
