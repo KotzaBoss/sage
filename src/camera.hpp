@@ -1,13 +1,13 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "repr.hpp"
+#include "src/repr.hpp"
 
-#include "math.hpp"
+#include "src/math.hpp"
 
-#include "event.hpp"
-#include "input.hpp"
+#include "src/event.hpp"
+#include "src/input.hpp"
 
 namespace sage::camera {
 

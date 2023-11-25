@@ -1,12 +1,12 @@
 #pragma once
 
-#include "layer.hpp"
+#include "src/layer.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "platform/linux/window.hpp"
+#include "src/platform/linux/window.hpp"
 
 namespace sage::layer {
 

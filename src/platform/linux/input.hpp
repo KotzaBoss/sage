@@ -1,6 +1,6 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
 #include "src/input.hpp"
 

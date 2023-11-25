@@ -1,9 +1,9 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "repr.hpp"
-#include "log.hpp"
+#include "src/repr.hpp"
+#include "src/log.hpp"
 
 namespace sage::inline util {
 

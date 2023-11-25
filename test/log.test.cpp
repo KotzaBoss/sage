@@ -1,5 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "test.hpp"
+#include "test/test.hpp"
 
 using namespace sage;
 

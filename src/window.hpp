@@ -1,11 +1,11 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "event.hpp"
-#include "math.hpp"
-#include "repr.hpp"
-#include "util.hpp"
+#include "src/event.hpp"
+#include "src/math.hpp"
+#include "src/repr.hpp"
+#include "src/util.hpp"
 
 namespace sage::window {
 

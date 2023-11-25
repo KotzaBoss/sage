@@ -1,12 +1,12 @@
 #pragma once
 
-#include "std.hpp"
-#include "util.hpp"
-#include "log.hpp"
+#include "src/std.hpp"
+#include "src/util.hpp"
+#include "src/log.hpp"
 
-#include "repr.hpp"
+#include "src/repr.hpp"
 
-#include "glm.hpp"
+#include "src/glm.hpp"
 
 namespace sage::inline math {
 

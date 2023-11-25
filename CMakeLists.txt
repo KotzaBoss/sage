@@ -11,11 +11,13 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 message("==================================================================")
 
+include(assert)
+include(options)
 include(section)
 include(docs)
 
-option(SAGE_VERBOSE OFF)
-if (SAGE_VERBOSE)
+sage_options(ADD VERBOSE DOC TRIVIAL INIT OFF)
+if (SAGE_OPT_VERBOSE)
 	include(CMakePrintHelpers)
 else()
 	# Make the CMakePrintHelpers noop
@@ -48,6 +50,7 @@ add_subdirectory(asset)
 add_subdirectory(test)
 add_subdirectory(perf)
 add_subdirectory(bin)
+add_subdirectory(docs)
 
 include(convenience)
 

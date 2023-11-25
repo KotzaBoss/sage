@@ -2,9 +2,9 @@
 
 #include "src/window.hpp"
 
-#include "repr.hpp"
+#include "src/repr.hpp"
 
-#include "graphics.hpp"
+#include "src/platform/linux/graphics.hpp"
 #include "glfw.hpp"
 
 namespace sage::oslinux::inline window {

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "util.hpp"
-#include "input.hpp"
-#include "math.hpp"
-#include "log.hpp"
-#include "repr.hpp"
+#include "src/util.hpp"
+#include "src/input.hpp"
+#include "src/math.hpp"
+#include "src/log.hpp"
+#include "src/repr.hpp"
 
 namespace sage::inline event {
 

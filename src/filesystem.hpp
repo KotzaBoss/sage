@@ -1,8 +1,8 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "log.hpp"
+#include "src/log.hpp"
 
 namespace sage::inline filesystem {
 

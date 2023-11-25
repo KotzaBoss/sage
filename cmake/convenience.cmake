@@ -11,8 +11,8 @@ add_custom_target(todo
 		VERBATIM
 	)
 
-docs(GET sage_docs TARGET sage ESCAPE_NEWLINE)
-docs(GET perf_docs TARGET perf ESCAPE_NEWLINE)
+docs(GET sage_docs TARGET sage)
+docs(GET perf_docs TARGET perf)
 docs(SET GLOBAL DOCS
 		"Show usage:"
 		"    cmake --build build -- usage"

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "graphics.hpp"
-#include "event.hpp"
-#include "input.hpp"
-#include "util.hpp"
+#include "src/graphics.hpp"
+#include "src/event.hpp"
+#include "src/input.hpp"
+#include "src/util.hpp"
 
-#include "repr.hpp"
+#include "src/repr.hpp"
 
 namespace sage::layer {
 

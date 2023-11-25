@@ -1,7 +1,7 @@
 #pragma once
 
-#include "std.hpp"
-#include "time.hpp"
+#include "src/std.hpp"
+#include "src/time.hpp"
 
 namespace sage::inline perf {
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "log.hpp"
-#include "repr.hpp"
+#include "src/log.hpp"
+#include "src/repr.hpp"
 
 namespace sage::input {
 

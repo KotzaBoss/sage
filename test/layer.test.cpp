@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "test.hpp"
+#include "test/test.hpp"
 
-#include "placeholder_layers.hpp"
+#include "test/placeholder_layers.hpp"
 
 using namespace sage;
 

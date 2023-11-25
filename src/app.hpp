@@ -1,17 +1,17 @@
 #pragma once
 
-#include "std.hpp"
+#include "src/std.hpp"
 
-#include "graphics.hpp"
-#include "window.hpp"
-#include "input.hpp"
-#include "layer.hpp"
-#include "layer_imgui.hpp"
-#include "camera.hpp"
-#include "time.hpp"
+#include "src/graphics.hpp"
+#include "src/window.hpp"
+#include "src/input.hpp"
+#include "src/layer.hpp"
+#include "src/layer_imgui.hpp"
+#include "src/camera.hpp"
+#include "src/time.hpp"
 
-#include "log.hpp"
-#include "repr.hpp"
+#include "src/log.hpp"
+#include "src/repr.hpp"
 
 namespace sage::inline app {
 

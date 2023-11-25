@@ -1,9 +1,8 @@
 #pragma once
 
-#include "sage.hpp"
+#include "src/sage.hpp"
 
-#include "platform/linux/input.hpp"
-#include "platform/linux/graphics.hpp"
+#include "src/platform/linux/sage.hpp"
 
 using namespace sage;
 

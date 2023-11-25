@@ -1,7 +1,6 @@
-#include "sage.hpp"
+#include "src/sage.hpp"
 
-#include "platform/linux/window.hpp"
-#include "layer_2d.hpp"
+#include "bin/layer_2d.hpp"
 
 using namespace sage;
 

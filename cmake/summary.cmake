@@ -21,6 +21,7 @@ cmake_print_variables(CMAKE_CXX_STANDARD_REQUIRED)
 cmake_print_variables(CMAKE_CXX_EXTENSIONS)
 message(STATUS "")
 cmake_print_variables(CMAKE_LINKER)
+if (SAGE_OPT_VERBOSE)
 cmake_print_properties(DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 		PROPERTIES
 			COMPILE_OPTIONS
@@ -34,14 +35,22 @@ cmake_print_properties(DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 		PROPERTIES
 			SUBDIRECTORIES
 	)
+endif()
 message(STATUS "")
 message(STATUS "Custom Details: ..................................................")
 message(STATUS "")
-cmake_print_variables(CCACHE_ENABLED CCACHE)
-cmake_print_variables(SAGE_VERBOSE)
+sage_options(GET ALL OUT sage_vars)
+foreach (v ${sage_vars})
+	if (v MATCHES ".*CCACHE.*")
+		cmake_print_variables(${v} CCACHE)
+	else()
+		cmake_print_variables(${v})
+	endif()
+endforeach()
 message(STATUS "")
 message(STATUS "Show usage: .............................................")
 message(STATUS "")
 message(STATUS "	cmake --build build -- --quiet usage")
 message(STATUS "")
 message(STATUS "▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄")
+

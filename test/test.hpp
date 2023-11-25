@@ -3,10 +3,9 @@
 #define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
 #include "doctest.h"
 
-#include "sage.hpp"
+#include "src/sage.hpp"
 
-#include "platform/linux/window.hpp"
-#include "platform/linux/input.hpp"
+#include "src/platform/linux/sage.hpp"
 
 namespace sage::event {
 REPR_DEF_FMT(Event::Type);

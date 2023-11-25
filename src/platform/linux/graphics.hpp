@@ -3,7 +3,7 @@
 #include "src/graphics.hpp"
 #include "src/filesystem.hpp"
 
-#include "math.hpp"
+#include "src/math.hpp"
 
 #include "glad/gl.h"
 #include "glfw.hpp"

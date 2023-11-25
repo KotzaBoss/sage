@@ -1,6 +1,7 @@
 section_start("src")
 
 add_library(std std.cpp)
+target_include_directories(std PRIVATE ${PROJECT_SOURCE_DIR})
 target_precompile_headers(std PRIVATE "std.hpp")
 cmake_print_properties(TARGETS std PROPERTIES SOURCES LINK_LIBRARIES)
 
