@@ -128,7 +128,7 @@ public:
 		}
 	}
 
-	#pragma message "TODO: ImGui is abit special but is there a way to integrate this in .render()?"
+	// TODO: ImGui is abit special but is there a way to integrate this in .render()?
 	// There can be different inputs as the engine proceeds, for example
 	// a view so that it can be created by filtering etc.
 	template <std::invocable Fn>

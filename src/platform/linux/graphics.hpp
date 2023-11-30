@@ -102,7 +102,7 @@ private:
 
 };
 
-#pragma message "TODO: Split dynamic/static vertex_buffer?"
+// TODO: Split dynamic/static vertex_buffer?
 struct Vertex_Buffer {
 	using Layout = sage::graphics::buffer::Layout;
 	using Vertices = sage::graphics::buffer::vertex::Vertices;
@@ -215,7 +215,7 @@ public:
 	constexpr
 	Index_Buffer(const size_t size)
 		: Index_Buffer{std::invoke([&] {
-				#pragma message "TODO: This could be a range::chunk or range::slide in c++23?"
+				// TODO: This could be a range::chunk or range::slide in c++23?
 				auto indeces = Indeces{};
 				indeces.reserve(size);
 
@@ -589,7 +589,7 @@ public:
 		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		#pragma message "OPTIMIZE: ?"
+		// OPTIMIZE: ?
 		const auto data = std::vector(size.width * size.height * channels, std::byte{0xff});
 		set_data(data);
 	}

@@ -11,7 +11,7 @@
 
 namespace sage::camera {
 
-#pragma message "TODO: Not sure if this API is necessary, maybe have public members?"
+// TODO: Not sure if this API is necessary, maybe have public members?
 struct Orthographic {
 	template <input::Concept>
 	friend struct Controller;
@@ -67,7 +67,8 @@ struct Controller {
 	};
 
 	struct Rotation {
-		// In degrees TODO: Make a separete unit::Degrees struct?
+		// TODO: Make a separete unit::Degrees struct?
+		// In degrees
 		float level,
 			  speed;
 	};

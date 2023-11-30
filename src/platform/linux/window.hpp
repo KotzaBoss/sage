@@ -71,7 +71,7 @@ public:
 					_this._pending_event.store(Event::make_window_restored());
 			});
 
-		#pragma message "TODO: Change switches to array lookups for clarity"
+		// TODO: Change switches to array lookups for clarity
 
 		glfwSetMouseButtonCallback(glfw, [] (GLFWwindow* win, int button, int action, [[maybe_unused]] int mods) {
 				SAGE_ASSERT(glfw::action::is_expected(action));

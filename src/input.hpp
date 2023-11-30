@@ -35,7 +35,7 @@ struct Mouse {
 	};
 };
 
-#pragma message "TODO: OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional<Mouse::Scroll> ?"
+// TODO: OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional<Mouse::Scroll> ?
 template <typename Input>
 concept Concept =
 	requires (Input i, const Key& k, const Mouse::Button& b) {

@@ -47,7 +47,7 @@ struct Source {
 
 using Parsed = std::array<std::optional<shader::Source>, MAX_SUPPORTED_TYPES>;
 
-#pragma message "TODO: Material system will differentiate set/upload_uniform?"
+// TODO: Material system will differentiate set/upload_uniform?
 template <typename S>
 concept Concept =
 	requires (S s, const Uniform& uniform, const std::string& uniform_name) {
@@ -414,14 +414,14 @@ protected:
 
 	struct Batch {
 		using Vertices = std::vector<buffer::vertex::Quad>;
-		#pragma message "TODO: Proper asset system and asset handles"
+		// TODO: Proper asset system and asset handles
 		using Texture_Slots = std::vector<const Texture*>;
 
 	public:
 		static constexpr auto max_quads = 10'000;
 		static constexpr auto max_vertices = max_quads * 4;
 		static constexpr auto max_indeces = max_quads * 6;
-		#pragma message "TODO: Query from GPU"
+		// TODO: Query from GPU
 		static constexpr auto max_texture_slots = 32u;
 
 	private:
@@ -441,7 +441,7 @@ protected:
 		}
 
 	public:
-		#pragma message "TODO: More type safety"
+		// TODO: More type safety
 		auto push_texture(const Texture* tex) -> decltype(buffer::vertex::Quad::Texture::index) {
 			SAGE_ASSERT(texture_slots.size() < texture_slots.capacity(), "Pushing more than {} textures, flush first and retry", texture_slots.capacity());
 
@@ -469,7 +469,7 @@ protected:
 	Batch batch;
 
 private:
-	#pragma message "TODO: Use scene_active only in debug mode"
+	// TODO: Use scene_active only in debug mode
 	bool scene_active = false;
 
 protected:

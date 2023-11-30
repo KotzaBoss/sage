@@ -22,16 +22,17 @@ else()
 			COMMAND echo "cd ${CMAKE_CURRENT_BINARY_DIR}" >> ${perf_script}
 			COMMAND echo "${PERF} script | ${flamegraph_SOURCE_DIR}/stackcollapse-perf.pl >> out.perf-folded" >> ${perf_script}
 			COMMAND echo "${flamegraph_SOURCE_DIR}/flamegraph.pl out.perf-folded > perf.svg" >> ${perf_script}
-			COMMAND echo "cd -" >> ${perf_script}
+			COMMAND echo "cd - > /dev/null" >> ${perf_script}
+			COMMAND echo "echo Run: firefox ${CMAKE_CURRENT_BINARY_DIR}/perf.svg" >> ${perf_script}
 			COMMAND chmod +x ${perf_script}
-			COMMENT "Writing perf script: $<PATH:RELATIVE_PATH,${perf_script},${PROJECT_SOURCE_DIR}>"
+			COMMENT "Preparing perf script: ${perf_script}"
 			VERBATIM
 		)
 
 	docs(SET TARGET perf DOCS
-			"    cmake --build build -- perf && \\"
-			"    ${perf_script} && \\"
-			"    firefox ${CMAKE_CURRENT_BINARY_DIR}/perf.svg"
+			"cmake --build build -- perf && \\"
+			"${perf_script} && \\"
+			"firefox ${CMAKE_CURRENT_BINARY_DIR}/perf.svg"
 		)
 
 	section_pass(${perf_script} ${flamegraph_SOURCE_DIR})

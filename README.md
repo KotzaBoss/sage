@@ -11,22 +11,23 @@ cmake -B build -D SAGE_OPT_CCACHE_ENABLED=ON
 ```
 To customize the build see [README#Build](README.md#build).
 
-Once you have a successful build you can begin reading [bin/main.cpp](bin/main.cpp) and looking at the tests to get a feel of the project.
+Once you have a successful build you can begin reading [bin/main.cpp](bin/main.cpp) and the tests to get a feel of the project.
 
 ## Development
-A big part of SAGE is automated. When you are done tweaking/extending/refactoring, make sure you run `cmake` at least once to generate docs and specifically the [README](README.md).
+A big part of SAGE is automated. Once you are done tweaking/extending/refactoring, make sure you run cmake at least once to generate docs.
 
 ### Build
 ```
 cmake -B build	\
       -G Ninja	\
       -D SAGE_OPT_CCACHE_ENABLED=ON	\
-      -D CMAKE_LINKER=mold
+      -D CMAKE_LINKER=mold"
 ```
+
 | Option | Doc |
 |:-|:-|
 |`SAGE_OPT_CCACHE_ENABLED`| Use [`ccache`](https://ccache.dev/) to speedup subsequent compilations|
-|`SAGE_OPT_OBSIDIAN`| Tell SAGE to prepare material for [Obsidian](https://obsidian.md/) (see `external_docs` in [cmake/docs.cmake](cmake/docs.cmake))|
+|`SAGE_OPT_OBSIDIAN`| Tell SAGE to use Gkiwnis' [.obsidian](https://obsidian.md/)|
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
@@ -62,7 +63,8 @@ cmake -B build	\
 │   └── summary.cmake
 ├── CMakeLists.txt
 ├── docs
-│   └── CMakeLists.txt
+│   ├── CMakeLists.txt
+│   └── README.md.in
 ├── perf
 │   └── CMakeLists.txt
 ├── README.md
@@ -96,19 +98,21 @@ cmake -B build	\
 │   ├── time.hpp
 │   ├── util.hpp
 │   └── window.hpp
-└── test
-    ├── CMakeLists.txt
-    ├── event.test.cpp
-    ├── glm.test.cpp
-    ├── layer_imgui.test.cpp
-    ├── layer.test.cpp
-    ├── linux_input.test.cpp
-    ├── linux_window.test.cpp
-    ├── log.test.cpp
-    ├── placeholder_layers.hpp
-    ├── test.hpp
-    └── util.test.cpp
+├── test
+│   ├── CMakeLists.txt
+│   ├── event.test.cpp
+│   ├── glm.test.cpp
+│   ├── layer_imgui.test.cpp
+│   ├── layer.test.cpp
+│   ├── linux_input.test.cpp
+│   ├── linux_window.test.cpp
+│   ├── log.test.cpp
+│   ├── placeholder_layers.hpp
+│   ├── test.hpp
+│   └── util.test.cpp
+└── TODO.md
 
-12 directories, 65 files
+12 directories, 67 files
 
 ```
+

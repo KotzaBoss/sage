@@ -73,7 +73,7 @@ public:
 
 			window.update();
 
-			#pragma message "TODO: Fixed rate updates how to? Hardcode to 144fps for now."
+			// TODO: Fixed rate updates how to? Hardcode to 144fps for now.
 			// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep
 			constexpr auto frame_duration = 1000ms / 144;
 			std::this_thread::sleep_until(tick.current_time_point() + frame_duration);

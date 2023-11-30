@@ -1,0 +1,33 @@
+[toc] %% At some point it will be supported by Obsidian %%
+
+# SAGE: *Super Advanced Game Engine*
+
+> [!TIP] When in doubt...
+> `cmake --build build -- usage`
+
+## Getting Started
+```
+cmake -B build -D SAGE_OPT_CCACHE_ENABLED=ON
+```
+To customize the build see [[README#Build]].
+
+Once you have a successful build you can begin reading [[bin/main.cpp]] and the tests to get a feel of the project.
+
+## Development
+A big part of SAGE is automated. Once you are done tweaking/extending/refactoring, make sure you run cmake at least once to generate docs.
+
+### Build
+```
+cmake -B build	\
+      -G Ninja	\
+      -D SAGE_OPT_CCACHE_ENABLED=ON	\
+      -D CMAKE_LINKER=mold"
+```
+
+${options}
+
+## Project Overview
+```
+${tree}
+```
+

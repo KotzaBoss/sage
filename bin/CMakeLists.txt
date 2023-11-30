@@ -8,6 +8,6 @@ target_precompile_headers(sage REUSE_FROM std)
 
 cmake_print_properties(TARGETS sage PROPERTIES SOURCES LINK_LIBRARIES)
 
-docs(SET TARGET sage DOCS "    cmake --build build -- sage && ${CMAKE_CURRENT_BINARY_DIR}/sage")
+docs(SET TARGET sage DOCS "cmake --build build -- sage && ${CMAKE_CURRENT_BINARY_DIR}/sage")
 
 section_pass()

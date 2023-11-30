@@ -61,7 +61,7 @@ TEST_CASE ("Type") {
 	CHECK_EQ(type::Unique<int, float, int>,	false);
 	CHECK_EQ(type::Unique<int, double>,		true);
 
-	#pragma message "TODO: Weird behaviour for Set<>::count<>()"
+	// TODO: Weird behaviour for Set<>::count<>()
 	//CHECK_EQ(type::Set<>					::template count<>(), std::tuple{});
 	CHECK_EQ(type::Set<>					::template count<int>(),						std::tuple{});
 	CHECK_EQ(type::Set<int>					::template count<int>(),						std::make_tuple(1u));
@@ -79,7 +79,7 @@ TEST_CASE ("Type") {
 TEST_CASE ("Polymorphic_Array") {
 	using Array = util::Polymorphic_Array<int, float, std::string>;
 
-	#pragma message "FIXME: Add constness, see pragma in Polymorphic_Array"
+	// FIXME: Add constness, see pragma in Polymorphic_Array
 	auto storage = Array{1, 2.0f, "3"s};
 
 	CAPTURE(storage);
@@ -100,7 +100,7 @@ TEST_CASE ("Polymorphic_Array") {
 TEST_CASE ("Polymorphic_Storage") {
 	using Storage = util::Polymorphic_Storage<int, float, std::string>;
 
-	#pragma message "FIXME: Add constness, see pragma in Polymorphic_Array"
+	// FIXME: Add constness, see pragma in Polymorphic_Array
 	auto storage = Storage{
 		{1,2,3,4,5},
 		{1.f, 2.f, 3.f},

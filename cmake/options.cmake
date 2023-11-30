@@ -1,3 +1,5 @@
+include(FeatureSummary)
+
 function (sage_options)
 	set(prefix "SAGE_OPT_")
 	#set(options)

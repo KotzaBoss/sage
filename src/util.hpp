@@ -326,7 +326,7 @@ public:
 	}
 
 	#if __cplusplus >= 202302L	// >C++23
-	#pragma message "TODO: Deduce this to add const-correctness to Polymorphic_Containers."
+	// TODO: Deduce this to add const-correctness to Polymorphic_Containers.
 	#endif
 	// TODO: add check std>=23 todo deduce this
 	template <typename Fn>

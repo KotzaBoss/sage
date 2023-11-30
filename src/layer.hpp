@@ -11,8 +11,8 @@
 
 namespace sage::layer {
 
-#pragma message "TODO: Maybe pass optional<Event> to allow for functional chaining?"
-#pragma message "TODO: Maybe pass renderer::Concept to .render()? Can there be multiple renderers?"
+// TODO: Maybe pass optional<Event> to allow for functional chaining?
+// TODO: Maybe pass renderer::Concept to .render()? Can there be multiple renderers?
 template <typename Layer, typename Input, typename Rendering>
 concept Concept =
 		input::Concept<Input>

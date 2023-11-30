@@ -1,0 +1,179 @@
+{
+  "main": {
+    "id": "66657ed7367c4c85",
+    "type": "split",
+    "children": [
+      {
+        "id": "1cd5493cf5b556da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d8601112847d3202",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b8c1c83ecf7a4444",
+    "type": "split",
+    "children": [
+      {
+        "id": "959c008447332bf1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8b4be321e227bb5a",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "a6bb90a639185438",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "914f5a8aa0a8dd32",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "4cf8e706d1f87520",
+    "type": "split",
+    "children": [
+      {
+        "id": "22414b2d685bcf56",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1e8bde803f7a8aa7",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "6c0d8103d4e1b80c",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "27d991e4933ddf4b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "e7858de4be11cc62",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "d8601112847d3202",
+  "lastOpenFiles": [
+    "CMakeFiles/progress.marks",
+    "cmake_install.cmake",
+    "CMakeFiles/CMakeDirectoryInformation.cmake",
+    "Makefile",
+    "TODO.md",
+    "bin/bug__layer_2d.hpp__11.md",
+    "cmake/bug__docs.cmake__96.md",
+    "src/bug__app.hpp__76.md",
+    "src/bug__camera.hpp__14.md",
+    "src/bug__camera.hpp__70.md",
+    "src/bug__graphics.hpp__22.md",
+    "src/bug__graphics.hpp__50.md",
+    "src/bug__graphics.hpp__417.md",
+    "src/bug__graphics.hpp__424.md",
+    "src/bug__graphics.hpp__444.md",
+    "src/bug__graphics.hpp__472.md",
+    "src/bug__input.hpp__38.md",
+    "src/bug__layer.hpp__14.md",
+    "src/bug__layer.hpp__15.md",
+    "src/bug__layer_imgui.hpp__131.md",
+    "src/bug__math.hpp__26.md",
+    "src/platform/linux/bug__graphics.hpp__105.md",
+    "src/platform/linux/bug__graphics.hpp__218.md",
+    "src/platform/linux/bug__graphics.hpp__387.md",
+    "src/platform/linux/bug__graphics.hpp__592.md",
+    "src/platform/linux/bug__input.hpp__53.md",
+    "src/platform/linux/bug__input.hpp__59.md",
+    "src/platform/linux/bug__window.hpp__74.md",
+    "src/bug__util.hpp__329.md",
+    "test/util.test.cpp",
+    "test/test.hpp",
+    "test/placeholder_layers.hpp",
+    "test/log.test.cpp",
+    "test/linux_window.test.cpp",
+    "test/linux_input.test.cpp"
+  ]
+}

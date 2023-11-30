@@ -5,4 +5,5 @@ list(SORT project_dirs)
 
 external_docs(PROJECT_DIRS ${project_dirs})
 make_readme(PROJECT_DIRS ${project_dirs})
+make_todo(PROJECT_DIRS ${project_dirs})
 

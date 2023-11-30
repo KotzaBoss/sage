@@ -1,4 +1,4 @@
-# Make sure external_docs and make readme are called at the end of your cmake configuration
+# Make sure external_docs and make_readme are called at the end of your cmake configuration
 # so that the customisations, like sage_options, have been declared.
 
 # Why this is not in standard cmake we will never know...
@@ -8,38 +8,41 @@ define_property(TARGET PROPERTY DOC BRIEF_DOCS "Target documentation property")
 
 function (docs)
 	set(options SET GLOBAL ESCAPE_NEWLINE)
-	set(one_value_args GET TARGET)
+	set(one_value_args GET TARGET PREPEND)
 	set(multi_value_args DOCS)
 	cmake_parse_arguments(DOCS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
 	_validate_args()
 
 	if (DOCS_SET)
-		string(JOIN "\n" docs ${DOCS_DOCS})
-
 		if (DOCS_GLOBAL)
-			set_property(GLOBAL PROPERTY DOC ${docs})
+			set_property(GLOBAL PROPERTY DOC "${DOCS_DOCS}")
 		elseif (DOCS_TARGET)
-			set_target_properties(${DOCS_TARGET} PROPERTIES DOC ${docs})
+			set_target_properties(${DOCS_TARGET} PROPERTIES DOC "${DOCS_DOCS}")
 		else()
 			message(FATAL_ERROR "Bad implementation")
 		endif()
 
 	elseif (DOCS_GET)
 		if (DOCS_GLOBAL)
-			get_property(get GLOBAL PROPERTY DOC)
+			get_property(doc GLOBAL PROPERTY DOC)
 		elseif (DOCS_TARGET)
-			get_target_property(get ${DOCS_TARGET} DOC)
+			get_target_property(doc ${DOCS_TARGET} DOC)
 		else()
 			message(FATAL_ERROR "Bad implementation")
 		endif()
 
-		if (DOCS_ESCAPE_NEWLINE)
-			string(REPLACE "\n" "\\n" get ${get})
+		if (DOCS_PREPEND)
+			list(TRANSFORM doc PREPEND ${DOCS_PREPEND})
 		endif()
 
-		set(${DOCS_GET} "${get}")
-		return(PROPAGATE ${DOCS_GET})
+		list(JOIN doc "\n" doc)
+
+		if (DOCS_ESCAPE_NEWLINE)
+			string(REPLACE "\n" "\\n" doc ${doc})
+		endif()
+
+		set(${DOCS_GET} "${doc}" PARENT_SCOPE)
 
 	else()
 		message(FATAL_ERROR "Bad implementation")
@@ -48,7 +51,7 @@ endfunction()
 
 set(_glob "*.cpp" "*.h" "*.hpp" "*.cmake")
 
-sage_options(ADD OBSIDIAN DOC "Tell SAGE to prepare material for [Obsidian](https://obsidian.md/) (see `external_docs` in [[cmake/docs.cmake]])" INIT ON)
+sage_options(ADD OBSIDIAN DOC "Tell SAGE to use Gkiwnis' [.obsidian](https://obsidian.md/)" INIT ON)
 function (external_docs)
 	#set(options )
 	set(one_value_args OUTPUT_DIR)
@@ -64,26 +67,7 @@ function (external_docs)
 	endif()
 
 	if (SAGE_OPT_OBSIDIAN)
-		set(snippets ${EXT_DOCS_OUTPUT_DIR}/.obsidian/snippets)
-		file(MAKE_DIRECTORY ${snippets})
-
-		# Justification
-		set(justify ${snippets}/justify.css)
-		string(JOIN "\n" justify_content
-				"/* reading mode */"
-				".markdown-preview-view p {"
-				"	text-align: justify;"
-				"	text-justify: inter-word;"
-				"}"
-				""
-				"/* source view and live preview */"
-				".markdown-source-view.mod-cm6 .cm-line {"
-				"	text-align: justify;"
-				"	text-justify: inter-word;"
-				"}"
-				""
-			)
-		file(WRITE ${justify} ${justify_content})
+		file(COPY ${PROJECT_SOURCE_DIR}/.obsidian DESTINATION ${EXT_DOCS_OUTPUT_DIR})
 	endif()
 
 	# Prepare build/docs directories
@@ -113,6 +97,7 @@ function (external_docs)
 				endif()
 
 				# Collect tags
+				# FIXME: for platform/linux/sage.hpp it puts two `#linux` tags
 				cmake_path(GET dir FILENAME dir)
 				list(APPEND tags "  - \"#${dir}\"")
 				if (${file} MATCHES ".*/linux/.*")
@@ -159,6 +144,7 @@ function (make_readme)
 	foreach(opt_doc IN ZIP_LISTS opts docs)
 		list(APPEND options "|`${opt_doc_0}`| ${opt_doc_1}|")
 	endforeach()
+	list(JOIN options "\n" options)
 
 	# -P ${glob} doesnt seem to work right so just use .gitignore
 	#string(JOIN "|" glob ${_glob})
@@ -169,57 +155,141 @@ function (make_readme)
 			OUTPUT_VARIABLE tree
 		)
 
-	string(JOIN "\n" content
-			"[toc] %% At some point it will be supported by Obsidian %%"
-			""
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README.md.in ${EXT_DOCS_OUTPUT_DIR}/README.md)
 
-			"# SAGE: *Super Advanced Game Engine*"
-			""
+	file(READ ${EXT_DOCS_OUTPUT_DIR}/README.md content)
+	obsidian_to_normal_markdown(content ${content})
+	file(WRITE ${PROJECT_SOURCE_DIR}/README.md ${content})
+endfunction()
 
-			"> [!TIP] When in doubt..."
-			"> `cmake --build build -- usage`"
-			""
+set(_todos TODO FIXME OPTIMIZE CONFUSION)
+set(_note_regex "[a-zA-Z0-9_/.^]+")
+set(_section_regex "#[a-zA-Z0-9_ -]+")
 
-			"## Getting Started"
-			"```"
-			"cmake -B build -D SAGE_OPT_CCACHE_ENABLED=ON"
-			"```"
-			"To customize the build see [[README#Build]]."
-			""
-			"Once you have a successful build you can begin reading [[bin/main.cpp]] and \
-looking at the tests to get a feel of the project."
-			""
+function(make_todo)
+	set(one_value_args OUTPUT_DIR)
+	set(multi_value_args PROJECT_DIRS)
+	cmake_parse_arguments(TODO "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-			"## Development"
-			"A big part of SAGE is automated. \
-When you are done tweaking/extending/refactoring, make sure you \
-run `cmake` at least once to generate docs and specifically the [[README]]."
-			""
+	if (NOT TODO_PROJECT_DIRS)
+		message(FATAL_ERROR "Expected PROJECT_DIRS")
+	endif()
 
-			"### Build"
-			"```"
-			"cmake -B build	\\"
-			"      -G Ninja	\\"
-			"      -D SAGE_OPT_CCACHE_ENABLED=ON	\\"
-			"      -D CMAKE_LINKER=mold"
-			"```"
-			${options}
-			""
+	list(TRANSFORM TODO_PROJECT_DIRS PREPEND "${PROJECT_SOURCE_DIR}/")
 
-			"## Project Overview"
-			"```"
-			${tree}
-			"```"
-			""
-		)
-	file(WRITE ${EXT_DOCS_OUTPUT_DIR}/README.md ${content})
+	if (NOT TODO_OUTPUT_DIR)
+		set(TODO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
+	endif()
 
-	# Replace Obsidian specific syntax with normal markdown for the top level README
+	block(PROPAGATE TODO_PROJECT_DIRS)
+		string(JOIN "|" comment_token "//" "#")
+		string(JOIN "|" todos ${_todos})
+		set(todo "(${comment_token})[ ]*(${todos}):? ")
 
+		foreach(dir ${TODO_PROJECT_DIRS})
+			list(TRANSFORM _glob PREPEND "${dir}/" OUTPUT_VARIABLE glob)
+			file(GLOB_RECURSE files ${glob})
+			foreach(file ${files})
+				file(STRINGS ${file} lines)
+				cmake_path(RELATIVE_PATH file BASE_DIRECTORY "${PROJECT_SOURCE_DIR}")
+
+				list(LENGTH lines len)
+				math(EXPR len "${len} - 1")		# Thanks cmake...
+				foreach(i RANGE 0 ${len})
+					list(GET lines ${i} line)
+
+					if (NOT line)
+						continue()
+					endif()
+
+					string(REGEX MATCH ${todo} match ${line})
+					if (NOT match)
+						continue()
+					endif()
+
+					#list(FILTER lines INCLUDE REGEX ${todo})
+
+					string(STRIP ${line} line)
+
+					#list(TRANSFORM lines STRIP)
+
+					# Escape template syntax because markdown thinks its html, yes we do need 4 backslashes...
+					string(REGEX REPLACE "<([a-zA-Z0-9_:]+)>" "\\\\<\\1\\\\>" line ${line})
+					#list(TRANSFORM lines REPLACE "<([a-zA-Z0-9_:]+)>" "\\\\<\\1\\\\>")
+
+					math(EXPR line_number "${i} + 1")
+					string(REGEX REPLACE "${todo}" "\\2 | [[${file}]] | ${line_number} | " line ${line})
+					#list(TRANSFORM lines REPLACE "${todo}" "\\2 | [[${file}]] | ")	# \\2 (todo type) will be consumed as we iterate the todo types
+
+					list(APPEND content ${line})
+					#list(APPEND content ${lines})
+				endforeach()
+			endforeach()
+		endforeach()
+
+		list(REMOVE_DUPLICATES content)
+
+		# Consume todo type and dump them in separate lists
+		while (content)
+			list(POP_BACK content line)
+			string(REGEX REPLACE "(${todos}) \\| \\[\\[(${_note_regex})\\]\\] \\| ([0-9]+) \\| (.*)" "[[\\2]] | \\3 | \\4" line ${line})
+			assert(COND ${CMAKE_MATCH_COUNT} GREATER 0 MSG "Regex and string generation do not seem to be agreeing")
+			list(APPEND ${CMAKE_MATCH_1} ${line})
+
+			string(JOIN "\n" todo_note
+					"---"
+					"tags:"
+					"  - bugs"
+					"  - ${CMAKE_MATCH_1}"
+					"links:"
+					"---"
+					"[[${CMAKE_MATCH_2}.md]]"
+				)
+
+			# CMAKE_MATCH_2 contains the project directory: bin/main.cpp, test/...
+			set(filename ${CMAKE_MATCH_2})
+			cmake_path(GET filename FILENAME fname)
+			string(REPLACE ${fname} "bug__${fname}" filename ${filename})
+			file(WRITE ${TODO_OUTPUT_DIR}/${filename}__${CMAKE_MATCH_3}.md ${todo_note})
+		endwhile()
+
+		set(total_todos 0)
+		foreach (td ${_todos})
+			list(APPEND content "## ${td}")
+			list(LENGTH ${td} len)
+			math(EXPR total_todos "${total_todos} + ${len}")
+			if (${len} GREATER 0)
+				list(TRANSFORM ${td} PREPEND "| ")
+				list(TRANSFORM ${td} APPEND " |")
+				list(APPEND content
+						"${len} items available.\n"
+						"| Source | Line number | Description |"
+						"|:-|:-|:-|"
+						${${td}}
+					)
+			else()
+				list(APPEND content "No items available")
+			endif()
+		endforeach()
+
+		list(PREPEND content
+				"# Overview"
+				"${total_todos} items to be done."
+			)
+
+		string(JOIN "\n" content ${content})
+		file(WRITE ${TODO_OUTPUT_DIR}/TODO.md ${content})
+
+		obsidian_to_normal_markdown(content ${content})
+		file(WRITE ${PROJECT_SOURCE_DIR}/TODO.md ${content})
+	endblock()
+endfunction()
+
+# Utilities
+
+function(obsidian_to_normal_markdown out content)
 	# Links
-	set(note_regex "[a-zA-Z0-9_/.^]+")
-	set(section_regex "#[a-zA-Z0-9_ -]+")
-	set(regex "\\[\\[(${note_regex})(${section_regex})?\\]\\]")
+	set(regex "\\[\\[(${_note_regex})(${_section_regex})?\\]\\]")
 
 	string(REGEX MATCHALL ${regex} links ${content})							# [ "[[README#Project Overview]]", "[[bin/main.cpp]]", ... ]
 	foreach(link ${links})
@@ -254,10 +324,8 @@ run `cmake` at least once to generate docs and specifically the [[README]]."
 	# Github does not support alert/callout titles
 	string(REGEX REPLACE "> \\[!(.*)\\][a-zA-Z0-9 .-_]+\n" "> [!\\1]\n" content ${content})
 
-	file(WRITE ${PROJECT_SOURCE_DIR}/README.md ${content})
+	set(${out} ${content} PARENT_SCOPE)
 endfunction()
-
-# Utilities
 
 macro (_validate_args)
 	# Validate scope
