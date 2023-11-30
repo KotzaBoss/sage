@@ -1,4 +1,4 @@
-[toc] <!--  At some point it will be supported by Obsidian  -->
+<!--  [toc] At some point it will be supported by Obsidian  -->
 
 # SAGE: *Super Advanced Game Engine*
 
@@ -7,7 +7,7 @@
 
 ## Getting Started
 ```
-cmake -B build -D SAGE_OPT_CCACHE_ENABLED=ON
+cmake -B build
 ```
 To customize the build see [README#Build](README.md#build).
 
@@ -20,8 +20,7 @@ A big part of SAGE is automated. Once you are done tweaking/extending/refactorin
 ```
 cmake -B build	\
       -G Ninja	\
-      -D SAGE_OPT_CCACHE_ENABLED=ON	\
-      -D CMAKE_LINKER=mold"
+      -D CMAKE_LINKER=mold
 ```
 
 | Option | Doc |
@@ -31,25 +30,26 @@ cmake -B build	\
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
+2.2M used in 12 directories, 67 files.
 ```
-.
-├── asset
-│   ├── CMakeLists.txt
-│   ├── shader
+./
+├── asset/
+│   ├── shader/
 │   │   ├── CMakeLists.txt
 │   │   ├── flat_color.glsl
 │   │   ├── some.glsl
 │   │   ├── square.glsl
 │   │   └── texture.glsl
-│   └── texture
-│       ├── CMakeLists.txt
-│       ├── owl.png
-│       └── Ship.png
-├── bin
+│   ├── texture/
+│   │   ├── CMakeLists.txt
+│   │   ├── owl.png
+│   │   └── Ship.png
+│   └── CMakeLists.txt
+├── bin/
 │   ├── CMakeLists.txt
 │   ├── layer_2d.hpp
 │   └── main.cpp
-├── cmake
+├── cmake/
 │   ├── assert.cmake
 │   ├── ccache.cmake
 │   ├── compiler.cmake
@@ -61,14 +61,21 @@ cmake -B build	\
 │   ├── packages.cmake
 │   ├── section.cmake
 │   └── summary.cmake
-├── CMakeLists.txt
-├── docs
+├── docs/
 │   ├── CMakeLists.txt
 │   └── README.md.in
-├── perf
+├── perf/
 │   └── CMakeLists.txt
-├── README.md
-├── src
+├── src/
+│   ├── platform/
+│   │   ├── linux/
+│   │   │   ├── CMakeLists.txt
+│   │   │   ├── glfw.hpp
+│   │   │   ├── graphics.hpp
+│   │   │   ├── input.hpp
+│   │   │   ├── sage.hpp
+│   │   │   └── window.hpp
+│   │   └── CMakeLists.txt
 │   ├── app.hpp
 │   ├── camera.hpp
 │   ├── CMakeLists.txt
@@ -82,15 +89,6 @@ cmake -B build	\
 │   ├── log.hpp
 │   ├── math.hpp
 │   ├── perf.hpp
-│   ├── platform
-│   │   ├── CMakeLists.txt
-│   │   └── linux
-│   │       ├── CMakeLists.txt
-│   │       ├── glfw.hpp
-│   │       ├── graphics.hpp
-│   │       ├── input.hpp
-│   │       ├── sage.hpp
-│   │       └── window.hpp
 │   ├── repr.hpp
 │   ├── sage.hpp
 │   ├── std.cpp
@@ -98,7 +96,7 @@ cmake -B build	\
 │   ├── time.hpp
 │   ├── util.hpp
 │   └── window.hpp
-├── test
+├── test/
 │   ├── CMakeLists.txt
 │   ├── event.test.cpp
 │   ├── glm.test.cpp
@@ -110,9 +108,8 @@ cmake -B build	\
 │   ├── placeholder_layers.hpp
 │   ├── test.hpp
 │   └── util.test.cpp
+├── CMakeLists.txt
+├── README.md
 └── TODO.md
-
-12 directories, 67 files
-
 ```
 

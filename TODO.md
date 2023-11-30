@@ -44,4 +44,4 @@
 |:-|:-|:-|
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 592 | ? |
 ## CONFUSION
-No items available
+No items available.

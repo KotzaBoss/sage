@@ -139,6 +139,7 @@ function (make_readme)
 		set(EXT_DOCS_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
 	endif()
 
+	set(toc "%% [toc] At some point it will be supported by Obsidian %%")
 	list(APPEND options "| Option | Doc |" "|:-|:-|")
 	sage_options(GET ALL OUT opts DOC docs)
 	foreach(opt_doc IN ZIP_LISTS opts docs)
@@ -149,11 +150,16 @@ function (make_readme)
 	# -P ${glob} doesnt seem to work right so just use .gitignore
 	#string(JOIN "|" glob ${_glob})
 	#string(CONCAT glob \" ${glob} \")
+	set(size_regex "[0-9a-zA-Z.]+")
 	execute_process(
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-			COMMAND tree --gitignore --sort=name #${EXT_DOCS_PROJECT_DIRS}
+			COMMAND tree -s -h --du --gitignore --dirsfirst -F #${EXT_DOCS_PROJECT_DIRS}
 			OUTPUT_VARIABLE tree
 		)
+	string(REGEX REPLACE "${size_regex} used in [0-9]+ directories, [0-9]+ files" "" tree ${tree})
+	set(tree_summary ${CMAKE_MATCH_0})
+	string(REGEX REPLACE "\\[[ ]*${size_regex}\\]  " "" tree ${tree})
+	string(STRIP ${tree} tree)
 
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README.md.in ${EXT_DOCS_OUTPUT_DIR}/README.md)
 
@@ -181,7 +187,7 @@ function(make_todo)
 		set(TODO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
 	endif()
 
-	block(PROPAGATE TODO_PROJECT_DIRS)
+	block()
 		string(JOIN "|" comment_token "//" "#")
 		string(JOIN "|" todos ${_todos})
 		set(todo "(${comment_token})[ ]*(${todos}):? ")
@@ -268,7 +274,7 @@ function(make_todo)
 						${${td}}
 					)
 			else()
-				list(APPEND content "No items available")
+				list(APPEND content "No items available.")
 			endif()
 		endforeach()
 

@@ -1,4 +1,4 @@
-[toc] %% At some point it will be supported by Obsidian %%
+${toc}
 
 # SAGE: *Super Advanced Game Engine*
 
@@ -7,7 +7,7 @@
 
 ## Getting Started
 ```
-cmake -B build -D SAGE_OPT_CCACHE_ENABLED=ON
+cmake -B build
 ```
 To customize the build see [[README#Build]].
 
@@ -20,13 +20,13 @@ A big part of SAGE is automated. Once you are done tweaking/extending/refactorin
 ```
 cmake -B build	\
       -G Ninja	\
-      -D SAGE_OPT_CCACHE_ENABLED=ON	\
-      -D CMAKE_LINKER=mold"
+      -D CMAKE_LINKER=mold
 ```
 
 ${options}
 
 ## Project Overview
+${tree_summary}.
 ```
 ${tree}
 ```
