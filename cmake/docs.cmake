@@ -81,7 +81,7 @@ function (external_docs)
 		list(TRANSFORM _glob PREPEND "${dir}/" OUTPUT_VARIABLE glob)
 		file(GLOB_RECURSE dir_files ${glob})
 		foreach (file ${dir_files})
-			block(PROPAGATE dir file)
+			block()
 				cmake_path(GET file EXTENSION ext)
 
 				# For code files, collect #include links
@@ -91,35 +91,31 @@ function (external_docs)
 					foreach (line in ${code})
 						string(REGEX MATCH "#include \"(.*\.h(pp)?)\"" match ${line})
 						if (match)
-							list(APPEND links "  - \"[[${CMAKE_MATCH_1}.md]]\"")	# .md to differentiate the code from the note
+							list(APPEND links "\"[[${CMAKE_MATCH_1}.md]]\"")	# .md to differentiate the code from the note
 						endif()
 					endforeach()
 				endif()
+				list(TRANSFORM links PREPEND "  - ")
+				list(JOIN links "\n" links)
 
 				# Collect tags
 				# FIXME: for platform/linux/sage.hpp it puts two `#linux` tags
 				cmake_path(GET dir FILENAME dir)
-				list(APPEND tags "  - \"#${dir}\"")
+				list(APPEND tags "\"#${dir}\"")
 				if (${file} MATCHES ".*/linux/.*")
-					list(APPEND tags "  - \"#linux\"")
+					list(APPEND tags "\"#linux\"")
 				endif()
+				list(TRANSFORM tags PREPEND "  - ")
+				list(JOIN tags "\n" tags)
 
 				cmake_path(RELATIVE_PATH file BASE_DIRECTORY "${PROJECT_SOURCE_DIR}" OUTPUT_VARIABLE dest)
+				set(file_link ${dest})
 
 				# Make symbolic link to source file
 				file(CREATE_LINK ${file} ${EXT_DOCS_OUTPUT_DIR}/${dest} SYMBOLIC)
+				file(READ ${file} code)
 
-				# Write content
-				string(JOIN "\n" content
-						"---"
-						"tags:"
-						${tags}
-						"links:"
-						${links}
-						"---"
-						"![[${dest}]]"
-					)
-				file(WRITE ${EXT_DOCS_OUTPUT_DIR}/${dest}.md ${content})
+				configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cpp_file.in ${EXT_DOCS_OUTPUT_DIR}/${dest}.md)
 			endblock()
 		endforeach()
 	endforeach()
@@ -213,22 +209,15 @@ function(make_todo)
 						continue()
 					endif()
 
-					#list(FILTER lines INCLUDE REGEX ${todo})
-
 					string(STRIP ${line} line)
-
-					#list(TRANSFORM lines STRIP)
 
 					# Escape template syntax because markdown thinks its html, yes we do need 4 backslashes...
 					string(REGEX REPLACE "<([a-zA-Z0-9_:]+)>" "\\\\<\\1\\\\>" line ${line})
-					#list(TRANSFORM lines REPLACE "<([a-zA-Z0-9_:]+)>" "\\\\<\\1\\\\>")
 
 					math(EXPR line_number "${i} + 1")
 					string(REGEX REPLACE "${todo}" "\\2 | [[${file}]] | ${line_number} | " line ${line})
-					#list(TRANSFORM lines REPLACE "${todo}" "\\2 | [[${file}]] | ")	# \\2 (todo type) will be consumed as we iterate the todo types
 
 					list(APPEND content ${line})
-					#list(APPEND content ${lines})
 				endforeach()
 			endforeach()
 		endforeach()
@@ -242,50 +231,47 @@ function(make_todo)
 			assert(COND ${CMAKE_MATCH_COUNT} GREATER 0 MSG "Regex and string generation do not seem to be agreeing")
 			list(APPEND ${CMAKE_MATCH_1} ${line})
 
-			string(JOIN "\n" todo_note
-					"---"
-					"tags:"
-					"  - bugs"
-					"  - ${CMAKE_MATCH_1}"
-					"links:"
-					"---"
-					"[[${CMAKE_MATCH_2}.md]]"
-				)
+			set(type "${CMAKE_MATCH_1}")
+			set(link "[[${CMAKE_MATCH_2}.md]]")
 
 			# CMAKE_MATCH_2 contains the project directory: bin/main.cpp, test/...
 			set(filename ${CMAKE_MATCH_2})
 			cmake_path(GET filename FILENAME fname)
 			string(REPLACE ${fname} "bug__${fname}" filename ${filename})
-			file(WRITE ${TODO_OUTPUT_DIR}/${filename}__${CMAKE_MATCH_3}.md ${todo_note})
+			configure_file(${CMAKE_CURRENT_SOURCE_DIR}/todo_note.md.in ${TODO_OUTPUT_DIR}/${filename}__${CMAKE_MATCH_3}.md)
 		endwhile()
 
 		set(total_todos 0)
 		foreach (td ${_todos})
-			list(APPEND content "## ${td}")
 			list(LENGTH ${td} len)
 			math(EXPR total_todos "${total_todos} + ${len}")
 			if (${len} GREATER 0)
 				list(TRANSFORM ${td} PREPEND "| ")
 				list(TRANSFORM ${td} APPEND " |")
-				list(APPEND content
+				list(PREPEND ${td}
 						"${len} items available.\n"
-						"| Source | Line number | Description |"
+						"| Source | Line Number | Description |"
 						"|:-|:-|:-|"
-						${${td}}
 					)
 			else()
-				list(APPEND content "No items available.")
+				list(APPEND ${td} "No items available.")
 			endif()
+			list(JOIN ${td} "\n" ${td})
+
+			# Set the expected section name as in the TODO.md.in file
+			# meaning: TODO -> todos, FIXME -> fixmes, ...
+			set(items ${td})
+			string(TOLOWER ${items} items)
+			string(APPEND items "s")
+			set(${items} "${${td}}")
 		endforeach()
 
-		list(PREPEND content
-				"# Overview"
-				"${total_todos} items to be done."
-			)
+		set(overview "${total_todos} items to be done.")
 
 		string(JOIN "\n" content ${content})
-		file(WRITE ${TODO_OUTPUT_DIR}/TODO.md ${content})
+		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/TODO.md.in ${TODO_OUTPUT_DIR}/TODO.md)
 
+		file(READ ${TODO_OUTPUT_DIR}/TODO.md content)
 		obsidian_to_normal_markdown(content ${content})
 		file(WRITE ${PROJECT_SOURCE_DIR}/TODO.md ${content})
 	endblock()

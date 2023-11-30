@@ -1,0 +1,13 @@
+---
+tags:
+${tags}
+links:
+${links}
+---
+
+![[${file_link}]]
+
+```cpp
+${code}
+```
+

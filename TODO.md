@@ -1,9 +1,12 @@
 # Overview
+
 28 items to be done.
+
 ## TODO
+
 21 items available.
 
-| Source | Line number | Description |
+| Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 64 | Weird behaviour for Set<>::count<>() |
 | [src/util.hpp](src/util.hpp) | 331 | add check std>=23 todo deduce this |
@@ -26,22 +29,29 @@
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
 | [src/app.hpp](src/app.hpp) | 76 | Fixed rate updates how to? Hardcode to 144fps for now. |
 | [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
+
 ## FIXME
+
 6 items available.
 
-| Source | Line number | Description |
+| Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 103 | Add constness, see pragma in Polymorphic_Array |
 | [test/util.test.cpp](test/util.test.cpp) | 82 | Add constness, see pragma in Polymorphic_Array |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 387 | why shader.size() doesnt work? its an array |
 | [src/math.hpp](src/math.hpp) | 26 | default template does not work. |
 | [src/graphics.hpp](src/graphics.hpp) | 22 | Is the uniform different from the shader::data::Types? |
-| [cmake/docs.cmake](cmake/docs.cmake) | 100 | for platform/linux/sage.hpp it puts two `#linux` tags |
+| [cmake/docs.cmake](cmake/docs.cmake) | 102 | for platform/linux/sage.hpp it puts two `#linux` tags |
+
+## CONFUSION
+
+No items available.
+
 ## OPTIMIZE
+
 1 items available.
 
-| Source | Line number | Description |
+| Source | Line Number | Description |
 |:-|:-|:-|
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 592 | ? |
-## CONFUSION
-No items available.
+

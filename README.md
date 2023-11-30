@@ -30,7 +30,7 @@ cmake -B build	\
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
-2.2M used in 12 directories, 67 files.
+2.2M used in 12 directories, 70 files.
 ```
 ./
 ├── asset/
@@ -63,7 +63,10 @@ cmake -B build	\
 │   └── summary.cmake
 ├── docs/
 │   ├── CMakeLists.txt
-│   └── README.md.in
+│   ├── cpp_file.in
+│   ├── README.md.in
+│   ├── TODO.md.in
+│   └── todo_note.md.in
 ├── perf/
 │   └── CMakeLists.txt
 ├── src/
