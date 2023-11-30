@@ -11,11 +11,28 @@
             "id": "d8601112847d3202",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "bin/bug__layer_2d.hpp__11.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "f53ee2903fe3f63a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "bin/layer_2d.hpp.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -81,6 +98,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "bin/layer_2d.hpp.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -97,6 +115,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "bin/layer_2d.hpp.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +137,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "bin/layer_2d.hpp.md"
+              }
             }
           }
         ]
@@ -138,15 +159,21 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "d8601112847d3202",
+  "active": "f53ee2903fe3f63a",
   "lastOpenFiles": [
-    "CMakeFiles/progress.marks",
-    "cmake_install.cmake",
-    "CMakeFiles/CMakeDirectoryInformation.cmake",
-    "Makefile",
-    "TODO.md",
     "bin/bug__layer_2d.hpp__11.md",
-    "cmake/bug__docs.cmake__96.md",
+    "TODO.md",
+    "src/log.hpp.md.tmp",
+    "src/graphics.hpp.md.tmp",
+    "src/filesystem.hpp.md.tmp",
+    "cmake/docs.cmake.md.tmp",
+    "cmake/convenience.cmake.md.tmp",
+    "bin/main.cpp.md.tmp",
+    "bin/layer_2d.hpp.md.tmp",
+    "README.md",
+    "test/bug__util.test.cpp__103.md.tmp",
+    "cmake_install.cmake",
+    "cmake/bug__docs.cmake__102.md",
     "src/bug__app.hpp__76.md",
     "src/bug__camera.hpp__14.md",
     "src/bug__camera.hpp__70.md",
@@ -168,12 +195,6 @@
     "src/platform/linux/bug__input.hpp__53.md",
     "src/platform/linux/bug__input.hpp__59.md",
     "src/platform/linux/bug__window.hpp__74.md",
-    "src/bug__util.hpp__329.md",
-    "test/util.test.cpp",
-    "test/test.hpp",
-    "test/placeholder_layers.hpp",
-    "test/log.test.cpp",
-    "test/linux_window.test.cpp",
-    "test/linux_input.test.cpp"
+    "test/util.test.cpp"
   ]
 }
