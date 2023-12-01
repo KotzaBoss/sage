@@ -39,7 +39,7 @@
 | [test/util.test.cpp](test/util.test.cpp) | 103 | Add constness, see pragma in Polymorphic_Array |
 | [test/util.test.cpp](test/util.test.cpp) | 82 | Add constness, see pragma in Polymorphic_Array |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 387 | why shader.size() doesnt work? its an array |
-| [src/math.hpp](src/math.hpp) | 26 | default template does not work. |
+| [src/math.hpp](src/math.hpp) | 35 | default template does not work. |
 | [src/graphics.hpp](src/graphics.hpp) | 22 | Is the uniform different from the shader::data::Types? |
 | [cmake/docs.cmake](cmake/docs.cmake) | 102 | for platform/linux/sage.hpp it puts two `#linux` tags |
 
