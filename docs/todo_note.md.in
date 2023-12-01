@@ -7,3 +7,9 @@ links:
 
 ${link}
 
+%% Prefer putting a few lines around the TODO line, like grep -C 5 would do %%
+
+```cpp
+${code}
+```
+

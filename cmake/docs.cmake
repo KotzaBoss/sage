@@ -169,7 +169,7 @@ set(_note_regex "[a-zA-Z0-9_/.^]+")
 set(_section_regex "#[a-zA-Z0-9_ -]+")
 
 function(make_todo)
-	set(one_value_args OUTPUT_DIR)
+	set(one_value_args OUTPUT_DIR CODE_CONTEXT)
 	set(multi_value_args PROJECT_DIRS)
 	cmake_parse_arguments(TODO "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
@@ -179,10 +179,19 @@ function(make_todo)
 
 	list(TRANSFORM TODO_PROJECT_DIRS PREPEND "${PROJECT_SOURCE_DIR}/")
 
+	if (NOT TODO_CODE_CONTEXT)
+		set(TODO_CODE_CONTEXT 10)
+	elseif (${TODO_CODE_CONTEXT} LESS 0)
+		message(FATAL_ERROR "CODE_CONTEXT must be positive")
+	endif()
+
 	if (NOT TODO_OUTPUT_DIR)
 		set(TODO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
 	endif()
 
+	# CONFUSION: There is some when it comes to portable cmake. Should we just use execute_process so that we do not
+	#            rewrite text processing? If someone non-linux wants to use SAGE, should we just implement their
+	#            OS' equivalent commands?
 	block()
 		string(JOIN "|" comment_token "//" "#")
 		string(JOIN "|" todos ${_todos})
@@ -229,16 +238,30 @@ function(make_todo)
 			list(POP_BACK content line)
 			string(REGEX REPLACE "(${todos}) \\| \\[\\[(${_note_regex})\\]\\] \\| ([0-9]+) \\| (.*)" "[[\\2]] | \\3 | \\4" line ${line})
 			assert(COND ${CMAKE_MATCH_COUNT} GREATER 0 MSG "Regex and string generation do not seem to be agreeing")
-			list(APPEND ${CMAKE_MATCH_1} ${line})
 
 			set(type "${CMAKE_MATCH_1}")
+			set(filename ${CMAKE_MATCH_2})	# CMAKE_MATCH_2 already contains the project directory: bin/main.cpp, test/...
 			set(link "[[${CMAKE_MATCH_2}.md]]")
+			set(line_number ${CMAKE_MATCH_3})
 
-			# CMAKE_MATCH_2 contains the project directory: bin/main.cpp, test/...
-			set(filename ${CMAKE_MATCH_2})
+			list(APPEND ${type} ${line})
+
+			# Get a few lines around the TODO, same as: grep -C 7 ...
+			math(EXPR first_line "${line_number} - ${TODO_CODE_CONTEXT}")
+			if (first_line LESS 0)
+				set(first_line 0)
+			endif()
+			math(EXPR last_line "${line_number} + ${TODO_CODE_CONTEXT}")
+			execute_process(
+					WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+					COMMAND sed -n "${first_line},${last_line}p" ${filename}
+					OUTPUT_VARIABLE code
+				)
+
 			cmake_path(GET filename FILENAME fname)
 			string(REPLACE ${fname} "bug__${fname}" filename ${filename})
-			configure_file(${CMAKE_CURRENT_SOURCE_DIR}/todo_note.md.in ${TODO_OUTPUT_DIR}/${filename}__${CMAKE_MATCH_3}.md)
+
+			configure_file(${CMAKE_CURRENT_SOURCE_DIR}/todo_note.md.in ${TODO_OUTPUT_DIR}/${filename}__${line_number}.md)
 		endwhile()
 
 		set(total_todos 0)
