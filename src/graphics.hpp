@@ -540,20 +540,25 @@ protected:
 	//
 	template <type::Any<Texture, glm::vec4> Drawing>
 	auto draw(const Drawing& drawing, const Draw_Args& args) {
+		using namespace sage::math;
+
 		SAGE_ASSERT(scene_active);
 
-		constexpr auto verteces = 4ul;
+		const auto transform =
+			glm::translate(identity<glm::mat4>, args.position)
+			* glm::rotate(identity<glm::mat4>, glm::radians(args.rotation), { 0.f, 0.f, 1.f })
+			* glm::scale(identity<glm::mat4>, { args.size.x, args.size.y, 1.f })
+			;
 
-		const auto positions = std::invoke([&] {
-				const auto offset = args.size / 2;
-
-				return std::array{
-					glm::vec2{ args.position.x - offset.x, args.position.y - offset.y },	// top left
-					glm::vec2{ args.position.x + offset.x, args.position.y - offset.y },	// top right
-					glm::vec2{ args.position.x + offset.x, args.position.y + offset.y },	// bottom right
-					glm::vec2{ args.position.x - offset.x, args.position.y + offset.y },	// bottom left
-				};
-			});
+		const auto verteces =
+			transform
+			* glm::mat4{
+				-0.5f, -0.5f, 0.0f, 1.0f,
+				 0.5f, -0.5f, 0.0f, 1.0f,
+				 0.5f,  0.5f, 0.0f, 1.0f,
+				-0.5f,  0.5f, 0.0f, 1.0f,
+			}
+			;
 
 		constexpr auto coords = std::array{ glm::vec2{ 0.f, 0.f }, glm::vec2{ 1.f, 0.f }, glm::vec2{ 1.f, 1.f }, glm::vec2{ 0.f, 1.f }, };
 
@@ -569,11 +574,11 @@ protected:
 					static_assert(false, "Unhandled type");
 			});
 
-		SAGE_ASSERT(positions.size() == coords.size() and coords.size() == verteces);
+		SAGE_ASSERT(coords.size() == verteces.length());
 
-		for (const auto vertex : vw::iota(0ul, verteces))
+		for (const auto vertex : vw::iota(0, verteces.length()))
 			batch.vertices.push_back({
-					.position = { positions[vertex], 0.f },
+					.position = verteces[vertex],
 					.color = color,
 					.texture = {
 						.coord = coords[vertex],

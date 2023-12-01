@@ -710,8 +710,9 @@ public:
 		scene_data.shader.upload_uniform("u_Textures", std::span{iota});
 	}
 
-	auto scene(const camera::Orthographic& cam, std::invocable auto&& draws) -> void {
-		Base::scene(cam, draws, [this] {
+	template <std::invocable Draws>
+	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
+		Base::scene(cam, std::forward<Draws>(draws), [this] {
 				glDrawElements(GL_TRIANGLES, batch.indexes(), GL_UNSIGNED_INT, nullptr);
 			});
 	}

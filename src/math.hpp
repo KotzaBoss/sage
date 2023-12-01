@@ -11,6 +11,15 @@
 namespace sage::inline math {
 
 template<typename T>
+	requires type::Any<T,
+			glm::vec2,
+			glm::vec3,
+			glm::vec4,
+			glm::mat4
+		>
+constexpr auto identity = T{1.f};
+
+template<typename T>
 concept Number = std::integral<T> or std::floating_point<T>;
 
 template <Number Range, Number X>
