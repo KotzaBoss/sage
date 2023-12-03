@@ -8,6 +8,7 @@
 #include "src/layer.hpp"
 #include "src/layer_imgui.hpp"
 #include "src/camera.hpp"
+#include "src/perf.hpp"
 #include "src/time.hpp"
 
 #include "src/log.hpp"
@@ -32,6 +33,8 @@ private:
 
 	Input input;
 
+	Profiler profiler;
+
 	R::Renderer renderer;
 
 	Layers layers;
@@ -42,6 +45,8 @@ public:
 	App(Window&& w, Input&& i)
 		: window{std::move(w)}
 		, input{std::move(i)}
+		, profiler{{ .max_quads = R::Renderer::Batch::max_quads }}
+		, renderer{profiler}
 		, layers{layer::ImGui{&window}, typename Ls::Layer{}...}
 		, imgui{layers.front()}
 	{
@@ -69,6 +74,18 @@ public:
 
 			imgui.new_frame([this] {
 					layers.imgui_prepare();
+
+					profiler.consume_results().apply([] (auto&& x) {
+							using T = std::decay_t<decltype(x)>;
+							if constexpr (std::same_as<T, std::vector<perf::Profiler::Timer::Result>>) {
+							}
+							else if constexpr (std::same_as<T, perf::Profiler::Rendering::Result>) {
+								::ImGui::Text(fmt::format("{}", x).c_str());
+							}
+							else
+								static_assert(false);
+						});
+
 				});
 
 			window.update();

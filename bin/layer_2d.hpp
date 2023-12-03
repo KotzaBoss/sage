@@ -95,11 +95,12 @@ private:
 	std::vector<Obstacle> obstacles;
 
 	static constexpr auto obstacle_distance = 20.f;
-	static constexpr auto rand_y = [] { return glm::linearRand(-4.f, 4.f); };
+	static constexpr auto max_obstacles = 100;
+	static constexpr auto rand_y = [] { return glm::linearRand(-5.f, 5.f); };
 
 public:
 	Level() {
-		obstacles.reserve(5);
+		obstacles.reserve(max_obstacles);
 		rg::generate_n(std::back_inserter(obstacles), obstacles.capacity(),
 				[&] mutable {
 					return Obstacle{glm::vec2{obstacles.size() * obstacle_distance, rand_y()}, glm::vec2{1.f, 1.f}, 20.f, 50.f};
@@ -114,16 +115,31 @@ public:
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		renderer.draw(glm::vec4{0.f, 1.f, 1.f, 1.f}, {
+		constexpr auto border_color = glm::vec4{0.25f, 0.5f, 0.1f, 1.f};
+
+		renderer.draw(border_color, {
 				.position = {player.position().x, 10.f, 0.f},
 				.size = {50.f, 10.f},
 			});
+
+		constexpr auto right = 5.f;
+		for (auto x = -right; x < right; x += 0.1f)
+			for (auto y = -right; y < right; y += 0.1f)
+			{
+				renderer.draw(
+						glm::vec4{ (x + right) / 10.f, 0.4f, (y + right) / 10.f, 0.5f },
+						{
+							.position = {x, y, 0.f},
+							.size = {0.35f, 0.35f}
+						}
+					);
+			}
 
 		rg::for_each(obstacles, [&] (auto& o) { o.render(renderer); });
 		player.render(renderer);
 
 		SAGE_ASSERT(not obstacles.empty());
-		SAGE_ASSERT(obstacles.capacity() == 5 and obstacles.size() == 5);
+		SAGE_ASSERT(obstacles.capacity() == max_obstacles and obstacles.size() == max_obstacles);
 		if (obstacles.front().position().x < -30.f) {
 			rg::rotate(obstacles, obstacles.begin() + 1);
 			obstacles.back() = Obstacle{
@@ -134,7 +150,7 @@ public:
 				};
 		}
 
-		renderer.draw(glm::vec4{0.f, 1.f, 1.f, 1.f}, {
+		renderer.draw(border_color, {
 				.position = {player.position().x, -10.f, 0.f},
 				.size = {50.f, 10.f},
 			});

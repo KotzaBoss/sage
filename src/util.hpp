@@ -339,6 +339,16 @@ public:
 				*this
 			);
 	}
+
+	template <type::Any<Ts...> T>
+	constexpr auto get() -> T& {
+		return std::get<T>(*this);
+	}
+
+	template <type::Any<Ts...> T>
+	constexpr auto get() const -> const T& {
+		return std::get<T>(*this);
+	}
 };
 
 template <typename... Ts>

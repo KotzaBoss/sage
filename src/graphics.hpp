@@ -4,6 +4,7 @@
 
 #include "src/math.hpp"
 #include "src/util.hpp"
+#include "src/perf.hpp"
 
 #include "src/camera.hpp"
 #include "src/repr.hpp"
@@ -248,7 +249,7 @@ concept Concept =
 	requires (VB vb) {
 		{ vb.bind() } -> std::same_as<void>;
 		{ vb.unbind() } -> std::same_as<void>;
-		{ vb.vertices() } -> std::same_as<const Vertices&>;
+		{ vb.verteces() } -> std::same_as<const Vertices&>;
 		{ vb.layout() } -> std::same_as<const Layout&>;
 	}
 	;
@@ -260,7 +261,7 @@ private:
 public:
 	auto bind() {}
 	auto unbind() {}
-	auto vertices() -> const Vertices& { return vert; }
+	auto verteces() -> const Vertices& { return vert; }
 	auto layout() -> const Layout& { return lay; }
 };
 
@@ -395,73 +396,122 @@ struct Null_Rendering {
 	using Drawings = std::tuple<>;
 };
 
-template <typename _Vertex_Array, typename _Texture, typename _Shader>
+template<texture::Concept Texture>
+struct Batch {
+	using Vertices = std::vector<buffer::vertex::Quad>;
+	// TODO: Proper asset system and asset handles
+	using Texture_Slots = std::vector<const Texture*>;
+
+public:
+	static constexpr auto max_quads = 10'000;
+	static constexpr auto max_verteces = max_quads * 4;
+	static constexpr auto max_indeces = max_quads * 6;
+	// TODO: Query from GPU
+	static constexpr auto max_texture_slots = 32u;
+
+private:
+	Vertices _verteces;
+	Texture_Slots _texture_slots;
+	size_t _indeces;
+
+	const Texture default_texture = Texture{Size{1ul, 1ul}};
+
+public:
+	struct Capacity_Args { size_t verteces, texture_slots; };
+	Batch(Capacity_Args&& caps)
+	{
+		_verteces.reserve(caps.verteces);
+		_texture_slots.reserve(caps.texture_slots);
+
+		_texture_slots.push_back(&default_texture);
+	}
+
+public:
+	// TODO: More type safety
+	auto push_texture(const Texture* tex) -> decltype(buffer::vertex::Quad::Texture::index) {
+		SAGE_ASSERT(_texture_slots.size() < _texture_slots.capacity(), "Pushing more than {} textures", _texture_slots.capacity());
+
+		const auto i = rg::find_if(
+				_texture_slots | vw::drop(1),	// Scan after default texture
+				[&] (const auto& x) { return *tex == *x; }
+			);
+
+		if (i == _texture_slots.end())
+			_texture_slots.push_back(tex);
+
+		return std::distance(_texture_slots.begin(), i);
+	}
+
+	// TODO: Make a namespace for shapes
+	auto push_quad(std::array<buffer::vertex::Quad, 4>&& q) -> void {
+		SAGE_ASSERT(_verteces.size() < max_verteces);
+
+		rg::move(std::move(q), std::back_inserter(_verteces));
+		_indeces += 6;
+	}
+
+public:
+	auto clear_verteces() -> void {
+		_verteces.clear();
+		_indeces = 0;
+	}
+
+	auto clear_texture_slots() -> void {
+		_texture_slots.erase(_texture_slots.begin() + 1, _texture_slots.end());	// Keep default at pos 0
+	}
+
+	auto clear() -> void {
+		clear_verteces();
+		clear_texture_slots();
+	}
+
+	auto verteces_are_empty() const -> bool {
+		return _verteces.empty();
+	}
+
+	auto texture_slots_are_empty() const -> bool {
+		return _texture_slots.size() == 1;	// Default at position 0
+	}
+
+	auto is_empty() const -> bool {
+		return verteces_are_empty() and texture_slots_are_empty();
+	}
+
+public:
+	auto indeces() const -> size_t {
+		return _indeces;
+	}
+
+	auto verteces() const -> const Vertices& {
+		return _verteces;
+	}
+
+	auto verteces_as_bytes() const -> std::span<const std::byte> {
+		return std::as_bytes(std::span{_verteces});
+	}
+
+	auto texture_slots() const -> const Texture_Slots& {
+		return _texture_slots;
+	}
+};
+
+template <typename _Vertex_Array, typename _Texture, typename Draw_Call, typename _Shader>
 	requires
 			array::vertex::Concept<_Vertex_Array>
 		and texture::Concept<_Texture>
+		and std::invocable<Draw_Call, const Batch<_Texture>&>
 		and shader::Concept<_Shader>
 struct Base_2D {
 protected:
 	using Vertex_Array = _Vertex_Array;
 	using Texture = _Texture;
+	using Batch = renderer::Batch<Texture>;
 	using Shader = _Shader;
 
 protected:
 	struct Scene_Data {
 		Vertex_Array vertex_array;
 		Shader shader;
-	};
-
-	struct Batch {
-		using Vertices = std::vector<buffer::vertex::Quad>;
-		// TODO: Proper asset system and asset handles
-		using Texture_Slots = std::vector<const Texture*>;
-
-	public:
-		static constexpr auto max_quads = 10'000;
-		static constexpr auto max_vertices = max_quads * 4;
-		static constexpr auto max_indeces = max_quads * 6;
-		// TODO: Query from GPU
-		static constexpr auto max_texture_slots = 32u;
-
-	private:
-		Vertices vertices;
-		Texture_Slots texture_slots;
-
-		const Texture default_texture = Texture{Size{1ul, 1ul}};
-
-	public:
-		struct Capacity_Args { size_t verteces, texture_slots; };
-		Batch(Capacity_Args&& caps)
-		{
-			vertices.reserve(caps.verteces);
-			texture_slots.reserve(caps.texture_slots);
-
-			texture_slots.push_back(&default_texture);
-		}
-
-	public:
-		// TODO: More type safety
-		auto push_texture(const Texture* tex) -> decltype(buffer::vertex::Quad::Texture::index) {
-			SAGE_ASSERT(texture_slots.size() < texture_slots.capacity(), "Pushing more than {} textures, flush first and retry", texture_slots.capacity());
-
-			const auto i = rg::find_if(
-					texture_slots | vw::drop(1),	// Scan after default texture
-					[&] (const auto& x) { return *tex == *x; }
-				);
-
-			if (i == texture_slots.end())
-				texture_slots.push_back(tex);
-
-			return std::distance(texture_slots.begin(), i);
-		}
-
-		auto indexes() const -> size_t {
-			return vertices.size() * 6;
-		}
-
-	public:
-		friend struct Base_2D;	// A bit clunky but we want _just_ the Base to have direct access
 	};
 
 protected:
@@ -472,10 +522,15 @@ private:
 	// TODO: Use scene_active only in debug mode
 	bool scene_active = false;
 
+	Draw_Call draw_call;
+
+	Profiler& profiler;
+
 protected:
-	Base_2D(Scene_Data&& sd)
+	Base_2D(Scene_Data&& sd, Profiler& prof = Profiler::global)
 		: scene_data{std::move(sd)}
-		, batch{{ .verteces = Batch::max_vertices, .texture_slots = Batch::max_texture_slots }}
+		, batch{{ .verteces = Batch::max_verteces, .texture_slots = Batch::max_texture_slots }}
+		, profiler{prof}
 	{}
 
 protected:
@@ -498,20 +553,20 @@ protected:
 	//	 	}
 	//	};
 	//
-	template <std::invocable Draws, std::invocable Flush>
-	auto scene(const camera::Orthographic& cam, Draws&& draws, Flush&& impl) -> void {
+	template <std::invocable Draws>
+	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
 		SAGE_ASSERT(not scene_active, "Must only call scene once: renderer.scene(camera, [] { render1(); render2(); });");
 
 		scene_active = true;
 
-		batch.vertices.clear();
+		SAGE_ASSERT(batch.verteces_are_empty(), "Make sure to clear when flushing");
 
 		scene_data.shader.bind();
 		scene_data.shader.set("u_ViewProjection", cam.view_proj_mat());
 
 		draws();
 
-		flush(std::forward<Flush>(impl));
+		flush();
 
 		scene_active = false;
 	}
@@ -544,6 +599,11 @@ protected:
 
 		SAGE_ASSERT(scene_active);
 
+		PROFILER_RENDERING(profiler, "Draw", [] (auto& result) { ++result.quads; });
+
+		if (batch.indeces() >= Batch::max_indeces)
+			flush();
+
 		const auto transform =
 			glm::translate(identity<glm::mat4>, args.position)
 			* glm::rotate(identity<glm::mat4>, glm::radians(args.rotation), { 0.f, 0.f, 1.f })
@@ -574,38 +634,40 @@ protected:
 					static_assert(false, "Unhandled type");
 			});
 
-		SAGE_ASSERT(coords.size() == verteces.length());
+		SAGE_ASSERT(coords.size() == static_cast<size_t>(verteces.length()) and verteces.length() == 4);
 
-		for (const auto vertex : vw::iota(0, verteces.length()))
-			batch.vertices.push_back({
+		auto verts = std::array<buffer::vertex::Quad, verteces.length()>{};
+		for (const auto vertex : vw::iota(0ul, verts.size()))
+			verts[vertex] = {
 					.position = verteces[vertex],
 					.color = color,
 					.texture = {
 						.coord = coords[vertex],
 						.index = tex_index,
 					},
-				});
+				};
+		batch.push_quad(std::move(verts));
 	}
 
 private:
-	template <std::invocable Draw_Call>
-	auto flush(Draw_Call&& draw) -> void {
+	auto flush() -> void {
 		SAGE_ASSERT(scene_active);
 
+		PROFILER_RENDERING(profiler, "Flush", [] (auto& result) { ++result.draw_calls; });
+
 		scene_data.vertex_array.bind();
-		const auto data = reinterpret_cast<const std::byte*>(batch.vertices.data());
-		const auto bytes = batch.vertices.size() * sizeof(typename Batch::Vertices::value_type);
 		scene_data.vertex_array.vertex_buffer()
-			.set_vertices({data, bytes})
+			.set_verteces(batch.verteces_as_bytes())
 			;
 
 		// Poor man's enumerate
-		rg::for_each(batch.texture_slots, [i = 0ul] (const auto& tex) mutable {
+		rg::for_each(batch.texture_slots(), [i = 0ul] (const auto& tex) mutable {
 				tex->bind(i++);
 			});
 
+		std::invoke(draw_call, batch);
 
-		std::invoke(std::forward<Draw_Call>(draw));
+		batch.clear_verteces();
 	}
 };
 

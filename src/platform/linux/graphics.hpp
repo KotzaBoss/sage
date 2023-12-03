@@ -109,7 +109,7 @@ struct Vertex_Buffer {
 
 private:
 	glfw::ID renderer_id;
-	Vertices _vertices;
+	Vertices _verteces;
 	Layout _layout;
 
 public:
@@ -128,7 +128,7 @@ public:
 	}
 
 	Vertex_Buffer(Vertices&& v, Layout&& l)
-		: _vertices{std::move(v)}
+		: _verteces{std::move(v)}
 		, _layout{std::move(l)}
 	{
 		renderer_id.emplace();
@@ -136,15 +136,15 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
 		glBufferData(
 				GL_ARRAY_BUFFER,
-				_vertices.size() * sizeof(Vertices::value_type),
-				_vertices.data(),
+				_verteces.size() * sizeof(Vertices::value_type),
+				_verteces.data(),
 				GL_STATIC_DRAW
 			);
 	}
 
 	Vertex_Buffer(Vertex_Buffer&& other)
 		: renderer_id{std::move(other.renderer_id)}
-		, _vertices{std::move(other._vertices)}
+		, _verteces{std::move(other._verteces)}
 		, _layout{std::move(other._layout)}
 	{}
 
@@ -164,11 +164,11 @@ public:
 	}
 
 public:
-	auto vertices() const -> const Vertices& {
-		return _vertices;
+	auto verteces() const -> const Vertices& {
+		return _verteces;
 	}
 
-	auto set_vertices(const std::span<const std::byte> bytes) -> void {
+	auto set_verteces(const std::span<const std::byte> bytes) -> void {
 		SAGE_ASSERT(*renderer_id);
 		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, bytes.size(), bytes.data());
@@ -207,9 +207,6 @@ public:
 				_indeces.data(),
 				GL_STATIC_DRAW
 			);
-
-		if constexpr (build::release)
-			_indeces.clear();
 	}
 
 	constexpr
@@ -236,7 +233,7 @@ public:
 					SAGE_ASSERT(indeces.end() + idxs.size() <= indeces.begin() + indeces.capacity(),
 							"Writing past end of indeces buffer, Index_Buffer size must be divisible by {}", idxs.size());
 
-					indeces.insert(indeces.end(), idxs.begin(), idxs.end());
+					rg::move(std::move(idxs), std::back_inserter(indeces));
 				}
 
 				return indeces;
@@ -312,6 +309,8 @@ public:
 
 
 		_index_buffer.bind();
+
+		// TODO: if constexpr (build::release) clear index/vertex buffers
 	}
 
 	Vertex_Array(Vertex_Array&& other)
@@ -677,25 +676,37 @@ public:
 	}
 };
 
-struct Renderer_2D : sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader> {
-	using Base = sage::graphics::renderer::Base_2D<Vertex_Array, Texture2D, Shader>;
+using Renderer_2D_Base = sage::graphics::renderer::Base_2D<
+		Vertex_Array,
+		Texture2D,
+		decltype([] (const auto& batch) {
+				glDrawElements(GL_TRIANGLES, batch.indeces(), GL_UNSIGNED_INT, nullptr);
+			}),
+		Shader
+	>;
+
+struct Renderer_2D : Renderer_2D_Base {
+	using Base = Renderer_2D_Base;
 	using Batch = Base::Batch;
 	using Vertex_Array = Base::Vertex_Array;
 	using Shader = Base::Shader;
 	using Draw_Args = Base::Draw_Args;
 
 public:
-	Renderer_2D()
-		: Base{{
-			.vertex_array{
-				Vertex_Buffer{
-					Batch::max_quads * sizeof(sage::graphics::buffer::vertex::Quad),
-					sage::graphics::buffer::vertex::Quad::layout()
+	Renderer_2D(Profiler& prof = Profiler::global)
+		: Base{
+			{
+				.vertex_array{
+					Vertex_Buffer{
+						Batch::max_verteces * sizeof(sage::graphics::buffer::vertex::Quad),
+						sage::graphics::buffer::vertex::Quad::layout()
+					},
+					Index_Buffer{Batch::max_indeces}
 				},
-				Index_Buffer{Batch::max_indeces}
+				.shader{"asset/shader/texture.glsl"}
 			},
-			.shader{"asset/shader/texture.glsl"}
-		}}
+			prof
+		}
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -712,9 +723,7 @@ public:
 
 	template <std::invocable Draws>
 	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
-		Base::scene(cam, std::forward<Draws>(draws), [this] {
-				glDrawElements(GL_TRIANGLES, batch.indexes(), GL_UNSIGNED_INT, nullptr);
-			});
+		Base::scene(cam, std::forward<Draws>(draws));
 	}
 
 	template <type::Any<Texture2D, glm::vec4> Drawing>
@@ -778,7 +787,7 @@ FMT_FORMATTER(sage::oslinux::Vertex_Buffer) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::oslinux::Vertex_Buffer) {
-		return fmt::format_to(ctx.out(), "oslinux::Vertex_Buffer: vertices={}; layout={};;", obj._vertices, obj._layout);
+		return fmt::format_to(ctx.out(), "oslinux::Vertex_Buffer: verteces={}; layout={};;", obj._verteces, obj._layout);
 	}
 };
 
