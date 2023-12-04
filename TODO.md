@@ -29,7 +29,7 @@
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
-| [src/app.hpp](src/app.hpp) | 93 | Fixed rate updates how to? Hardcode to 144fps for now. |
+| [src/app.hpp](src/app.hpp) | 86 | Fixed rate updates how to? Hardcode to 144fps for now. |
 | [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 
 ## FIXME

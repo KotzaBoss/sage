@@ -4,12 +4,16 @@
 
 namespace sage::inline time {
 
-template<typename Duration = std::chrono::milliseconds>
-	requires type::Any<Duration,
-			std::chrono::milliseconds,
-			std::chrono::microseconds
-		>
+template<typename D>
+concept Duration = type::Any<D,
+		std::chrono::milliseconds,
+		std::chrono::microseconds
+	>
+	;
+
+template<Duration D = std::chrono::milliseconds>
 struct Tick {
+	using Duration = D;
 	using Clock = std::chrono::steady_clock;
 
 private:

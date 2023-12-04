@@ -56,6 +56,8 @@ public:
 public:
 	auto run(std::stop_token stoken) -> bool {
 		for (auto tick = time::Tick{}; not stoken.stop_requested(); ) {
+			PROFILER_TIME(profiler, "Frame");
+
 			const auto delta = tick();
 
 			if (const auto event = window.consume_pending_event();
@@ -74,26 +76,15 @@ public:
 
 			imgui.new_frame([this] {
 					layers.imgui_prepare();
-
-					profiler.consume_results().apply([] (auto&& x) {
-							using T = std::decay_t<decltype(x)>;
-							if constexpr (std::same_as<T, std::vector<perf::Profiler::Timer::Result>>) {
-							}
-							else if constexpr (std::same_as<T, perf::Profiler::Rendering::Result>) {
-								::ImGui::Text(fmt::format("{}", x).c_str());
-							}
-							else
-								static_assert(false);
-						});
-
+					profiler.imgui_prepare();
 				});
 
 			window.update();
 
 			// TODO: Fixed rate updates how to? Hardcode to 144fps for now.
 			// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep
-			constexpr auto frame_duration = 1000ms / 144;
-			std::this_thread::sleep_until(tick.current_time_point() + frame_duration);
+			const auto next_time_point = perf::target::time_point::_144(tick.current_time_point());
+			std::this_thread::sleep_until(next_time_point);
 		}
 
 		return true;

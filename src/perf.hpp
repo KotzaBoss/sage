@@ -1,13 +1,44 @@
 #pragma once
 
 #include "src/std.hpp"
+#include "src/repr.hpp"
 #include "src/time.hpp"
 #include "src/util.hpp"
+#include "imgui.h"
 
 namespace sage::inline perf {
 
+namespace target {
+	namespace fps {
+		constexpr auto _30 = 1000ms / 30;
+		constexpr auto _60 = 1000ms / 60;
+		constexpr auto _144 = 1000ms / 144;
+	}
+
+	namespace time_point {
+		using Time_Point = std::chrono::steady_clock::time_point;
+
+		constexpr auto _30	(const Time_Point& start) -> Time_Point { return start + fps::_30;	}
+		constexpr auto _60	(const Time_Point& start) -> Time_Point { return start + fps::_60;	}
+		constexpr auto _144	(const Time_Point& start) -> Time_Point { return start + fps::_144;	}
+	}
+
+	constexpr auto legend() -> std::string {
+		// This is ugly x( but it works x)
+		return fmt::format(
+R"(FPS:
+	 30 -> {:>5}
+	 60 -> {:>5}
+	144 -> {:>5}
+)",
+				fps::_30, fps::_60, fps::_144
+			);
+	}
+} //targets
+
+
 struct Profiler {
-	using Duration = std::chrono::microseconds;
+	using Duration = std::chrono::milliseconds;
 
 public:
 	static Profiler global;
@@ -75,23 +106,24 @@ public:
 
 	private:
 		std::string_view name;
-		std::vector<Result>& results;
+		Result& results;
 
 	public:
-		constexpr Timer(const std::string_view n, std::vector<Result>& r)
+		constexpr Timer(const std::string_view n, Result& r)
 			: Tick()
 			, name{n}
 			, results{r}
 		{}
 
 		~Timer() {
-			results.emplace_back(name, std::invoke(*this));
+			results = {name, std::invoke(*this)};
 		}
 	};
 
 public:
 	using Results = util::Polymorphic_Array<
 			std::vector<Timer::Result>,
+			Timer::Result,
 			Rendering::Result
 		>;
 
@@ -101,7 +133,11 @@ private:
 public:
 	Profiler() = default;
 	Profiler(Rendering::Batch&& batch)
-		: results{std::vector<Timer::Result>{}, std::move(batch)}
+		: results{
+			std::vector<Timer::Result>{},
+			Timer::Result{},
+			Rendering::Result{std::move(batch)}
+		}
 	{}
 
 public:
@@ -123,7 +159,7 @@ public:
 
 	[[nodiscard]]
 	auto time(const std::string_view name) -> Timer {
-		return {name, results.get<std::vector<Timer::Result>>()};
+		return {name, results.get<Timer::Result>()};
 	}
 
 	#pragma GCC diagnostic push
@@ -154,6 +190,8 @@ public:
 		auto r = std::move(results);
 		return r;
 	}
+
+	auto imgui_prepare() -> void; // Implementation after the FMT_FORMATTERs
 };
 
 inline Profiler Profiler::global;
@@ -189,7 +227,55 @@ FMT_FORMATTER(sage::perf::Profiler::Timer::Result) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::perf::Profiler::Timer::Result) {
-		return fmt::format_to(ctx.out(), "Timer::Result: name={} duration={};", obj.name, obj.duration);
+		return fmt::format_to(ctx.out(), "Timer::Result: name={:?} duration={};", obj.name, obj.duration);
 	}
 };
 
+namespace sage::perf {
+
+auto Profiler::imgui_prepare() -> void {
+	consume_results().apply([] (auto&& x) {
+			using T = std::decay_t<decltype(x)>;
+
+			if constexpr (std::same_as<T, std::vector<Timer::Result>>) {
+				if (::ImGui::TreeNode("Timer Results")) {
+					static int current = 1;
+            		ImGui::ListBox(
+							"",
+							&current,
+							[](void* data, int idx) -> const char* {
+								const auto& result = static_cast<Timer::Result*>(data)[idx];
+								return fmt::format("{}", result).c_str();
+							},
+							x.data(),
+							x.size(),
+							4
+						);
+
+					::ImGui::TreePop();
+				}
+			}
+			else if constexpr (std::same_as<T, Timer::Result>) {
+				if (::ImGui::TreeNode("Single Timer Result")) {
+					::ImGui::Text(fmt::format("{}", x).c_str());
+
+					::ImGui::TreePop();
+				}
+			}
+			else if constexpr (std::same_as<T, Rendering::Result>) {
+				if (::ImGui::TreeNode("Rendering Result")) {
+					::ImGui::Text(fmt::format("{}", x).c_str());
+
+					::ImGui::TreePop();
+				}
+			}
+			else
+				static_assert(false);
+
+		});
+
+	::ImGui::SeparatorText("Legend");
+	::ImGui::Text(perf::target::legend().c_str());
+}
+
+}// sage::perf

@@ -123,8 +123,8 @@ public:
 			});
 
 		constexpr auto right = 5.f;
-		for (auto x = -right; x < right; x += 0.1f)
-			for (auto y = -right; y < right; y += 0.1f)
+		for (auto x = -right; x < right; x += 0.5f)
+			for (auto y = -right; y < right; y += 0.5f)
 			{
 				renderer.draw(
 						glm::vec4{ (x + right) / 10.f, 0.4f, (y + right) / 10.f, 0.5f },
