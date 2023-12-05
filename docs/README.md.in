@@ -7,7 +7,11 @@ ${toc}
 
 ## Getting Started
 ```
+git clone https://github.com/KotzaBoss/sage.git
+cd sage
 cmake -B build
+cmake --build build
+./build/bin/sage
 ```
 To customize the build see [[README#Build]].
 
@@ -21,6 +25,7 @@ A big part of SAGE is automated. Once you are done tweaking/extending/refactorin
 cmake -B build	\
       -G Ninja	\
       -D CMAKE_LINKER=mold
+cmake --build build
 ```
 
 ${options}
