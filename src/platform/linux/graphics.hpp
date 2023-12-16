@@ -745,41 +745,6 @@ public:
 	}
 };
 
-using Renderer_Base = sage::graphics::renderer::Base<Shader, oslinux::Vertex_Array>;
-struct Renderer : Renderer_Base {
-	using Vertex_Array = oslinux::Vertex_Array;
-
-public:
-	Renderer() {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_DEPTH_TEST);
-	}
-
-	auto event_callback(const Event& e) -> void {
-		if (e.type == Event::Type::Window_Resized) {
-			SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
-
-			const auto& payload = std::get<Size<size_t>>(e.payload);
-			glViewport(0, 0, payload.width, payload.height);
-		}
-	}
-
-	auto submit(const Shader& shader, const Vertex_Array& va, const glm::mat4& transform = glm::mat4{1.f}) -> void {
-		Renderer_Base::submit(shader, va, transform, [&] {
-				glDrawElements(GL_TRIANGLES, va.index_buffer().indeces().size(), GL_UNSIGNED_INT, nullptr);
-			});
-	}
-
-	auto clear() -> void {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	auto set_clear_color(const glm::vec4& color) -> void {
-		glClearColor(color.r, color.g, color.b, color.a);
-	}
-};
-
 }//sage::oslinux::graphics
 
 template <>
