@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/std.hpp"
+#include "src/util.hpp"
 
 namespace sage::inline time {
 
@@ -10,6 +11,9 @@ concept Duration = type::Any<D,
 		std::chrono::microseconds
 	>
 	;
+
+template<Number Rep> using microseconds = std::chrono::duration<Rep, std::micro>;
+template<Number Rep> using milliseconds = std::chrono::duration<Rep, std::milli>;
 
 template<Duration D = std::chrono::milliseconds>
 struct Tick {

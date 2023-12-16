@@ -38,7 +38,7 @@ R"(FPS:
 
 
 struct Profiler {
-	using Duration = std::chrono::milliseconds;
+	using Duration = std::chrono::microseconds;
 
 public:
 	static Profiler global;
@@ -68,26 +68,32 @@ public:
 				, quads{0}
 			{}
 
+			Result(const Result&) = default;
 			Result(Result&& other)
 				: batch{other.batch} // copy to not lose the information
 				, draw_calls{std::exchange(other.draw_calls, 0)}
 				, quads{std::exchange(other.quads, 0)}
 			{}
 
+			auto operator= (Result&& other) -> Result& {
+				draw_calls = std::exchange(other.draw_calls, 0);
+				quads = std::exchange(other.quads, 0);
+
+				return *this;
+			}
+
 		public:
 			friend FMT_FORMATTER(Result);
 		};
 
 	private:
-		std::string_view name;
 		Result& result;
 		std::function<void(Result&)> fn;
 
 	public:
 		template <std::invocable<Result&> Fn>
-		constexpr Rendering(const std::string_view n, Result& r, Fn&& _fn)
-			: name{n}
-			, result{r}
+		constexpr Rendering(Result& r, Fn&& _fn)
+			: result{r}
 			, fn{std::forward<Fn>(_fn)}
 		{}
 
@@ -98,32 +104,36 @@ public:
 
 	struct Timer : Tick<Duration> {
 		struct Result {
-			std::string_view name;
 			Duration duration;
 
 			friend FMT_FORMATTER(Result);
 		};
 
 	private:
-		std::string_view name;
 		Result& results;
 
 	public:
-		constexpr Timer(const std::string_view n, Result& r)
+		constexpr Timer(Result& r)
 			: Tick()
-			, name{n}
 			, results{r}
 		{}
 
 		~Timer() {
-			results = {name, std::invoke(*this)};
+			results = {std::invoke(*this)};
 		}
 	};
 
 public:
+	struct Timer_Result_Pair {
+		std::string_view name;
+		Timer::Result result;
+
+		friend FMT_FORMATTER(Timer_Result_Pair);
+	};
+	using Timer_Results = std::vector<Timer_Result_Pair>;
+
 	using Results = util::Polymorphic_Array<
-			std::vector<Timer::Result>,
-			Timer::Result,
+			Timer_Results,
 			Rendering::Result
 		>;
 
@@ -132,18 +142,16 @@ private:
 
 public:
 	Profiler() = default;
-	Profiler(Rendering::Batch&& batch)
+	Profiler(Rendering::Batch&& batch, const size_t timer_result_capacity = 100)
 		: results{
-			std::vector<Timer::Result>{},
-			Timer::Result{},
+			Timer_Results{},
 			Rendering::Result{std::move(batch)}
 		}
-	{}
+	{
+		results.get<Timer_Results>().reserve(timer_result_capacity);
+	}
 
 public:
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wvariadic-macros"
-
 	#ifndef NDEBUG
 	// Unecessarily dark, magic
 	#define DETAIL_PROFILER_TIME_IMPL(_prof_, _name_, _func_, _line_) const auto timer_##_func_##_##_line_ = _prof_.time(_name_)
@@ -155,11 +163,16 @@ public:
 	#define PROFILER_TIME(...) (void)0
 	#endif
 
-	#pragma GCC diagnostic pop
-
 	[[nodiscard]]
 	auto time(const std::string_view name) -> Timer {
-		return {name, results.get<Timer::Result>()};
+		auto& timer_results = results.get<Timer_Results>();
+
+		SAGE_ASSERT(timer_results.size() < timer_results.capacity(),
+				"Make sure the profiling results are consumed at some point and if you need more increase the `timer_results_capacity` hint in the Profiler constructor", timer_results.size(), timer_results.capacity());
+
+		timer_results.emplace_back(name);
+		auto& res = timer_results.back().result;
+		return { res };
 	}
 
 	#pragma GCC diagnostic push
@@ -181,17 +194,19 @@ public:
 	template <std::invocable<Rendering::Result&> Fn>
 	[[nodiscard]]
 	auto rendering(const std::string_view name, Fn&& fn) -> Rendering {
-		return Rendering{ name, results.get<Rendering::Result>(), std::forward<Fn>(fn) };
+		return Rendering{ results.get<Rendering::Result>(), std::forward<Fn>(fn) };
 	}
 
 	[[nodiscard]]
 	auto consume_results() -> Results {
 		// Writing: return std::move(results); in one line does not work
-		auto r = std::move(results);
+		auto r = results;
+
+		results.get<Timer_Results>().clear();
+		results.get<Rendering::Result>() = Rendering::Result();
+
 		return r;
 	}
-
-	auto imgui_prepare() -> void; // Implementation after the FMT_FORMATTERs
 };
 
 inline Profiler Profiler::global;
@@ -203,7 +218,7 @@ FMT_FORMATTER(sage::perf::Profiler::Rendering::Batch) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::perf::Profiler::Rendering::Batch) {
-		return fmt::format_to(ctx.out(), "Rendering::Batch: max_quads={};", obj.max_quads);
+		return fmt::format_to(ctx.out(), "max_quads={}", obj.max_quads);
 	}
 };
 
@@ -214,8 +229,14 @@ FMT_FORMATTER(sage::perf::Profiler::Rendering::Result) {
 
 	FMT_FORMATTER_FORMAT(sage::perf::Profiler::Rendering::Result) {
 		return fmt::format_to(ctx.out(),
-				"Rendering::Result: batch={} quads={} draw_calls={};",
-				obj.batch,
+				"batch{{{}}} quads={} draw_calls={}",
+				// TODO: Make a specialization that is shorter than fmt's optional(...)
+				std::invoke([&] {
+						if (obj.batch.has_value())
+							return fmt::format("{}", *obj.batch);
+						else
+							return "Unspecified"s;
+					}),
 				obj.quads,
 				obj.draw_calls
 			);
@@ -227,55 +248,59 @@ FMT_FORMATTER(sage::perf::Profiler::Timer::Result) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
 	FMT_FORMATTER_FORMAT(sage::perf::Profiler::Timer::Result) {
-		return fmt::format_to(ctx.out(), "Timer::Result: name={:?} duration={};", obj.name, obj.duration);
+		return fmt::format_to(ctx.out(), "duration={};", obj.duration);
+	}
+};
+
+template<>
+FMT_FORMATTER(sage::perf::Profiler::Timer_Result_Pair) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::perf::Profiler::Timer_Result_Pair) {
+		return fmt::format_to(ctx.out(), "(name={:?} result={})", obj.name, obj.result);
+	}
+};
+
+template<>
+FMT_FORMATTER(sage::perf::Profiler::Results) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::perf::Profiler::Results) {
+		using Profiler = sage::perf::Profiler;
+
+		const auto& timer_results = obj.get<Profiler::Timer_Results>();
+
+		const auto total = rg::fold_left(
+				timer_results,
+				Profiler::Duration{},
+				[] (const auto& acc, const auto& pair) {
+					return acc + pair.result.duration;
+				}
+			);
+
+		constexpr auto format_line = "{:15} {:>10} {:5.1f}\n";
+
+		fmt::format_to(ctx.out(), "Profiler results:\n");
+		fmt::format_to(ctx.out(), format_line, "Frame", total, 100.f);
+
+		for (const auto& pair : timer_results) {
+			using Float_Duration = std::chrono::duration<float, typename Profiler::Duration::period>;
+			const auto percentage = (Float_Duration{pair.result.duration} / total) * 100;
+			fmt::format_to(ctx.out(), format_line,
+					pair.name,
+					pair.result.duration,
+					percentage
+				);
+		}
+
+		const auto& rendering_result = obj.get<Profiler::Rendering::Result>();
+		fmt::format_to(ctx.out(), "\nRendering {}", rendering_result);
+
+
+		return fmt::format_to(ctx.out(), "\n=============================\nLegend\n{}", sage::perf::target::legend());
 	}
 };
 
 namespace sage::perf {
-
-auto Profiler::imgui_prepare() -> void {
-	consume_results().apply([] (auto&& x) {
-			using T = std::decay_t<decltype(x)>;
-
-			if constexpr (std::same_as<T, std::vector<Timer::Result>>) {
-				if (::ImGui::TreeNode("Timer Results")) {
-					static int current = 1;
-            		ImGui::ListBox(
-							"",
-							&current,
-							[](void* data, int idx) -> const char* {
-								const auto& result = static_cast<Timer::Result*>(data)[idx];
-								return fmt::format("{}", result).c_str();
-							},
-							x.data(),
-							x.size(),
-							4
-						);
-
-					::ImGui::TreePop();
-				}
-			}
-			else if constexpr (std::same_as<T, Timer::Result>) {
-				if (::ImGui::TreeNode("Single Timer Result")) {
-					::ImGui::Text(fmt::format("{}", x).c_str());
-
-					::ImGui::TreePop();
-				}
-			}
-			else if constexpr (std::same_as<T, Rendering::Result>) {
-				if (::ImGui::TreeNode("Rendering Result")) {
-					::ImGui::Text(fmt::format("{}", x).c_str());
-
-					::ImGui::TreePop();
-				}
-			}
-			else
-				static_assert(false);
-
-		});
-
-	::ImGui::SeparatorText("Legend");
-	::ImGui::Text(perf::target::legend().c_str());
-}
 
 }// sage::perf

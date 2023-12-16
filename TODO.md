@@ -1,10 +1,10 @@
 # Overview
 
-31 items to be done.
+32 items to be done.
 
 ## TODO
 
-23 items available.
+24 items available.
 
 | Source | Line Number | Description |
 |:-|:-|:-|
@@ -17,6 +17,7 @@
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 313 | if constexpr (build::release) clear index/vertex buffers |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 215 | This could be a range::chunk or range::slide in c++23? |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 105 | Split dynamic/static vertex_buffer? |
+| [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
 | [src/layer_imgui.hpp](src/layer_imgui.hpp) | 131 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/layer.hpp](src/layer.hpp) | 15 | Maybe pass renderer::Concept to .render()? Can there be multiple renderers? |
 | [src/layer.hpp](src/layer.hpp) | 14 | Maybe pass optional\<Event\> to allow for functional chaining? |
@@ -29,7 +30,7 @@
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
-| [src/app.hpp](src/app.hpp) | 86 | Fixed rate updates how to? Hardcode to 144fps for now. |
+| [src/app.hpp](src/app.hpp) | 110 | Fixed rate updates how to? Hardcode to 144fps for now. |
 | [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 
 ## FIXME

@@ -22,5 +22,5 @@
 	}	\
 
 #define FMT_FORMATTER_FORMAT(...)	\
-	auto format(const __VA_ARGS__& obj, auto& ctx) const -> auto
+	constexpr auto format(const __VA_ARGS__& obj, auto& ctx) const -> auto
 

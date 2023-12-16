@@ -56,30 +56,57 @@ public:
 public:
 	auto run(std::stop_token stoken) -> bool {
 		for (auto tick = time::Tick{}; not stoken.stop_requested(); ) {
-			PROFILER_TIME(profiler, "Frame");
-
 			const auto delta = tick();
 
-			if (const auto event = window.consume_pending_event();
-				event.has_value())
 			{
-				layers.event_callback(*event);
-				renderer.event_callback(*event);
+				PROFILER_TIME(profiler, "Event Callbacks");
+
+				if (const auto event = window.consume_pending_event();
+					event.has_value())
+				{
+					{
+						PROFILER_TIME(profiler, "	Layers");
+
+						layers.event_callback(*event);
+					}
+
+					{
+						PROFILER_TIME(profiler, "	Renderer");
+
+						renderer.event_callback(*event);
+					}
+				}
 			}
 
 			// As layers get more interesting this if may change but for now keep it
 			// very strict: no window, no work
 			if (not window.is_minimized()) {
-				layers.update(delta, input);
-				layers.render(renderer);
+
+				{
+					PROFILER_TIME(profiler, "Update Layers");
+
+					layers.update(delta, input);
+				}
+
+				{
+					PROFILER_TIME(profiler, "Render Layers");
+
+					layers.render(renderer);
+				}
 			}
 
-			imgui.new_frame([this] {
-					layers.imgui_prepare();
-					profiler.imgui_prepare();
-				});
+			{
+				PROFILER_TIME(profiler, "ImGui");
+
+				imgui.new_frame([this] {
+						layers.imgui_prepare();
+					});
+			}
 
 			window.update();
+
+			const auto res = profiler.consume_results();
+			SAGE_LOG_WARN(res);
 
 			// TODO: Fixed rate updates how to? Hardcode to 144fps for now.
 			// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep

@@ -340,6 +340,18 @@ public:
 			);
 	}
 
+	// See above because this is ugly
+	template <typename Fn>
+		requires (std::invocable<Fn, const Ts&> and ...)
+	constexpr auto const_apply(Fn&& fn) const -> decltype(auto) {
+		return std::apply(
+				[&] (const auto&... t) {
+					return (std::invoke(std::forward<Fn>(fn), t), ...);
+				},
+				*this
+			);
+	}
+
 	template <type::Any<Ts...> T>
 	constexpr auto get() -> T& {
 		return std::get<T>(*this);
