@@ -67,9 +67,9 @@ template <layer::Spec... Ls>
 		and type::All<typename Ls::User_State...>
 struct Array : util::Polymorphic_Array<typename Ls::Layer...> {
 	using Base = util::Polymorphic_Array<typename Ls::Layer...>;
-	using Input = std::tuple_element_t<0, std::tuple<typename Ls::Input...>>;
-	using Renderer = std::tuple_element_t<0, std::tuple<typename Ls::Rendering::Renderer...>>;
-	using User_State = std::tuple_element_t<0, std::tuple<typename Ls::User_State...>>;
+	using Input = type::Front<typename Ls::Input...>;
+	using Renderer = type::Front<typename Ls::Rendering::Renderer...>;
+	using User_State = type::Front<typename Ls::User_State...>;
 
 public:
 	Array(type::Any<typename Ls::Layer...> auto&&... ls)
@@ -111,9 +111,9 @@ template <layer::Spec... Ls>
 	requires type::All<typename Ls::Input...>
 struct Storage : util::Polymorphic_Storage<typename Ls::Layer...> {
 	using Base = util::Polymorphic_Storage<typename Ls::Layer...>;
-	using Input = std::tuple_element_t<0, std::tuple<typename Ls::Input...>>;
-	using Renderer = std::tuple_element_t<0, std::tuple<typename Ls::Rendering::Renderer...>>;
-	using User_State = std::tuple_element_t<0, std::tuple<typename Ls::User_State...>>;
+	using Input = type::Front<typename Ls::Input...>;
+	using Renderer = type::Front<typename Ls::Rendering::Renderer...>;
+	using User_State = type::Front<typename Ls::User_State...>;
 
 public:
 	Storage(typename Base::Vector<typename Ls::Layer>&&... layers)

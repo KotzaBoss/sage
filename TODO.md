@@ -11,8 +11,8 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 64 | Weird behaviour for Set<>::count<>() |
-| [src/util.hpp](src/util.hpp) | 331 | add check std>=23 todo deduce this |
-| [src/util.hpp](src/util.hpp) | 329 | Deduce this to add const-correctness to Polymorphic_Containers. |
+| [src/util.hpp](src/util.hpp) | 341 | add check std>=23 todo deduce this |
+| [src/util.hpp](src/util.hpp) | 339 | Deduce this to add const-correctness to Polymorphic_Containers. |
 | [src/platform/linux/window.hpp](src/platform/linux/window.hpp) | 74 | Change switches to array lookups for clarity |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 59 | Check error |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 53 | Check error |

@@ -202,6 +202,16 @@ inline constexpr auto unique<T, Rest...> = Not_In<T, Rest...> and unique<Rest...
 template <typename... T>
 concept Unique = detail::unique<T...>;
 
+template <size_t I, typename... Ts>
+	requires (sizeof...(Ts) > 0)
+using At = std::tuple_element_t<I, std::tuple<Ts...>>;
+
+template <typename... Ts>
+using Front = At<0, Ts...>;
+
+template <typename... Ts>
+using Back = At<sizeof...(Ts) - 1, Ts...>;
+
 }// type::comp
 
 using Real_Name_Ptr = std::unique_ptr<char, decltype([] (auto ptr) { std::free(ptr); })>;
