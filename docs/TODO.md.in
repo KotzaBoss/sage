@@ -2,19 +2,7 @@
 
 ${overview}
 
-## TODO
+# Entries
 
-${todos}
-
-## FIXME
-
-${fixmes}
-
-## CONFUSION
-
-${confusions}
-
-## OPTIMIZE
-
-${optimizes}
+${entries}
 

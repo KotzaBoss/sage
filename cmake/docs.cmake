@@ -164,23 +164,24 @@ function (make_readme)
 	file(WRITE ${PROJECT_SOURCE_DIR}/README.md ${content})
 endfunction()
 
-set(_todos TODO FIXME OPTIMIZE CONFUSION RND)
 set(_note_regex "[a-zA-Z0-9_/.^]+")
 set(_section_regex "#[a-zA-Z0-9_ -]+")
 
 function(make_todo)
 	set(one_value_args OUTPUT_DIR CODE_CONTEXT)
-	set(multi_value_args PROJECT_DIRS)
+	set(multi_value_args PROJECT_DIRS TAGS)
 	cmake_parse_arguments(TODO "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
 	if (NOT TODO_PROJECT_DIRS)
 		message(FATAL_ERROR "Expected PROJECT_DIRS")
+	elseif(NOT TODO_TAGS)
+		message(FATAL_ERROR "Expected TAGS, eg TODO, FIXME, ...")
 	endif()
 
 	list(TRANSFORM TODO_PROJECT_DIRS PREPEND "${PROJECT_SOURCE_DIR}/")
 
 	if (NOT TODO_CODE_CONTEXT)
-		set(TODO_CODE_CONTEXT 10)
+		set(TODO_CODE_CONTEXT 15)
 	elseif (${TODO_CODE_CONTEXT} LESS 0)
 		message(FATAL_ERROR "CODE_CONTEXT must be positive")
 	endif()
@@ -194,9 +195,10 @@ function(make_todo)
 	#            OS' equivalent commands?
 	block()
 		string(JOIN "|" comment_token "//" "#")
-		string(JOIN "|" todos ${_todos})
+		string(JOIN "|" todos ${TODO_TAGS})
 		set(todo "(${comment_token})[ ]*(${todos}):? ")
 
+		# Create a list of entries to be consumed later
 		foreach(dir ${TODO_PROJECT_DIRS})
 			list(TRANSFORM _glob PREPEND "${dir}/" OUTPUT_VARIABLE glob)
 			file(GLOB_RECURSE files ${glob})
@@ -218,7 +220,19 @@ function(make_todo)
 						continue()
 					endif()
 
-					string(STRIP ${line} line)
+					# Set `line` as the todo string.
+					# We do this ceremony because we need to account for the todo being
+					# in a line with other code.
+					block(PROPAGATE line)
+						string(FIND "${line}" "${match}" index)
+						assert(COND ${index} GREATER -1 MSG "'${match}'\nnot in\n'${line}'")
+
+						string(LENGTH "${line}" len)
+						math(EXPR remaining_size "${len} - ${index}")
+						string(SUBSTRING "${line}" ${index} ${remaining_size} line)
+
+						string(STRIP "${line}" line)
+					endblock()
 
 					# Escape template syntax because markdown thinks its html, yes we do need 4 backslashes...
 					string(REGEX REPLACE "<([a-zA-Z0-9_:]+)>" "\\\\<\\1\\\\>" line ${line})
@@ -248,8 +262,8 @@ function(make_todo)
 
 			# Get a few lines around the TODO, same as: grep -C 7 ...
 			math(EXPR first_line "${line_number} - ${TODO_CODE_CONTEXT}")
-			if (first_line LESS 0)
-				set(first_line 0)
+			if (first_line LESS 1)
+				set(first_line 1)
 			endif()
 			math(EXPR last_line "${line_number} + ${TODO_CODE_CONTEXT}")
 			execute_process(
@@ -261,37 +275,34 @@ function(make_todo)
 			cmake_path(GET filename FILENAME fname)
 			string(REPLACE ${fname} "bug__${fname}" filename ${filename})
 
+			# FIXME: Remove the extra newlines added at the end of the file
 			configure_file(${CMAKE_CURRENT_SOURCE_DIR}/todo_note.md.in ${TODO_OUTPUT_DIR}/${filename}__${line_number}.md)
 		endwhile()
 
+
 		set(total_todos 0)
-		foreach (td ${_todos})
+		foreach (td ${TODO_TAGS})
 			list(LENGTH ${td} len)
 			math(EXPR total_todos "${total_todos} + ${len}")
 			if (${len} GREATER 0)
 				list(TRANSFORM ${td} PREPEND "| ")
 				list(TRANSFORM ${td} APPEND " |")
 				list(PREPEND ${td}
+						"## ${td}\n"
 						"${len} items available.\n"
 						"| Source | Line Number | Description |"
 						"|:-|:-|:-|"
 					)
+				list(APPEND ${td} "\n")
 			else()
 				list(APPEND ${td} "No items available.")
 			endif()
 			list(JOIN ${td} "\n" ${td})
-
-			# Set the expected section name as in the TODO.md.in file
-			# meaning: TODO -> todos, FIXME -> fixmes, ...
-			set(items ${td})
-			string(TOLOWER ${items} items)
-			string(APPEND items "s")
-			set(${items} "${${td}}")
+			string(APPEND entries ${${td}})
 		endforeach()
 
 		set(overview "${total_todos} items to be done.")
 
-		string(JOIN "\n" content ${content})
 		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/TODO.md.in ${TODO_OUTPUT_DIR}/TODO.md)
 
 		file(READ ${TODO_OUTPUT_DIR}/TODO.md content)

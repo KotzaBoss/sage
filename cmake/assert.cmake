@@ -1,3 +1,8 @@
+# Do not put \" in the MSG otherwise cmake has a syntactical mental breakdown.
+# Try using ' or ` to show bounds of text.
+#
+# assert(COND whatever MSG "'${blah}' is not `${blooh}`")
+#
 function (assert)
 	cmake_parse_arguments(ASSERT "" "MSG" "COND" ${ARGN})
 	if (NOT ASSERT_COND)
