@@ -190,7 +190,7 @@ public:
 		game_state.level.render(renderer);
 	}
 
-	auto event_callback(const Event& e, Game_State&) -> void {
+	auto event_callback(const Event&, Game_State&) -> void {
 	}
 
 	auto imgui_prepare() -> void {
@@ -208,7 +208,7 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, Game_State& game_state) -> void {
+	auto update(const std::chrono::milliseconds, oslinux::Input& input, Game_State& game_state) -> void {
 		const auto& player = game_state.level.player();
 		const auto position = player.position();
 		const auto rotation = player.rotation();
@@ -252,7 +252,7 @@ public:
 			});
 	}
 
-	auto render(oslinux::Renderer_2D& renderer, Game_State& game_state) -> void {
+	auto render(oslinux::Renderer_2D& renderer, Game_State&) -> void {
 		Base::render([&] (const auto& particles) {
 				rg::for_each(particles, [&] (const auto& p) {
 						renderer.draw(p.properties.color, {
@@ -263,7 +263,7 @@ public:
 			});
 	}
 
-	auto event_callback(const Event& e, Game_State& game_state) -> void {
+	auto event_callback(const Event&, Game_State&) -> void {
 	}
 
 	auto imgui_prepare() -> void {
