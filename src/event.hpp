@@ -45,9 +45,6 @@ struct Event {
 	static constexpr auto no_payload = Payload{};
 	REPR_DECL(Payload);
 
-	using Callback = std::function<void(const Event&)>;
-	static constexpr auto uninitialized_callback = [] (const Event&) { SAGE_ASSERT(false, "Event::Callback is uninitialized"); };
-
 public:
 	Type type;
 	Category category;
