@@ -164,7 +164,7 @@ function (make_readme)
 	file(WRITE ${PROJECT_SOURCE_DIR}/README.md ${content})
 endfunction()
 
-set(_todos TODO FIXME OPTIMIZE CONFUSION)
+set(_todos TODO FIXME OPTIMIZE CONFUSION RND)
 set(_note_regex "[a-zA-Z0-9_/.^]+")
 set(_section_regex "#[a-zA-Z0-9_ -]+")
 
