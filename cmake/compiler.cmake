@@ -31,8 +31,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS TRUE)
 
 add_compile_options(-Wall -Wextra -Wpedantic -pthread -fdiagnostics-color=always)
-# As of GCC 13 we need to link libatomic
-add_link_options(-latomic)
+
+if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 13)
+	add_link_options(-latomic)
+endif()
+
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
 	add_compile_options(-fsanitize=undefined,address -fconcepts-diagnostics-depth=2)
 	add_link_options(-fsanitize=undefined,address)
