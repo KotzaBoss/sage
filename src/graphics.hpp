@@ -534,19 +534,19 @@ protected:
 	{}
 
 protected:
-	// Should be called once, usually by some layer (see layer::Concept)
+	// Should be called once from the App	//
 	//
 	// struct Magic {
 	//   Renderer& renderer;
 	//   auto render() { renderer.draw(...); }
 	// };
 	//
-	// struct Magic_Layer {
+	// struct App {
 	//		Renderer& renderer;
 	//   	Camera& camera;
 	//   	Magic magic;
 	//
-	//   	auto render() {
+	//   	auto loop() {
 	//	 	   renderer.scene(camera, [&] {
 	//	 	   		magic.render();
 	//	 	   	});

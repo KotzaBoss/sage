@@ -32,6 +32,11 @@ constexpr auto in_range(X x) -> bool {
 	}
 }
 
+template <Number N>
+constexpr auto in_range(const N x, const N min, const N max) -> bool {
+	return min <= x and x <= max;
+}
+
 // FIXME: default template does not work.
 template<Number N = size_t>
 struct Size {
@@ -58,6 +63,38 @@ public:
 	friend
 	REPR_DEF_FMT(Size<N>)
 };
+
+namespace random {
+
+template<Number N>
+constexpr auto in_range(const N min = 0, const N max = std::numeric_limits<N>::max()) -> N {
+	// Things like this make people hate cpp...
+	// Why not have a random(min, max) function that has the optimal implementation for
+	// the current platform?
+	static auto dev = std::random_device{};
+	auto engine = std::mt19937{dev()};
+	if constexpr (std::floating_point<N>)
+		return std::uniform_real_distribution{min, max}(engine);
+	else
+		return std::uniform_int_distribution{min, max}(engine);
+}
+
+template<Number N>
+constexpr auto non_negative(const N max) -> N {
+	return in_range(0, max);
+}
+
+constexpr auto normalized() -> float {
+	return in_range(0.f, 1.f);
+}
+
+namespace toggle {
+constexpr auto often()		-> bool { return math::in_range(random::in_range(1, 100), 1, 75); }
+constexpr auto uncommon()	-> bool { return math::in_range(random::in_range(1, 100), 1, 50); }
+constexpr auto rare()		-> bool { return math::in_range(random::in_range(1, 100), 1, 25); }
+}// random::toggle
+
+}// random
 
 }// sage::math
 

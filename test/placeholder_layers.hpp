@@ -3,12 +3,15 @@
 
 #include "imgui.h"
 
+struct Non_State {};
+
 struct Dump_Layer {
-	template <typename _Input, typename _Rendering>
+	template <typename _Input, typename _Rendering, typename _User_State>
 	struct Spec {
 		using Layer = Dump_Layer;
 		using Rendering = _Rendering;
 		using Input = _Input;
+		using User_State = _User_State;
 	};
 
 public:
@@ -22,8 +25,8 @@ public:
 
 	~Dump_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta, auto&) -> void { MESSAGE("DUMP Updating {}", id, delta); }
-	auto render(auto&) {}
+	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("DUMP Updating {}", id, delta); }
+	auto render(auto&, auto&) {}
 	auto imgui_prepare() -> void {
 		// Create a window called "My First Tool", with a menu bar.
 		static auto my_tool_active = true;
@@ -58,7 +61,7 @@ public:
 		ImGui::EndChild();
 		ImGui::End();
 	}
-	auto event_callback(const sage::Event& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
+	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Dump_Layer);
 };
@@ -75,11 +78,12 @@ FMT_FORMATTER(Dump_Layer) {
 REPR_DEF_FMT(Dump_Layer);
 
 struct Other_Layer {
-	template <typename _Input, typename _Rendering>
+	template <typename _Input, typename _Rendering, typename _User_State>
 	struct Spec {
 		using Layer = Other_Layer;
 		using Rendering = _Rendering;
 		using Input = _Input;
+		using User_State = _User_State;
 	};
 
 public:
@@ -93,8 +97,8 @@ public:
 
 	~Other_Layer() { MESSAGE("OTHER Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta, auto&) -> void { MESSAGE("OTHER Updating {}", id, delta); }
-	auto render(auto&) {}
+	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("OTHER Updating {}", id, delta); }
+	auto render(auto&, auto&) {}
 	auto imgui_prepare() -> void {
 		ImGui::Text("Hello, world %d", 123);
 		if (ImGui::Button("Save"))
@@ -104,7 +108,7 @@ public:
 		float f;
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	}
-	auto event_callback(const sage::Event& event) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
+	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
 
 	REPR_DECL(Other_Layer);
 };
@@ -121,11 +125,12 @@ FMT_FORMATTER(Other_Layer) {
 REPR_DEF_FMT(Other_Layer);
 
 struct Last_Layer {
-	template <typename _Input, typename _Rendering>
+	template <typename _Input, typename _Rendering, typename _User_State>
 	struct Spec {
 		using Layer = Last_Layer;
 		using Rendering = _Rendering;
 		using Input = _Input;
+		using User_State = _User_State;
 	};
 
 public:
@@ -139,12 +144,12 @@ public:
 
 	~Last_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta, auto&) -> void { MESSAGE("LAST Updating {}", id, delta); }
-	auto render(auto&) {}
+	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("LAST Updating {}", id, delta); }
+	auto render(auto&, auto&) {}
 	auto imgui_prepare() -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}
-	auto event_callback(const sage::Event& event) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
+	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 
 	REPR_DECL(Last_Layer);
 };

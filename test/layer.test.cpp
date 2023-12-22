@@ -8,9 +8,9 @@ using namespace sage;
 TEST_CASE ("Layer") {
 	using Null_Rendering = graphics::renderer::Null_Rendering;
 	using Layers = layer::Storage<
-			Dump_Layer::Spec<input::Null, Null_Rendering>,
-			Other_Layer::Spec<input::Null, Null_Rendering>,
-			Last_Layer::Spec<input::Null, Null_Rendering>
+			Dump_Layer::Spec<input::Null, Null_Rendering, layer::Null_User_State>,
+			Other_Layer::Spec<input::Null, Null_Rendering, layer::Null_User_State>,
+			Last_Layer::Spec<input::Null, Null_Rendering, layer::Null_User_State>
 		>;
 
 
@@ -51,7 +51,7 @@ TEST_CASE ("Layer") {
 
 	const auto start = std::chrono::steady_clock::now();
 	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
-		layers.update(tick(), input::null);
+		layers.update(tick(), input::null, layer::null_user_state);
 	}
 }
 

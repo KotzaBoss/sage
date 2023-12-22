@@ -35,7 +35,7 @@ cmake --build build
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
-2.2M used in 12 directories, 70 files.
+2.2M used in 12 directories, 71 files.
 ```
 ./
 ├── asset/
@@ -96,6 +96,7 @@ cmake --build build
 │   ├── layer_imgui.hpp
 │   ├── log.hpp
 │   ├── math.hpp
+│   ├── particle.hpp
 │   ├── perf.hpp
 │   ├── repr.hpp
 │   ├── sage.hpp

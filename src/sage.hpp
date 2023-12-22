@@ -13,6 +13,7 @@
 #include "src/window.hpp"
 #include "src/event.hpp"
 #include "src/graphics.hpp"
+#include "src/particle.hpp"
 #include "src/filesystem.hpp"
 #include "src/camera.hpp"
 #include "src/perf.hpp"

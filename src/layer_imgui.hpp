@@ -11,11 +11,12 @@
 namespace sage::layer {
 
 struct ImGui {
-	template <typename _Input, typename _Rendering>
+	template <typename _Input, typename _Rendering, typename _User_State>
 	struct Spec {
-		using Layer = ImGui;
 		using Rendering = _Rendering;
 		using Input = _Input;
+		using User_State = _User_State;
+		using Layer = ImGui;
 	};
 
 private:
@@ -64,10 +65,10 @@ public:
 	}
 
 public:
-	auto update(const std::chrono::milliseconds, input::Concept auto&) -> void {}
-	auto render(auto&) -> void {}
+	auto update(const std::chrono::milliseconds, input::Concept auto&, auto& /* user_state */) -> void {}
+	auto render(auto& /* renderer */, auto& /* user_state */) -> void {}
 
-	auto event_callback(const Event& e) -> void {
+	auto event_callback(const Event& e, auto& /* user_state */) -> void {
 		using namespace sage;
 
 #pragma GCC diagnostic push

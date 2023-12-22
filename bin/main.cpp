@@ -9,17 +9,27 @@ struct App_Rendering {
 	using Drawings = std::tuple<oslinux::Texture2D, glm::vec4>;
 };
 
-struct App_Layer_Spec {
-	using Layer = Layer_2D;
-	using Rendering = App_Rendering;
+struct App_Layer_2D_Spec {
 	using Input = oslinux::Input;
+	using Rendering = App_Rendering;
+	using User_State = Game_State;
+	using Layer = Layer_2D;
+};
+
+struct App_Particle_Spec {
+	using Input = oslinux::Input;
+	using Rendering = App_Rendering;
+	using User_State = Game_State;
+	using Layer = Rocket_Flame;
 };
 
 using The_App = sage::App<
 	oslinux::Window,
 	oslinux::Input,
 	App_Rendering,
-	App_Layer_Spec
+	Game_State,
+	App_Layer_2D_Spec,
+	App_Particle_Spec
 >;
 
 auto main() -> int {

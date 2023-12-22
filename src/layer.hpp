@@ -13,18 +13,18 @@ namespace sage::layer {
 
 // TODO: Maybe pass optional<Event> to allow for functional chaining?
 // TODO: Maybe pass renderer::Concept to .render()? Can there be multiple renderers?
-template <typename Layer, typename Input, typename Rendering>
+template <typename Layer, typename Input, typename Rendering, typename User_State>
 concept Concept =
 		input::Concept<Input>
 	and graphics::renderer::Rendering<Rendering>
-	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Rendering::Renderer& renderer, Input& input) {
-		{ l.update(delta, input) } -> std::same_as<void>;
-		{ l.render(renderer) } -> std::same_as<void>;
+	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Rendering::Renderer& renderer, Input& input, User_State& user_state) {
+		{ l.update(delta, input, user_state) } -> std::same_as<void>;
+		{ l.render(renderer, user_state) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
 		{ l.imgui_prepare() } -> std::same_as<void>;
 		// layers.event_callback(window.pending_event());
 		// instead of checking the pending_event first.
-		{ l.event_callback(event) } -> std::same_as<void>;
+		{ l.event_callback(event, user_state) } -> std::same_as<void>;
 	}
 	;
 
@@ -52,14 +52,24 @@ template <typename L>
 concept Spec =
 		requires { typename L::Input; } and input::Concept<typename L::Input>
 	and requires { typename L::Rendering; } and graphics::renderer::Rendering<typename L::Rendering>
-	and requires { typename L::Layer; } and layer::Concept<typename L::Layer, typename L::Input, typename L::Rendering>
+	and requires { typename L::User_State; }
+	and requires { typename L::Layer; }
+		and layer::Concept<typename L::Layer, typename L::Input, typename L::Rendering, typename L::User_State>
 	;
 
+struct Null_User_State {};
+inline auto null_user_state = Null_User_State{};
+
 template <layer::Spec... Ls>
-	requires type::All<typename Ls::Input...>
+	requires	// All specs to share the same Input, Rendering, User_State, ...
+			type::All<typename Ls::Input...>
+		and type::All<typename Ls::Rendering...>
+		and type::All<typename Ls::User_State...>
 struct Array : util::Polymorphic_Array<typename Ls::Layer...> {
 	using Base = util::Polymorphic_Array<typename Ls::Layer...>;
 	using Input = std::tuple_element_t<0, std::tuple<typename Ls::Input...>>;
+	using Renderer = std::tuple_element_t<0, std::tuple<typename Ls::Rendering::Renderer...>>;
+	using User_State = std::tuple_element_t<0, std::tuple<typename Ls::User_State...>>;
 
 public:
 	Array(type::Any<typename Ls::Layer...> auto&&... ls)
@@ -67,15 +77,15 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta, Input& input) -> void {
+	auto update(const std::chrono::milliseconds delta, Input& input, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.update(delta, input);
+				layer.update(delta, input, user_state);
 			});
 	}
 
-	auto render(auto& renderer) -> void {
+	auto render(Renderer& renderer, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.render(renderer);
+				layer.render(renderer, user_state);
 			});
 	}
 
@@ -85,9 +95,9 @@ public:
 			});
 	}
 
-	auto event_callback(const Event& e) -> void {
+	auto event_callback(const Event& e, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.event_callback(e);
+				layer.event_callback(e, user_state);
 			});
 	}
 
@@ -102,6 +112,8 @@ template <layer::Spec... Ls>
 struct Storage : util::Polymorphic_Storage<typename Ls::Layer...> {
 	using Base = util::Polymorphic_Storage<typename Ls::Layer...>;
 	using Input = std::tuple_element_t<0, std::tuple<typename Ls::Input...>>;
+	using Renderer = std::tuple_element_t<0, std::tuple<typename Ls::Rendering::Renderer...>>;
+	using User_State = std::tuple_element_t<0, std::tuple<typename Ls::User_State...>>;
 
 public:
 	Storage(typename Base::Vector<typename Ls::Layer>&&... layers)
@@ -109,9 +121,9 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta, Input& input) -> void {
+	auto update(const std::chrono::milliseconds delta, Input& input, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.update(delta, input);
+				layer.update(delta, input, user_state);
 			});
 	}
 
@@ -121,9 +133,15 @@ public:
 			});
 	}
 
-	auto event_callback(const Event& e) -> void {
+	auto render(Renderer& renderer, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.event_callback(e);
+				layer.render(renderer, user_state);
+			});
+	}
+
+	auto event_callback(const Event& e, User_State& user_state) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.event_callback(e, user_state);
 			});
 	}
 

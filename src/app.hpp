@@ -3,6 +3,7 @@
 #include "src/std.hpp"
 
 #include "src/graphics.hpp"
+#include "src/particle.hpp"
 #include "src/window.hpp"
 #include "src/input.hpp"
 #include "src/layer.hpp"
@@ -20,13 +21,14 @@ template <
 		window::Concept Window,
 		input::Concept Input,
 		graphics::renderer::Rendering R,
+		typename User_State,
 		layer::Spec... Ls
 	>
 	requires
 			type::Not_In<layer::ImGui, typename Ls::Layer...>	// The ImGui layer will always be provided by sage as the "overlay"
-		and type::All<typename Ls::Input...>
 struct App {
-	using Layers = sage::layer::Array<layer::ImGui::Spec<Input, R>, Ls...>;
+	using Layers = sage::layer::Array<layer::ImGui::Spec<Input, R, User_State>, Ls...>;
+	using Camera_Controller = camera::Controller<Input>;
 
 private:
 	Window window;
@@ -36,6 +38,10 @@ private:
 	Profiler profiler;
 
 	R::Renderer renderer;
+
+	Camera_Controller camera_controller;
+
+	User_State user_state;
 
 	Layers layers;
 
@@ -67,8 +73,15 @@ public:
 					{
 						PROFILER_TIME(profiler, "	Layers");
 
-						layers.event_callback(*event);
+						layers.event_callback(*event, user_state);
 					}
+
+					{
+						PROFILER_TIME(profiler, "	Camera Controller");
+
+						camera_controller.event_callback(*event);
+					}
+
 
 					{
 						PROFILER_TIME(profiler, "	Renderer");
@@ -85,13 +98,22 @@ public:
 				{
 					PROFILER_TIME(profiler, "Update Layers");
 
-					layers.update(delta, input);
+					layers.update(delta, input, user_state);
+				}
+
+				{
+					PROFILER_TIME(profiler, "Update Camera Controller");
+
+					camera_controller.update(delta, input);
 				}
 
 				{
 					PROFILER_TIME(profiler, "Render Layers");
 
-					layers.render(renderer);
+					renderer.clear();
+					renderer.scene(camera_controller.camera(), [&] {
+							layers.render(renderer, user_state);
+						});
 				}
 			}
 
@@ -118,8 +140,8 @@ public:
 	}
 
 public:
-	friend REPR_DEF_FMT(App<Window, Input, R, Ls...>)
-	friend FMT_FORMATTER(App<Window, Input, R, Ls...>);
+	friend REPR_DEF_FMT(App<Window, Input, R, User_State, Ls...>)
+	friend FMT_FORMATTER(App<Window, Input, R, User_State, Ls...>);
 };
 
 }// sage

@@ -1,6 +1,6 @@
 # Overview
 
-32 items to be done.
+34 items to be done.
 
 ## TODO
 
@@ -18,10 +18,10 @@
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 215 | This could be a range::chunk or range::slide in c++23? |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 105 | Split dynamic/static vertex_buffer? |
 | [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
-| [src/layer_imgui.hpp](src/layer_imgui.hpp) | 131 | ImGui is abit special but is there a way to integrate this in .render()? |
+| [src/layer_imgui.hpp](src/layer_imgui.hpp) | 132 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/layer.hpp](src/layer.hpp) | 15 | Maybe pass renderer::Concept to .render()? Can there be multiple renderers? |
 | [src/layer.hpp](src/layer.hpp) | 14 | Maybe pass optional\<Event\> to allow for functional chaining? |
-| [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
+| [src/input.hpp](src/input.hpp) | 43 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
 | [src/graphics.hpp](src/graphics.hpp) | 522 | Use scene_active only in debug mode |
 | [src/graphics.hpp](src/graphics.hpp) | 445 | Make a namespace for shapes |
 | [src/graphics.hpp](src/graphics.hpp) | 430 | More type safety |
@@ -30,19 +30,20 @@
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
-| [src/app.hpp](src/app.hpp) | 110 | Fixed rate updates how to? Hardcode to 144fps for now. |
+| [src/app.hpp](src/app.hpp) | 133 | Fixed rate updates how to? Hardcode to 144fps for now. |
 | [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 
 ## FIXME
 
-6 items available.
+7 items available.
 
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 114 | Add constness, see pragma in Polymorphic_Array |
 | [test/util.test.cpp](test/util.test.cpp) | 87 | Add constness, see pragma in Polymorphic_Array |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 386 | why shader.size() doesnt work? its an array |
-| [src/math.hpp](src/math.hpp) | 35 | default template does not work. |
+| [src/particle.hpp](src/particle.hpp) | 62 | This is poor mans: |
+| [src/math.hpp](src/math.hpp) | 40 | default template does not work. |
 | [src/graphics.hpp](src/graphics.hpp) | 23 | Is the uniform different from the shader::data::Types? |
 | [cmake/docs.cmake](cmake/docs.cmake) | 102 | for platform/linux/sage.hpp it puts two `#linux` tags |
 
