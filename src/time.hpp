@@ -41,8 +41,8 @@ public:
 };
 
 template<Duration D = std::chrono::milliseconds>
-struct Lifetime : Tick<D> {
-	using Tick = Tick<D>;
+struct Lifetime : time::Tick<D> {
+	using Tick = time::Tick<D>;
 	using Duration = D;
 	using Clock = Tick::Clock;
 
