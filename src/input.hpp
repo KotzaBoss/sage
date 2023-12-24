@@ -12,7 +12,7 @@ enum class Key {
 	Left_Ctrl,
 	Space,
 	// Letters
-	Q, E, W, A, S, D,
+	Q, E, W, A, S, D, P
 };
 
 struct Mouse {

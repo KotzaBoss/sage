@@ -178,19 +178,22 @@ public:
 
 struct Game_State {
 	Level level;
+	bool should_update = true;
 };
 
 struct Layer_2D {
 public:
-	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, Game_State& game_state) -> void {
-		game_state.level.update(delta, input);
+	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, Game_State& gs) -> void {
+		if (gs.should_update)
+			gs.level.update(delta, input);
 	}
 
-	auto render(oslinux::Renderer_2D& renderer, Game_State& game_state) -> void {
-		game_state.level.render(renderer);
+	auto render(oslinux::Renderer_2D& renderer, Game_State& gs) -> void {
+		gs.level.render(renderer);
 	}
 
-	auto event_callback(const Event&, Game_State&) -> void {
+	auto event_callback(const Event& e, Game_State& gs) -> void {
+		gs.should_update = toogle_if(gs.should_update, e.type == Event::Type::Key_Pressed and std::get<input::Key>(e.payload) == input::Key::P);
 	}
 
 	auto imgui_prepare() -> void {
@@ -208,8 +211,11 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds, oslinux::Input& input, Game_State& game_state) -> void {
-		const auto& player = game_state.level.player();
+	auto update(const std::chrono::milliseconds dt, oslinux::Input& input, Game_State& gs) -> void {
+		if (not gs.should_update)
+			return;
+
+		const auto& player = gs.level.player();
 		const auto position = player.position();
 		const auto rotation = player.rotation();
 		constexpr auto arc = 7.f;
@@ -243,7 +249,7 @@ public:
 				});
 		}
 
-		Base::update([] (auto& particles) {
+		Base::update(dt, [] (auto& particles) {
 				rg::for_each(particles, [] (auto& p) {
 						p.properties.position += p.properties.velocity;
 						p.properties.color += 0.035f;

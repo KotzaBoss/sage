@@ -53,16 +53,17 @@ protected:
 
 protected:
 	template <std::invocable<const std::span<Particle>> Impl>
-	auto update(Impl&& impl) -> void {
+	auto update(const std::chrono::milliseconds dt, Impl&& impl) -> void {
 		SAGE_ASSERT(particles.size() == lifetimes.size());
+
+		rg::for_each(lifetimes, [&] (auto& l) { l.tick(dt); });
 
 		// RND: How would this parallel-array conditional transformation work cpu-cache wise?
 		//      Is keeping the data in separate arrays enough to have reasonable performance?
 
 		// Erase particles whose lifetime is up and their lifetimes
-		const auto now = Clock::now();
 		for (auto i = 0ul; i < particles.size(); ) {	// Spent too long looking for some std::whatever and failed so a simple loop will do for now...
-			if (lifetimes[i].is_dead(now)) {
+			if (lifetimes[i].is_dead()) {
 				lifetimes.erase(lifetimes.begin() + i);
 				particles.erase(particles.begin() + i);
 				// Do not ++i because erasing will move the next object to current index

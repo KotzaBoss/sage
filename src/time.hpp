@@ -41,28 +41,32 @@ public:
 };
 
 template<Duration D = std::chrono::milliseconds>
-struct Lifetime : time::Tick<D> {
-	using Tick = time::Tick<D>;
+struct Lifetime {
 	using Duration = D;
-	using Clock = Tick::Clock;
+	using Clock = std::chrono::steady_clock;
 
 private:
 	Clock::time_point birth,	// Left it for debug, can preprocess it away if really needed.
+					  current,
 					  death;
 
 public:
 	Lifetime(const Clock::duration life_expectancy)
-		: Tick()
-		, birth{Tick::current_time_point()}
-		, death{Tick::current_time_point() + life_expectancy}
+		: birth{Clock::now()}
+		, current{birth}
+		, death{birth + life_expectancy}
 	{}
 
-	auto is_dead(const Clock::time_point now = Clock::now()) const -> bool {
-		return now > death;
+	auto tick(const Clock::duration dt) -> void {
+		current += dt;
 	}
 
-	auto is_alive(const Clock::time_point now = Clock::now()) const -> bool {
-		return not is_dead(now);
+	auto is_dead() const -> bool {
+		return current > death;
+	}
+
+	auto is_alive() const -> bool {
+		return not is_dead();
 	}
 };
 

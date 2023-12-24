@@ -136,3 +136,19 @@ TEST_CASE ("Polymorphic_Storage") {
 			});
 	}
 }
+
+TEST_CASE ("toogle_if") {
+	auto b = true;
+
+	for (auto i = 0; i < 1000; ++i) {
+		const auto cond = random::toggle::any();
+		const auto prev = b;
+
+		b = toogle_if(b, cond);
+		MESSAGE(b);
+		if (cond)
+			REQUIRE_NE(b, prev);
+		else
+			REQUIRE_EQ(b, prev);
+	}
+}

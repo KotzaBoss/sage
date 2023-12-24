@@ -7,6 +7,10 @@
 
 namespace sage::inline util {
 
+constexpr auto toogle_if(const bool x, const bool cond) -> bool {
+	return x ^ cond;
+}
+
 struct ID : std::optional<uint32_t> {
 	using Rep = uint32_t;
 	using std::optional<Rep>::optional;
