@@ -27,7 +27,7 @@ public:
 
 	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("DUMP Updating {}", id, delta); }
 	auto render(auto&, auto&) {}
-	auto imgui_prepare() -> void {
+	auto imgui_prepare(auto&) -> void {
 		// Create a window called "My First Tool", with a menu bar.
 		static auto my_tool_active = true;
 		ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
@@ -99,7 +99,7 @@ public:
 
 	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("OTHER Updating {}", id, delta); }
 	auto render(auto&, auto&) {}
-	auto imgui_prepare() -> void {
+	auto imgui_prepare(auto&) -> void {
 		ImGui::Text("Hello, world %d", 123);
 		if (ImGui::Button("Save"))
 		    SAGE_LOG_INFO("Saving");
@@ -146,7 +146,7 @@ public:
 
 	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("LAST Updating {}", id, delta); }
 	auto render(auto&, auto&) {}
-	auto imgui_prepare() -> void {
+	auto imgui_prepare(auto&) -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}
 	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }

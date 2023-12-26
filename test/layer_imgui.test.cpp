@@ -15,7 +15,7 @@ TEST_CASE ("ImGui Layer") {
 	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
 		imgui.update(tick(), input::null, non_state);
 		imgui.new_frame([&] {
-				imgui.imgui_prepare();
+				imgui.imgui_prepare(non_state);
 			});
 		win.update();
 		std::this_thread::sleep_for(1s);
