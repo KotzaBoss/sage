@@ -11,8 +11,8 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 64 | Weird behaviour for Set<>::count<>() |
-| [src/util.hpp](src/util.hpp) | 341 | add check std>=23 todo deduce this |
-| [src/util.hpp](src/util.hpp) | 339 | Deduce this to add const-correctness to Polymorphic_Containers. |
+| [src/util.hpp](src/util.hpp) | 345 | add check std>=23 todo deduce this |
+| [src/util.hpp](src/util.hpp) | 343 | Deduce this to add const-correctness to Polymorphic_Containers. |
 | [src/platform/linux/window.hpp](src/platform/linux/window.hpp) | 74 | Change switches to array lookups for clarity |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 59 | Check error |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 53 | Check error |
@@ -24,11 +24,11 @@
 | [src/layer.hpp](src/layer.hpp) | 15 | Maybe pass renderer::Concept to .render()? Can there be multiple renderers? |
 | [src/layer.hpp](src/layer.hpp) | 14 | Maybe pass optional\<Event\> to allow for functional chaining? |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
-| [src/graphics.hpp](src/graphics.hpp) | 522 | Use scene_active only in debug mode |
-| [src/graphics.hpp](src/graphics.hpp) | 445 | Make a namespace for shapes |
-| [src/graphics.hpp](src/graphics.hpp) | 430 | More type safety |
-| [src/graphics.hpp](src/graphics.hpp) | 409 | Query from GPU |
-| [src/graphics.hpp](src/graphics.hpp) | 402 | Proper asset system and asset handles |
+| [src/graphics.hpp](src/graphics.hpp) | 560 | Use scene_active only in debug mode |
+| [src/graphics.hpp](src/graphics.hpp) | 482 | Make a namespace for shapes |
+| [src/graphics.hpp](src/graphics.hpp) | 467 | More type safety |
+| [src/graphics.hpp](src/graphics.hpp) | 446 | Query from GPU |
+| [src/graphics.hpp](src/graphics.hpp) | 439 | Proper asset system and asset handles |
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
@@ -64,7 +64,7 @@
 
 | Source | Line Number | Description |
 |:-|:-|:-|
-| [src/particle.hpp](src/particle.hpp) | 59 | How would this parallel-array conditional transformation work cpu-cache wise? |
+| [src/particle.hpp](src/particle.hpp) | 61 | How would this parallel-array conditional transformation work cpu-cache wise? |
 
 ## OPTIMIZE
 
@@ -73,4 +73,6 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 591 | ? |
+
+
 
