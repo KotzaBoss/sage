@@ -21,7 +21,7 @@ concept Concept =
 		{ l.update(delta, input, user_state) } -> std::same_as<void>;
 		{ l.render(renderer, user_state) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
-		{ l.imgui_prepare() } -> std::same_as<void>;
+		{ l.imgui_prepare(user_state) } -> std::same_as<void>;
 		// layers.event_callback(window.pending_event());
 		// instead of checking the pending_event first.
 		{ l.event_callback(event, user_state) } -> std::same_as<void>;
@@ -89,9 +89,9 @@ public:
 			});
 	}
 
-	auto imgui_prepare() -> void {
-		Base::apply([] (auto& layer) {
-				layer.imgui_prepare();
+	auto imgui_prepare(User_State& us) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.imgui_prepare(us);
 			});
 	}
 
@@ -127,9 +127,9 @@ public:
 			});
 	}
 
-	auto imgui_prepare() -> void {
-		Base::apply([] (auto& layer) {
-				layer.imgui_prepare();
+	auto imgui_prepare(User_State& us) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.imgui_prepare(us);
 			});
 	}
 

@@ -106,6 +106,56 @@ private:
 	static constexpr auto max_obstacles = 100;
 	static constexpr auto rand_y = [] { return glm::linearRand(-5.f, 5.f); };
 
+	oslinux::Renderer_2D::Texture atlas = {"asset/texture/kenney_rpg-base/Spritesheet/RPGpack_sheet_2X.png"};
+
+	static constexpr auto cell_size = glm::vec2{ 128.f, 128.f };
+	oslinux::Renderer_2D::Sub_Texture
+		// Grass
+		  grass_on_dirt_top_left	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 0, 12 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_top			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 1, 12 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_top_right	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 2, 12 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_mid_left	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 0, 11 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_mid			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 1, 11 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_mid_right	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 2, 11 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_bot_left	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 0, 10 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_bot			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 1, 10 }, .sprite_size = { 1, 1 } })
+		, grass_on_dirt_bot_right	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 2, 10 }, .sprite_size = { 1, 1 } })
+
+		// Water
+		, water	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 11, 11 }, .sprite_size = { 1, 1 } })
+
+		// Dirt
+		, dirt	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 6, 11 }, .sprite_size = { 1, 1 } })
+
+		// Trees
+		, tree_big		= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 2, 1 }, .sprite_size = { 1, 2 } })
+		, tree_small	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 3, 1 }, .sprite_size = { 1, 2 } })
+
+		// Building
+		, building_bot_left		= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 1, 9 }, .sprite_size = { 1, 1 } })
+		, building_bot_mid		= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 0, 9 }, .sprite_size = { 1, 1 } })
+		, building_bot_right	= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 3, 9 }, .sprite_size = { 1, 1 } })
+		, building_wall			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 4, 9 }, .sprite_size = { 3, 1 } })
+		, building_right		= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 3, 9 }, .sprite_size = { 1, 1 } })
+		, building_door			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 14, 2 }, .sprite_size = { 1, 1 } })
+		, building_window		= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 10, 2 }, .sprite_size = { 1, 1 } })
+		, building_roof			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 2, 4 }, .sprite_size = { 2, 3 } })
+		;
+
+	static constexpr auto map = std::array{
+			"WWWWWWWWWWWWWWWWWWWWWWW"sv,
+			"WWWWWWWDDDDDWWWWWWWWWWW"sv,
+			"WWWWWDDDDDDDDDDDDWWWWWW"sv,
+			"WWWWWDDDDDDDDDDWWWWWWWW"sv,
+			"WWWWDDDDDDDDDDDDDDWWWWW"sv,
+			"WWWWDDDDDDDDDDDDDWWWDWW"sv,
+			"WWDDDWWWWDDDDDDDWWWDWWW"sv,
+			"WWDDDDWWWDDDDDDWWWWDDWW"sv,
+			"WWDDWDDWWDDDDDDWWWDDDDW"sv,
+			"WDWWWWDDDWWWDDDWWWWWWWW"sv,
+			"WWWWWWWWWWWWWWWWWWWWWWW"sv,
+		};
+
 public:
 	Level() {
 		obstacles.reserve(max_obstacles);
@@ -118,56 +168,43 @@ public:
 
 public:
 	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) {
-		_player.update(delta, input);
-		rg::for_each(obstacles, [&] (auto& o) { o.update(delta, input); });
+		//_player.update(delta, input);
+		//rg::for_each(obstacles, [&] (auto& o) { o.update(delta, input); });
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		constexpr auto border_color = glm::vec4{0.25f, 0.5f, 0.1f, 1.f};
+		using Draw_Args = oslinux::Renderer_2D::Draw_Args;
 
-		renderer.draw(border_color, {
-				.position = {_player.position().x, 10.f, 0.f},
-				.size = {50.f, 10.f},
-			});
+		constexpr auto size = glm::vec2{ 1.f, 1.f };
 
-		constexpr auto right = 5.f;
-		for (auto x = -right; x < right; x += 0.5f)
-			for (auto y = -right; y < right; y += 0.5f)
-			{
-				renderer.draw(
-						glm::vec4{ (x + right) / 10.f, 0.4f, (y + right) / 10.f, 0.5f },
-						{
-							.position = {x, y, 0.f},
-							.size = {0.35f, 0.35f}
-						}
-					);
+		SAGE_ASSERT(rg::all_of(map, [len = map.front().size()] (const auto& str) { return str.size() == len; }));
+
+		for (const auto y : vw::iota(0ul, map.size())) {
+			const auto& str = map[y];
+			for (const auto x : vw::iota(0ul, str.size())) {
+				switch (str[x]) {
+					// size() - y to make sure the map is rendered correctly, otherwise its upside down
+					case 'W': renderer.draw(water, { .position={x, map.size() - y, 0.f}, .size={1, 1} });
+						break;
+					case 'D': renderer.draw(dirt, { .position={x, map.size() - y, 0.f}, .size={1, 1} });
+						break;
+					default: SAGE_DIE();
+				}
 			}
-
-		rg::for_each(obstacles, [&] (auto& o) { o.render(renderer); });
-		_player.render(renderer);
-
-		SAGE_ASSERT(not obstacles.empty());
-		SAGE_ASSERT(obstacles.capacity() == max_obstacles and obstacles.size() == max_obstacles);
-		if (obstacles.front().position().x < -30.f) {
-			rg::rotate(obstacles, obstacles.begin() + 1);
-			obstacles.back() = Obstacle{
-					glm::vec2{(obstacles.rbegin() + 1)->position().x + obstacle_distance, rand_y()},
-					glm::vec2{1.f, 1.f},
-					20.f,
-					50.f
-				};
 		}
-
-		renderer.draw(border_color, {
-				.position = {_player.position().x, -10.f, 0.f},
-				.size = {50.f, 10.f},
-			});
 	}
 
 	auto imgui_prepare() {
-		::ImGui::Begin("Player");
-		_player.imgui_prepare();
-		::ImGui::End();
+		ImGui::Begin("Level");
+		ImGui::Text("Handle: %p", atlas.native_handle());
+		ImGui::Text("Size: %d x %d", atlas.width(), atlas.height());
+		ImGui::Text("Sprite Unit: %d x %d", 128, 128);
+		ImGui::Image(
+				atlas.native_handle(),
+				{atlas.width() * 0.25f, atlas.height() * 0.25f},
+				{0.f, 0.f}, {1.f, 1.f}
+			);
+		ImGui::End();
 	}
 
 public:
@@ -196,8 +233,8 @@ public:
 		gs.should_update = toogle_if(gs.should_update, e.type == Event::Type::Key_Pressed and std::get<input::Key>(e.payload) == input::Key::P);
 	}
 
-	auto imgui_prepare() -> void {
-		//level.imgui_prepare();
+	auto imgui_prepare(Game_State& gs) -> void {
+		gs.level.imgui_prepare();
 	}
 
 };
@@ -218,7 +255,7 @@ public:
 		const auto& player = gs.level.player();
 		const auto position = player.position();
 		const auto rotation = player.rotation();
-		constexpr auto arc = 7.f;
+		constexpr auto arc = 9.f;
 		const auto direction = glm::rotate(
 				identity<glm::vec2>,
 				glm::radians(random::in_range(rotation - arc, rotation + arc)) - 90.f
@@ -252,8 +289,13 @@ public:
 		Base::update(dt, [] (auto& particles) {
 				rg::for_each(particles, [] (auto& p) {
 						p.properties.position += p.properties.velocity;
+
 						p.properties.color += 0.035f;
+
 						glm::clamp(p.properties.color, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f, 1.f});
+
+						const auto rotate_clockwise = random::between(-1, 1);
+						p.properties.rotation += rotate_clockwise * random::in_range(0.f, 25.f);
 					});
 			});
 	}
@@ -264,6 +306,7 @@ public:
 						renderer.draw(p.properties.color, {
 								.position = {p.properties.position, 1.f},
 								.size = {p.properties.size, p.properties.size},
+								.rotation = p.properties.rotation
 							});
 					});
 			});
@@ -272,7 +315,7 @@ public:
 	auto event_callback(const Event&, Game_State&) -> void {
 	}
 
-	auto imgui_prepare() -> void {
+	auto imgui_prepare(Game_State&) -> void {
 	}
 
 	FMT_FORMATTER(Rocket_Flame);

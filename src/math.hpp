@@ -66,29 +66,54 @@ public:
 
 namespace random {
 
+inline auto dev = std::random_device{};
+
+auto engine() -> auto {
+	return std::mt19937{dev()};
+}
+
 template<Number N>
 constexpr auto in_range(const N min = 0, const N max = std::numeric_limits<N>::max()) -> N {
 	// Things like this make people hate cpp...
 	// Why not have a random(min, max) function that has the optimal implementation for
 	// the current platform?
-	static auto dev = std::random_device{};
-	auto engine = std::mt19937{dev()};
+	auto eng = engine();
 	if constexpr (std::floating_point<N>)
-		return std::uniform_real_distribution{min, max}(engine);
+		return std::uniform_real_distribution{min, max}(eng);
 	else
-		return std::uniform_int_distribution{min, max}(engine);
+		return std::uniform_int_distribution{min, max}(eng);
 }
 
-template<Number N>
+template <Number N>
 constexpr auto non_negative(const N max) -> N {
 	return in_range(0, max);
+}
+
+template<rg::view V>
+	requires Number<rg::range_value_t<V>>
+constexpr auto index(const V& v) -> size_t {
+	return in_range(0ul, clamp_low(rg::size(v) - 1, 0));
 }
 
 constexpr auto normalized() -> float {
 	return in_range(0.f, 1.f);
 }
 
+template <Number... Ns>
+	requires type::All<Ns...>
+constexpr auto between(const Ns&... _ns) -> auto {
+	const auto ns = {_ns...};
+
+	using N = type::Front<Ns...>;
+	auto out = std::array<N, 1>{};
+
+	rg::sample(ns, out.begin(), 1, engine());
+
+	return out[0];
+}
+
 namespace toggle {
+constexpr auto any()		-> bool { return random::in_range(1, 100); }
 constexpr auto often()		-> bool { return math::in_range(random::in_range(1, 100), 1, 75); }
 constexpr auto uncommon()	-> bool { return math::in_range(random::in_range(1, 100), 1, 50); }
 constexpr auto rare()		-> bool { return math::in_range(random::in_range(1, 100), 1, 25); }

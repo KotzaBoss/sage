@@ -327,9 +327,46 @@ concept Concept =
 		{ t.height() } -> std::same_as<size_t>;
 		{ t.bind(slot) } -> std::same_as<void>;
 		{ t.unbind() } -> std::same_as<void>;
+		{ t.native_handle() } -> std::convertible_to<void*>;
 		{ t == other } -> std::same_as<bool>;
 	}
 	;
+
+template <texture::Concept Texture>
+struct Sub_Texture {
+	using Coordinates = std::array<glm::vec2, 4>;
+
+private:
+	Texture& _parent;
+	Coordinates coords;
+
+public:
+	struct Args {
+		glm::vec2 cell_size;
+		glm::uvec2 offset;
+		glm::uvec2 sprite_size;	// in cells
+	};
+	Sub_Texture(Texture& _parent, Args&& a)
+		: _parent{_parent}
+		, coords{
+		glm::vec2{ a.offset.x						* a.cell_size.x / _parent.width(),  a.offset.y						* a.cell_size.y / _parent.height() },
+		glm::vec2{(a.offset.x + a.sprite_size.x)	* a.cell_size.x / _parent.width(),  a.offset.y						* a.cell_size.y / _parent.height() },
+		glm::vec2{(a.offset.x + a.sprite_size.x)	* a.cell_size.x / _parent.width(), (a.offset.y + a.sprite_size.y)	* a.cell_size.y / _parent.height() },
+		glm::vec2{ a.offset.x						* a.cell_size.x / _parent.width(), (a.offset.y + a.sprite_size.y)	* a.cell_size.y / _parent.height() }
+		}
+	{
+		SAGE_ASSERT(
+				rg::all_of(coords.begin(), coords.end(), [](const auto& c) { return glm::isNormalized(c, 1.f); }),
+				"Given offset and size produce out of bounds Sub_Texture: {} {} {} {}",
+				// No patience to deviate into specializing fmt...
+				glm::to_string(coords[0]), glm::to_string(coords[1]), glm::to_string(coords[2]), glm::to_string(coords[3])
+			);
+	}
+
+public:
+	auto parent() const -> const Texture& { return _parent; }
+	auto coordinates() const -> const Coordinates& { return coords; }
+};
 
 }// texture
 
@@ -505,6 +542,7 @@ struct Base_2D {
 protected:
 	using Vertex_Array = _Vertex_Array;
 	using Texture = _Texture;
+	using Sub_Texture = texture::Sub_Texture<Texture>;
 	using Batch = renderer::Batch<Texture>;
 	using Shader = _Shader;
 
@@ -533,7 +571,7 @@ protected:
 		, profiler{prof}
 	{}
 
-protected:
+public:
 	// Should be called once from the App	//
 	//
 	// struct Magic {
@@ -553,8 +591,7 @@ protected:
 	//	 	}
 	//	};
 	//
-	template <std::invocable Draws>
-	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
+	auto scene(const camera::Orthographic& cam, std::invocable auto&& draws) -> void {
 		SAGE_ASSERT(not scene_active, "Must only call scene once: renderer.scene(camera, [] { render1(); render2(); });");
 
 		scene_active = true;
@@ -570,6 +607,8 @@ protected:
 
 		scene_active = false;
 	}
+
+	using Drawables = type::Set<Texture, Sub_Texture, glm::vec4>;
 
 	struct Draw_Args {
 		const glm::vec3& position;
@@ -593,7 +632,8 @@ protected:
 	//                |
 	//                V
 	//
-	template <type::Any<Texture, glm::vec4> Drawing>
+	template <typename Drawing>
+		requires (Drawables::template contains<Drawing>())
 	auto draw(const Drawing& drawing, const Draw_Args& args) {
 		using namespace sage::math;
 
@@ -620,16 +660,18 @@ protected:
 			}
 			;
 
-		constexpr auto coords = std::array{ glm::vec2{ 0.f, 0.f }, glm::vec2{ 1.f, 0.f }, glm::vec2{ 1.f, 1.f }, glm::vec2{ 0.f, 1.f }, };
+		const auto [color, tex_index, coords] = std::invoke([&] {
+				constexpr auto full_drawing_coords = std::array{ glm::vec2{0.f,0.f}, glm::vec2{1.f,0.f}, glm::vec2{1.f,1.f}, glm::vec2{0.f,1.f} };
+				constexpr auto default_color = glm::vec4{ 1.f, 1.f, 1.f, 1.f };
 
-		const auto [color, tex_index] = std::invoke([&] {
 				if constexpr (std::same_as<Drawing, Texture>) {
-					constexpr auto default_color = glm::vec4{ 1.f, 1.f, 1.f, 1.f };
-
-					return std::make_tuple(default_color, batch.push_texture(&drawing));
+					return std::make_tuple(default_color, batch.push_texture(&drawing), full_drawing_coords);
+				}
+				else if constexpr (std::same_as<Drawing, Sub_Texture>) {
+					return std::make_tuple(default_color, batch.push_texture(&drawing.parent()), drawing.coordinates());
 				}
 				else if constexpr (std::same_as<Drawing, glm::vec4>)
-					return std::make_tuple(drawing, 0.f);
+					return std::make_tuple(drawing, 0.f, full_drawing_coords);
 				else
 					static_assert(false, "Unhandled type");
 			});

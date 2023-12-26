@@ -278,7 +278,7 @@ FMT_FORMATTER(sage::perf::Profiler::Results) {
 				}
 			);
 
-		constexpr auto format_line = "{:15} {:>10} {:5.1f}\n";
+		constexpr auto format_line = "{:<25} {:>10} {:5.1f}%\n";
 
 		fmt::format_to(ctx.out(), "Profiler results:\n");
 		fmt::format_to(ctx.out(), format_line, "Frame", total, 100.f);

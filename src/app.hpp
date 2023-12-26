@@ -71,20 +71,20 @@ public:
 					event.has_value())
 				{
 					{
-						PROFILER_TIME(profiler, "	Layers");
+						PROFILER_TIME(profiler, "    Layers");
 
 						layers.event_callback(*event, user_state);
 					}
 
 					{
-						PROFILER_TIME(profiler, "	Camera Controller");
+						PROFILER_TIME(profiler, "    Camera Controller");
 
 						camera_controller.event_callback(*event);
 					}
 
 
 					{
-						PROFILER_TIME(profiler, "	Renderer");
+						PROFILER_TIME(profiler, "    Renderer");
 
 						renderer.event_callback(*event);
 					}
@@ -117,11 +117,11 @@ public:
 				}
 			}
 
-			{
+			if constexpr (build::debug) {
 				PROFILER_TIME(profiler, "ImGui");
 
-				imgui.new_frame([this] {
-						layers.imgui_prepare();
+				imgui.new_frame([&] {
+						layers.imgui_prepare(user_state);
 					});
 			}
 

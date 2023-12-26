@@ -671,6 +671,10 @@ public:
 	}
 	auto unbind() const -> void {}
 
+	auto native_handle() const -> void* {
+		return reinterpret_cast<void*>(renderer_id.value_or(0));
+	}
+
 	auto operator== (const Texture2D& other) const -> bool {
 		return renderer_id == other.renderer_id;
 	}
@@ -687,6 +691,8 @@ using Renderer_2D_Base = sage::graphics::renderer::Base_2D<
 
 struct Renderer_2D : Renderer_2D_Base {
 	using Base = Renderer_2D_Base;
+	using Texture = Base::Texture;
+	using Sub_Texture = Base::Sub_Texture;
 	using Batch = Base::Batch;
 	using Vertex_Array = Base::Vertex_Array;
 	using Shader = Base::Shader;
@@ -710,7 +716,7 @@ public:
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_DEPTH_TEST);
+		//glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 
@@ -719,16 +725,6 @@ public:
 		auto iota = std::array<int, Base::Batch::max_texture_slots>{};
 		rg::iota(iota, 0);
 		scene_data.shader.upload_uniform("u_Textures", std::span{iota});
-	}
-
-	template <std::invocable Draws>
-	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
-		Base::scene(cam, std::forward<Draws>(draws));
-	}
-
-	template <type::Any<Texture2D, glm::vec4> Drawing>
-	auto draw(const Drawing& drawing, const Base::Draw_Args& args) {
-		Base::draw(drawing, args);
 	}
 
 	auto clear() -> void {
