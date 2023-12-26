@@ -680,6 +680,70 @@ public:
 	}
 };
 
+struct Frame_Buffer {
+	using Attrs = sage::graphics::buffer::frame::Attrs;
+
+private:
+	Attrs _attrs;
+	glfw::ID renderer_id, _color_attachment_id, depth_attachment_id;
+
+public:
+	Frame_Buffer(Attrs&& a)
+		: _attrs{std::move(a)}
+	{
+		renderer_id.emplace();
+		glCreateFramebuffers(1, &renderer_id.value());
+		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
+
+		_color_attachment_id.emplace();
+		glCreateTextures(GL_TEXTURE_2D, 1, &_color_attachment_id.value());
+		glBindTexture(GL_TEXTURE_2D, *_color_attachment_id);
+
+		glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RGBA8,
+				_attrs.size.x, _attrs.size.y,
+				0,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				nullptr
+			);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *_color_attachment_id, 0);
+
+		depth_attachment_id.emplace();
+		glCreateTextures(GL_TEXTURE_2D, 1, &depth_attachment_id.value());
+		glBindTexture(GL_TEXTURE_2D, *depth_attachment_id);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, _attrs.size.x, _attrs.size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, *depth_attachment_id, 0);
+
+		SAGE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	~Frame_Buffer() {
+		glDeleteFramebuffers(1, &renderer_id.value());
+	}
+
+public:
+	auto color_attachment_id() const -> void* {
+		return reinterpret_cast<void*>(*_color_attachment_id);
+	}
+
+	auto bind() -> void {
+		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
+	}
+
+	auto unbind() -> void {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+};
+
 using Renderer_2D_Base = sage::graphics::renderer::Base_2D<
 		Vertex_Array,
 		Texture2D,

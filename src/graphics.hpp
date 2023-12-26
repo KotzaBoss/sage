@@ -293,6 +293,24 @@ public:
 
 }//buffer::index
 
+namespace frame {
+
+struct Attrs {
+	glm::vec2 size;
+	size_t samples = 1;
+	bool is_swap_chain_target = false;
+};
+
+template <typename FB>
+concept Concept = requires(FB fb) {
+		{ fb.bind() } -> std::same_as<void>;
+		{ fb.unbind() } -> std::same_as<void>;
+		{ fb.color_attachment_id() } -> std::convertible_to<void*>;
+	}
+	;
+
+}// buffer::frame
+
 }// buffer
 
 // This may change in the future since the idea of a "Vertex Array" is not
