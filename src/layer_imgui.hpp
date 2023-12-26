@@ -159,8 +159,11 @@ public:
 	}
 
 	auto imgui_prepare(auto& /* user_state */) {
-		//static auto show = true;
-		//::ImGui::ShowDemoWindow(&show);
+		::ImGui::DockSpaceOverViewport(::ImGui::GetMainViewport());
+		if constexpr (build::debug) {
+			static auto show = true;
+			::ImGui::ShowDemoWindow(&show);
+		}
 	}
 
 public:
