@@ -390,7 +390,22 @@ public:
 
 namespace renderer {
 
-template <typename R, typename... Drawings>
+namespace detail {
+
+template <typename Renderer, typename Drawings, size_t... Idxs>
+consteval auto _renderer_can_draw(const std::index_sequence<Idxs...>&) -> bool {
+	return (requires (Renderer r, const typename Drawings::At<Idxs>& drawing, const typename Renderer::Draw_Args& args) {
+				r.draw(drawing, args);
+			} and ...
+		);
+}
+
+template <typename Renderer, typename Drawings>
+constexpr auto renderer_can_draw = _renderer_can_draw<Renderer, Drawings>(typename Drawings::Index_Sequence{});
+
+}// renderer::detail
+
+template <typename R>
 concept Concept_2D =
 	requires { typename R::Shader; } and shader::Concept<typename R::Shader>
 	and requires { typename R::Vertex_Array; } and array::vertex::Concept<typename R::Vertex_Array>
@@ -400,55 +415,21 @@ concept Concept_2D =
 		{ r.clear() } -> std::same_as<void>;
 		{ r.event_callback(e) } -> std::same_as<void>;
 	}
-	and (sizeof...(Drawings) > 0)
-	and (requires (R r, const Drawings& drawing, const typename R::Draw_Args& args) {
-			{ r.draw(drawing, args) } -> std::same_as<void>;
-		} and ...)
+	and requires { typename R::Drawings; } // and is type::Set<...>
+	and (R::Drawings::size() > 0)
+	and detail::renderer_can_draw<R, typename R::Drawings>
 	;
 
 struct Null {
 	using Shader = shader::Null;
-};
+	using Vertex_Array = array::vertex::Null;
+	using Draw_Args = std::any;
+	using Drawings = type::Set<std::any>;
 
-namespace detail {
-
-template <typename Renderer, typename Drawings, size_t... Idxs>
-consteval auto _renderer_can_draw(const std::index_sequence<Idxs...>&) -> bool {
-	if constexpr (sizeof...(Idxs) > 0)
-		return renderer::Concept_2D<Renderer, std::tuple_element_t<Idxs, Drawings>...>;
-	else
-		return true;
-}
-
-template <typename Renderer, typename Drawings>
-constexpr auto renderer_can_draw = _renderer_can_draw<Renderer, Drawings>(std::make_index_sequence<std::tuple_size_v<Drawings>>{});
-
-}// renderer::detail
-
-// Convinence to pack together template information:
-//
-// template <Rendering Ring, typename... Stuff>
-// struct App {
-//		Ring::Renderer renderer;
-// };
-//
-// struct Some_Rendering {
-//		using Renderer = Linux_Renderer;
-//		using Drawings = std::tuple<Linux_Texture, glm::vec4, int>;
-// };
-//
-// using A = App<Some_Rendering, ...>
-//
-template <typename R>
-concept Rendering =
-		requires { typename R::Renderer; }
-	and requires { typename R::Drawings; } // and std::same_as<typename R::Drawings, std::tuple<...>> // Im not gonna try to make this work syntactically...
-	and detail::renderer_can_draw<typename R::Renderer, typename R::Drawings>
-	;
-
-struct Null_Rendering {
-	using Renderer = renderer::Null;
-	using Drawings = std::tuple<>;
+	auto draw(const auto&, const auto&) -> void {}
+	auto scene(const auto&, const auto&) -> void {}
+	auto clear() -> void {}
+	auto event_callback(const auto&) -> void {}
 };
 
 template<texture::Concept Texture>
@@ -626,7 +607,7 @@ public:
 		scene_active = false;
 	}
 
-	using Drawables = type::Set<Texture, Sub_Texture, glm::vec4>;
+	using Drawings = type::Set<Texture, Sub_Texture, glm::vec4>;
 
 	struct Draw_Args {
 		const glm::vec3& position;
@@ -651,7 +632,7 @@ public:
 	//                V
 	//
 	template <typename Drawing>
-		requires (Drawables::template contains<Drawing>())
+		requires (Drawings::template contains<Drawing>())
 	auto draw(const Drawing& drawing, const Draw_Args& args) {
 		using namespace sage::math;
 

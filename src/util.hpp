@@ -281,6 +281,11 @@ namespace type {
 template <typename... Ts>
 	requires Unique<Ts...>
 struct Set {
+	using Index_Sequence = std::index_sequence_for<Ts...>;
+
+	template <size_t I>
+	using At = type::At<I, Ts...>;
+
 	Set() = delete;
 
 	// Count occurences of Ts... in Xs...
@@ -303,6 +308,10 @@ struct Set {
 		requires (sizeof...(Xs) <= 1)
 	static consteval auto contains() -> bool {
 		return (Any<Xs, Ts...> or ...);
+	}
+
+	static consteval auto size() -> size_t {
+		return sizeof...(Ts);
 	}
 
 private:

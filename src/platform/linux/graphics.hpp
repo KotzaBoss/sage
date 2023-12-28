@@ -761,6 +761,7 @@ struct Renderer_2D : Renderer_2D_Base {
 	using Vertex_Array = Base::Vertex_Array;
 	using Shader = Base::Shader;
 	using Draw_Args = Base::Draw_Args;
+	using Drawings = Base::Drawings;
 
 public:
 	Renderer_2D(Profiler& prof = Profiler::global)

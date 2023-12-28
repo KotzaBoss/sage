@@ -20,14 +20,16 @@ namespace sage::inline app {
 template <
 		window::Concept Window,
 		input::Concept Input,
-		graphics::renderer::Rendering R,
+		graphics::renderer::Concept_2D Renderer,
 		typename User_State,
-		layer::Spec... Ls
+		layer::Concept... Ls
 	>
 	requires
-			type::Not_In<layer::ImGui, typename Ls::Layer...>	// The ImGui layer will always be provided by sage as the "overlay"
+			type::Not_In<layer::ImGui<Input, Renderer, User_State>, Ls...>	// The ImGui layer will always be provided by sage as the "overlay"
+			// TODO: layer input/rendering/... must match Window, Input, etc
 struct App {
-	using Layers = sage::layer::Array<layer::ImGui::Spec<Input, R, User_State>, Ls...>;
+	using ImGui = layer::ImGui<Input, Renderer, User_State>;
+	using Layers = sage::layer::Array<ImGui, Ls...>;
 	using Camera_Controller = camera::Controller<Input>;
 
 private:
@@ -37,7 +39,7 @@ private:
 
 	Profiler profiler;
 
-	R::Renderer renderer;
+	Renderer renderer;
 
 	Camera_Controller camera_controller;
 
@@ -45,17 +47,16 @@ private:
 
 	Layers layers;
 
-	layer::ImGui& imgui;
+	ImGui& imgui;
 
 	oslinux::graphics::Frame_Buffer frame_buffer = {{ .size={1280, 720} }};
 
 public:
-	App(Window&& w, Input&& i)
-		: window{std::move(w)}
-		, input{std::move(i)}
-		, profiler{{ .max_quads = R::Renderer::Batch::max_quads }}
+	App()
+		: input{window.native_handle()}
+		, profiler{{ .max_quads = Renderer::Batch::max_quads }}
 		, renderer{profiler}
-		, layers{layer::ImGui{&window}, typename Ls::Layer{}...}
+		, layers{ImGui{&window}, Ls{}...}
 		, imgui{layers.front()}
 	{
 		SAGE_LOG_DEBUG(*this);
@@ -126,10 +127,10 @@ public:
 
 				imgui.new_frame([&] {
 						layers.imgui_prepare(user_state);
-						ImGui::Begin("Rendering");
+						::ImGui::Begin("Rendering");
 						// {0, 1} {1, 0} to display it correctly and not inverted
-						ImGui::Image(frame_buffer.color_attachment_id(), { 1280.f , 720.f}, {0, 1}, {1, 0});
-						ImGui::End();
+						::ImGui::Image(frame_buffer.color_attachment_id(), { 1280.f , 720.f}, {0, 1}, {1, 0});
+						::ImGui::End();
 					});
 			}
 
@@ -148,8 +149,8 @@ public:
 	}
 
 public:
-	friend REPR_DEF_FMT(App<Window, Input, R, User_State, Ls...>)
-	friend FMT_FORMATTER(App<Window, Input, R, User_State, Ls...>);
+	friend REPR_DEF_FMT(App<Window, Input, Renderer, User_State, Ls...>)
+	friend FMT_FORMATTER(App<Window, Input, Renderer, User_State, Ls...>);
 };
 
 }// sage

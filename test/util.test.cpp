@@ -86,20 +86,32 @@ TEST_CASE ("Polymorphic_Array") {
 	SUBCASE ("Initialized") {
 		// FIXME: Add constness, see pragma in Polymorphic_Array
 		auto storage = Array{1, 2.0f, "3"s};
+		auto order_flags = std::bitset<3>();
 
 		CAPTURE(storage);
 
-		storage.apply([] (const auto& x) {
+		storage.apply([&] (const auto& x) {
 				using T = std::decay_t<decltype(x)>;
-				if constexpr (std::same_as<T, int>)
+				if constexpr (std::same_as<T, int>) {
+					REQUIRE_MESSAGE(order_flags.none(), "Implementation does not keep template order");
 					CHECK_EQ(x, 1);
-				else if constexpr (std::same_as<T, float>)
+					order_flags.flip(0);
+				}
+				else if constexpr (std::same_as<T, float>) {
+					REQUIRE_MESSAGE((order_flags.count() == 1 and order_flags[0]), "Implementation does not keep template order");
 					CHECK_EQ(x, 2.0);
-				else if constexpr (std::same_as<T, std::string>)
+					order_flags.flip(1);
+				}
+				else if constexpr (std::same_as<T, std::string>) {
+					REQUIRE_MESSAGE((order_flags.count() == 2 and order_flags[0] and order_flags[1]), "Implementation does not keep template order");
 					CHECK_EQ(x, "3");
+					order_flags.flip(2);
+				}
 				else
 					FAIL("Unexpected type in Polymorphic_Array");
 			});
+
+		CHECK(order_flags.all());
 	}
 }
 

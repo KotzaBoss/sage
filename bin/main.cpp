@@ -1,35 +1,16 @@
 #include "src/sage.hpp"
 
-#include "bin/layer_2d.hpp"
+#include "bin/sandbox.hpp"
 
 using namespace sage;
-
-struct App_Rendering {
-	using Renderer = oslinux::Renderer_2D;
-	using Drawings = std::tuple<oslinux::Texture2D, glm::vec4>;
-};
-
-struct App_Layer_2D_Spec {
-	using Input = oslinux::Input;
-	using Rendering = App_Rendering;
-	using User_State = Game_State;
-	using Layer = Layer_2D;
-};
-
-struct App_Particle_Spec {
-	using Input = oslinux::Input;
-	using Rendering = App_Rendering;
-	using User_State = Game_State;
-	using Layer = Rocket_Flame;
-};
 
 using The_App = sage::App<
 	oslinux::Window,
 	oslinux::Input,
-	App_Rendering,
+	oslinux::Renderer_2D,
 	Game_State,
-	App_Layer_2D_Spec,
-	App_Particle_Spec
+	Layer_2D,
+	Rocket_Flame
 >;
 
 auto main() -> int {
@@ -38,12 +19,7 @@ auto main() -> int {
 
 	//
 
-	auto win = oslinux::Window{window::Properties{}};
-	auto input = oslinux::Input{win.native_handle()};
-	auto app = The_App {
-			std::move(win),
-			std::move(input)
-		};
+	auto app = The_App{};
 
 	return app.run(stop_source.get_token());
 }

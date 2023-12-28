@@ -6,36 +6,31 @@
 using namespace sage;
 
 TEST_CASE ("Layer") {
-	using Null_Rendering = graphics::renderer::Null_Rendering;
-	using Layers = layer::Storage<
-			Dump_Layer::Spec<input::Null, Null_Rendering, layer::Null_User_State>,
-			Other_Layer::Spec<input::Null, Null_Rendering, layer::Null_User_State>,
-			Last_Layer::Spec<input::Null, Null_Rendering, layer::Null_User_State>
-		>;
-
+	using DL = Dump_Layer<input::Null, graphics::renderer::Null, layer::Null_User_State>;
+	using OL = Other_Layer<input::Null, graphics::renderer::Null, layer::Null_User_State>;
+	using LL = Last_Layer<input::Null, graphics::renderer::Null, layer::Null_User_State>;
+	using Layers = layer::Storage<DL, OL, LL>;
 
 	auto layers = Layers{
 		{
-			Dump_Layer{1},
-			Dump_Layer{2},
-			Dump_Layer{3},
-			Dump_Layer{4},
-			Dump_Layer{5},
+			DL{1},
+			DL{2},
+			DL{3},
+			DL{4},
+			DL{5},
 		},
 		{
-			Other_Layer{6},
-			Other_Layer{7},
-			Other_Layer{8},
+			OL{6},
+			OL{7},
+			OL{8},
 		},
 		{
-			Last_Layer{9},
-			Last_Layer{10},
-			Last_Layer{11},
-			Last_Layer{12},
+			LL{9},
+			LL{10},
+			LL{11},
+			LL{12},
 		},
 	};
-
-	MESSAGE(layers);
 
 	SUBCASE ("Layer access sequence") {
 		auto ids = std::vector<size_t>{};

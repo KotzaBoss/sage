@@ -14,11 +14,6 @@ REPR_DEF_FMT(Event::Payload);
 REPR_DEF_FMT(Event);
 }
 
-namespace sage::layer {
-REPR_DEF_FMT(ImGui);
-}
-
-
 namespace sage::window {
 REPR_DEF_FMT(Properties)
 }

@@ -10,14 +10,12 @@
 
 namespace sage::layer {
 
+template <typename _Input, typename _Renderer, typename _User_State>
 struct ImGui {
-	template <typename _Input, typename _Rendering, typename _User_State>
-	struct Spec {
-		using Rendering = _Rendering;
-		using Input = _Input;
-		using User_State = _User_State;
-		using Layer = ImGui;
-	};
+	using Renderer = _Renderer;
+	using Input = _Input;
+	using User_State = _User_State;
+	using Layer = ImGui;
 
 private:
 	float time = 0.0f;
@@ -167,17 +165,16 @@ public:
 	}
 
 public:
-	REPR_DECL(ImGui);
-	friend FMT_FORMATTER(ImGui);
+	friend FMT_FORMATTER(ImGui<_Input, _Renderer, _User_State>);
 };
 
 }// sage::layer
 
-template <>
-FMT_FORMATTER(sage::layer::ImGui) {
+template <typename... Ts>
+FMT_FORMATTER(sage::layer::ImGui<Ts...>) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
-	FMT_FORMATTER_FORMAT(sage::layer::ImGui) {
+	FMT_FORMATTER_FORMAT(sage::layer::ImGui<Ts...>) {
 		(void)obj;
 		return fmt::format_to(ctx.out(), "layer::ImGui;");
 	}

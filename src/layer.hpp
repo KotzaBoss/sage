@@ -11,13 +11,12 @@
 
 namespace sage::layer {
 
-// TODO: Maybe pass optional<Event> to allow for functional chaining?
-// TODO: Maybe pass renderer::Concept to .render()? Can there be multiple renderers?
-template <typename Layer, typename Input, typename Rendering, typename User_State>
+template <typename Layer>
 concept Concept =
-		input::Concept<Input>
-	and graphics::renderer::Rendering<Rendering>
-	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Rendering::Renderer& renderer, Input& input, User_State& user_state) {
+		requires { typename Layer::Input; } and input::Concept<typename Layer::Input>
+	and requires { typename Layer::Renderer; } and graphics::renderer::Concept_2D<typename Layer::Renderer>
+	and requires { typename Layer::User_State; }
+	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Layer::Renderer& renderer, Layer::Input& input, Layer::User_State& user_state) {
 		{ l.update(delta, input, user_state) } -> std::same_as<void>;
 		{ l.render(renderer, user_state) } -> std::same_as<void>;
 		// Must be called in layer::ImGui::new_frame()
@@ -28,51 +27,22 @@ concept Concept =
 	}
 	;
 
-// Convinence to pack together template information:
-//
-// template <Rendering Ring, Spec... Ls>
-// struct App {
-// };
-//
-// struct Some_Rendering {
-//		using Renderer = Linux_Renderer;
-//		using Drawings = std::tuple<Linux_Texture, glm::vec4, int>;
-// };
-//
-// struct Some_Layer_Spec {
-//		using Layer = Some_Layer;
-//		using Rendering = Some_Rendering;
-// };
-//
-// using App<Some_Rendering,
-//			Some_Layer_Spec
-//     >;
-//
-template <typename L>
-concept Spec =
-		requires { typename L::Input; } and input::Concept<typename L::Input>
-	and requires { typename L::Rendering; } and graphics::renderer::Rendering<typename L::Rendering>
-	and requires { typename L::User_State; }
-	and requires { typename L::Layer; }
-		and layer::Concept<typename L::Layer, typename L::Input, typename L::Rendering, typename L::User_State>
-	;
-
 struct Null_User_State {};
 inline auto null_user_state = Null_User_State{};
 
-template <layer::Spec... Ls>
-	requires	// All specs to share the same Input, Rendering, User_State, ...
+template <layer::Concept... Ls>
+	requires	// All layers must share the same Input, Renderer, User_State, ...
 			type::All<typename Ls::Input...>
-		and type::All<typename Ls::Rendering...>
+		and type::All<typename Ls::Renderer...>
 		and type::All<typename Ls::User_State...>
-struct Array : util::Polymorphic_Array<typename Ls::Layer...> {
-	using Base = util::Polymorphic_Array<typename Ls::Layer...>;
+struct Array : util::Polymorphic_Array<Ls...> {
+	using Base = util::Polymorphic_Array<Ls...>;
 	using Input = type::Front<typename Ls::Input...>;
-	using Renderer = type::Front<typename Ls::Rendering::Renderer...>;
+	using Renderer = type::Front<typename Ls::Renderer...>;
 	using User_State = type::Front<typename Ls::User_State...>;
 
 public:
-	Array(type::Any<typename Ls::Layer...> auto&&... ls)
+	Array(type::Any<Ls...> auto&&... ls)
 		: Base{std::move(ls)...}
 	{}
 
@@ -107,16 +77,19 @@ public:
 
 };
 
-template <layer::Spec... Ls>
-	requires type::All<typename Ls::Input...>
-struct Storage : util::Polymorphic_Storage<typename Ls::Layer...> {
-	using Base = util::Polymorphic_Storage<typename Ls::Layer...>;
+template <layer::Concept... Ls>
+	requires	// All layers must share the same Input, Renderer, User_State, ...
+			type::All<typename Ls::Input...>
+		and type::All<typename Ls::Renderer...>
+		and type::All<typename Ls::User_State...>
+struct Storage : util::Polymorphic_Storage<Ls...> {
+	using Base = util::Polymorphic_Storage<Ls...>;
 	using Input = type::Front<typename Ls::Input...>;
-	using Renderer = type::Front<typename Ls::Rendering::Renderer...>;
+	using Renderer = type::Front<typename Ls::Renderer...>;
 	using User_State = type::Front<typename Ls::User_State...>;
 
 public:
-	Storage(typename Base::Vector<typename Ls::Layer>&&... layers)
+	Storage(typename Base::Vector<Ls>&&... layers)
 		: Base{std::move(layers)...}
 	{}
 

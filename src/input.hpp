@@ -38,7 +38,9 @@ struct Mouse {
 // TODO: OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional<Mouse::Scroll> ?
 template <typename Input>
 concept Concept =
-	requires (Input i, const Key& k, const Mouse::Button& b) {
+		requires { typename Input::Native_Window_Handle; } and std::convertible_to<typename Input::Native_Window_Handle, void*>
+	and requires (Input i, const Key& k, const Mouse::Button& b, typename Input::Native_Window_Handle native_window_handle) {
+		{ Input(native_window_handle) };
 		{ i.is_key_pressed(k) } -> std::same_as<bool>;
 		{ i.is_mouse_button_pressed(b) } -> std::same_as<bool>;
 		{ i.mouse_pos() } -> std::same_as<Mouse::Pos>;
@@ -47,6 +49,12 @@ concept Concept =
 	;
 
 struct Null {
+	using Native_Window_Handle = void*;
+
+	Null() = default;
+
+	Null(void*) {};
+
 	auto is_key_pressed(const Key&) -> bool {
 		return false;
 	}

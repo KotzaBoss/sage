@@ -19,7 +19,7 @@ private:
 	OpenGL_Context context;
 
 public:
-	Window(sage::window::Properties&& props)
+	Window(sage::window::Properties&& props = {})
 		: Base{std::move(props)}
 		, glfw{glfwCreateWindow(
 			props.size.width,

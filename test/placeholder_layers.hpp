@@ -3,16 +3,11 @@
 
 #include "imgui.h"
 
-struct Non_State {};
-
+template <typename _Input, typename _Renderer, typename _User_State>
 struct Dump_Layer {
-	template <typename _Input, typename _Rendering, typename _User_State>
-	struct Spec {
-		using Layer = Dump_Layer;
-		using Rendering = _Rendering;
-		using Input = _Input;
-		using User_State = _User_State;
-	};
+	using Renderer = _Renderer;
+	using Input = _Input;
+	using User_State = _User_State;
 
 public:
 	size_t id;
@@ -62,29 +57,13 @@ public:
 		ImGui::End();
 	}
 	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
-
-	REPR_DECL(Dump_Layer);
 };
 
-template <>
-FMT_FORMATTER(Dump_Layer) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(Dump_Layer) {
-		return fmt::format_to(ctx.out(), "Dump_Layer: {}", obj.id);
-	}
-};
-
-REPR_DEF_FMT(Dump_Layer);
-
+template <typename _Input, typename _Renderer, typename _User_State>
 struct Other_Layer {
-	template <typename _Input, typename _Rendering, typename _User_State>
-	struct Spec {
-		using Layer = Other_Layer;
-		using Rendering = _Rendering;
-		using Input = _Input;
-		using User_State = _User_State;
-	};
+	using Renderer = _Renderer;
+	using Input = _Input;
+	using User_State = _User_State;
 
 public:
 	size_t id;
@@ -109,29 +88,13 @@ public:
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	}
 	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
-
-	REPR_DECL(Other_Layer);
 };
 
-template <>
-FMT_FORMATTER(Other_Layer) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(Other_Layer) {
-		return fmt::format_to(ctx.out(), "Other_Layer: {}", obj.id);
-	}
-};
-
-REPR_DEF_FMT(Other_Layer);
-
+template <typename _Input, typename _Renderer, typename _User_State>
 struct Last_Layer {
-	template <typename _Input, typename _Rendering, typename _User_State>
-	struct Spec {
-		using Layer = Last_Layer;
-		using Rendering = _Rendering;
-		using Input = _Input;
-		using User_State = _User_State;
-	};
+	using Renderer = _Renderer;
+	using Input = _Input;
+	using User_State = _User_State;
 
 public:
 	size_t id;
@@ -139,28 +102,16 @@ public:
 	Last_Layer(const size_t _id)
 		: id{_id}
 	{
-		MESSAGE("DUMP Setting up ", id);
+		MESSAGE("LAST Setting up ", id);
 	}
 
-	~Last_Layer() { MESSAGE("DUMP Tearing down ", id); }
+	~Last_Layer() { MESSAGE("LAST Tearing down ", id); }
 
 	auto update(const std::chrono::milliseconds delta, auto&, auto&) -> void { MESSAGE("LAST Updating {}", id, delta); }
 	auto render(auto&, auto&) {}
 	auto imgui_prepare(auto&) -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}
-	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
-
-	REPR_DECL(Last_Layer);
+	auto event_callback(const sage::Event& event, auto&) -> void { MESSAGE("LAST ", id, "got Event ", event); }
 };
 
-template <>
-FMT_FORMATTER(Last_Layer) {
-	FMT_FORMATTER_DEFAULT_PARSE
-
-	FMT_FORMATTER_FORMAT(Last_Layer) {
-		return fmt::format_to(ctx.out(), "Last_Layer: {}", obj.id);
-	}
-};
-
-REPR_DEF_FMT(Last_Layer);

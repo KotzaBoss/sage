@@ -11,6 +11,7 @@ namespace sage::oslinux::inline input {
 struct Input {
 	using Key = sage::input::Key;
 	using Mouse = sage::input::Mouse;
+	using Native_Window_Handle = GLFWwindow*;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
