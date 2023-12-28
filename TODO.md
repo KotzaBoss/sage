@@ -11,28 +11,28 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 64 | Weird behaviour for Set<>::count<>() |
-| [src/util.hpp](src/util.hpp) | 345 | add check std>=23 todo deduce this |
-| [src/util.hpp](src/util.hpp) | 343 | Deduce this to add const-correctness to Polymorphic_Containers. |
+| [src/util.hpp](src/util.hpp) | 354 | add check std>=23 todo deduce this |
+| [src/util.hpp](src/util.hpp) | 352 | Deduce this to add const-correctness to Polymorphic_Containers. |
 | [src/platform/linux/window.hpp](src/platform/linux/window.hpp) | 74 | Change switches to array lookups for clarity |
-| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 59 | Check error |
-| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 53 | Check error |
+| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 60 | Check error |
+| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 54 | Check error |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 313 | if constexpr (build::release) clear index/vertex buffers |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 215 | This could be a range::chunk or range::slide in c++23? |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 105 | Split dynamic/static vertex_buffer? |
 | [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
-| [src/layer_imgui.hpp](src/layer_imgui.hpp) | 132 | ImGui is abit special but is there a way to integrate this in .render()? |
-| [src/layer.hpp](src/layer.hpp) | 15 | Maybe pass renderer::Concept to .render()? Can there be multiple renderers? |
-| [src/layer.hpp](src/layer.hpp) | 14 | Maybe pass optional\<Event\> to allow for functional chaining? |
+| [src/layer_imgui.hpp](src/layer_imgui.hpp) | 130 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
-| [src/graphics.hpp](src/graphics.hpp) | 560 | Use scene_active only in debug mode |
-| [src/graphics.hpp](src/graphics.hpp) | 482 | Make a namespace for shapes |
-| [src/graphics.hpp](src/graphics.hpp) | 467 | More type safety |
-| [src/graphics.hpp](src/graphics.hpp) | 446 | Query from GPU |
-| [src/graphics.hpp](src/graphics.hpp) | 439 | Proper asset system and asset handles |
+| [src/graphics.hpp](src/graphics.hpp) | 559 | Use scene_active only in debug mode |
+| [src/graphics.hpp](src/graphics.hpp) | 481 | Make a namespace for shapes |
+| [src/graphics.hpp](src/graphics.hpp) | 466 | More type safety |
+| [src/graphics.hpp](src/graphics.hpp) | 445 | Query from GPU |
+| [src/graphics.hpp](src/graphics.hpp) | 438 | Proper asset system and asset handles |
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
-| [src/app.hpp](src/app.hpp) | 133 | Fixed rate updates how to? Hardcode to 144fps for now. |
+| [src/app.hpp](src/app.hpp) | 142 | Fixed rate updates how to? Hardcode to 144fps for now. |
+| [src/app.hpp](src/app.hpp) | 29 | layer input/rendering/... must match Window, Input, etc |
+| [bin/sandbox.hpp](bin/sandbox.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 | [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 
 ## FIXME
@@ -41,7 +41,7 @@
 
 | Source | Line Number | Description |
 |:-|:-|:-|
-| [test/util.test.cpp](test/util.test.cpp) | 114 | Add constness, see pragma in Polymorphic_Array |
+| [test/util.test.cpp](test/util.test.cpp) | 126 | Add constness, see pragma in Polymorphic_Array |
 | [test/util.test.cpp](test/util.test.cpp) | 87 | Add constness, see pragma in Polymorphic_Array |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 386 | why shader.size() doesnt work? its an array |
 | [src/particle.hpp](src/particle.hpp) | 44 | Why the default template for Lifetime doesnt work? |
