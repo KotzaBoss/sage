@@ -156,7 +156,7 @@ public:
 		}
 	}
 
-	auto imgui_prepare(auto& /* user_state */) {
+	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, User_State&) {
 		::ImGui::DockSpaceOverViewport(::ImGui::GetMainViewport());
 		if constexpr (build::debug) {
 			static auto show = true;

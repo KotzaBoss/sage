@@ -195,16 +195,16 @@ public:
 	}
 
 	auto imgui_prepare() {
-		ImGui::Begin("Level");
-		ImGui::Text("Handle: %p", atlas.native_handle());
-		ImGui::Text("Size: %d x %d", atlas.width(), atlas.height());
-		ImGui::Text("Sprite Unit: %d x %d", 128, 128);
-		ImGui::Image(
-				atlas.native_handle(),
-				{atlas.width() * 0.25f, atlas.height() * 0.25f},
-				{0.f, 0.f}, {1.f, 1.f}
-			);
-		ImGui::End();
+		//ImGui::Begin("Level");
+		//ImGui::Text("Handle: %p", atlas.native_handle());
+		//ImGui::Text("Size: %d x %d", atlas.width(), atlas.height());
+		//ImGui::Text("Sprite Unit: %d x %d", 128, 128);
+		//ImGui::Image(
+		//		atlas.native_handle(),
+		//		{atlas.width() * 0.25f, atlas.height() * 0.25f},
+		//		{0.f, 0.f}, {1.f, 1.f}
+		//	);
+		//ImGui::End();
 	}
 
 public:
@@ -237,7 +237,7 @@ public:
 		gs.should_update = toogle_if(gs.should_update, e.type == Event::Type::Key_Pressed and std::get<input::Key>(e.payload) == input::Key::P);
 	}
 
-	auto imgui_prepare(Game_State& gs) -> void {
+	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, Game_State& gs) -> void {
 		gs.level.imgui_prepare();
 	}
 
@@ -322,7 +322,7 @@ public:
 	auto event_callback(const Event&, Game_State&) -> void {
 	}
 
-	auto imgui_prepare(Game_State&) -> void {
+	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, Game_State&) -> void {
 	}
 
 	FMT_FORMATTER(Rocket_Flame);

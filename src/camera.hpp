@@ -132,6 +132,7 @@ public:
 			case Event::Type::Window_Resized: {
 				SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
 
+				// TODO: Get rid of math::Size and use glm
 				const auto sz = std::get<Size<size_t>>(e.payload).to<float>();
 				aspect_ratio = sz.width / sz.height;
 				break;
@@ -140,6 +141,12 @@ public:
 				return;
 		}
 
+		_camera.set_projection(projection_mat_args());
+	}
+
+public:
+	auto resize(const glm::vec2 sz) -> void {
+		aspect_ratio = sz.x / sz.y;
 		_camera.set_projection(projection_mat_args());
 	}
 
@@ -164,9 +171,8 @@ private:
 	}
 
 public:
-	auto camera() const -> const Orthographic& {
-		return _camera;
-	}
+	auto camera() const -> const Orthographic&	{ return _camera; }
+	auto camera()		-> Orthographic&		{ return _camera; }
 
 public:
 	friend FMT_FORMATTER(Controller);

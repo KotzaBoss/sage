@@ -6,7 +6,13 @@
 
 using namespace sage;
 
+struct Game_State;
+
 struct Editor {
+	using Input = oslinux::Input;
+	using Renderer = oslinux::Renderer_2D;
+	using User_State = Game_State;	// TODO: How to "ignore" User_State
+
 public:
 	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, auto&) -> void {
 	}
@@ -17,15 +23,17 @@ public:
 	auto event_callback(const Event& e, auto&) -> void {
 	}
 
-	template <typename App_State>
-		requires (App_State as) {
-			{ as.frame_buffer } -> std::same_as<const oslinux::Frame_Buffer&>;
-		}
-	auto imgui_prepare(App_State& state) -> void {
-		ImGui::Begin("Editor");
-		// {0, 1} {1, 0} to display it correctly and not inverted
-		ImGui::Image(state.frame_buffer.color_attachment_id(), { 1280.f , 720.f}, {0, 1}, {1, 0});
-		ImGui::End();
+	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer& frame_buffer, auto& state) -> void {
+		::ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+		::ImGui::Begin("Rendering");
+
+		const auto viewport_size = ::ImGui::GetContentRegionAvail();
+		cam.resize({ viewport_size.x, viewport_size.y });
+		frame_buffer.resize({viewport_size.x, viewport_size.y});
+		::ImGui::Image(frame_buffer.color_attachment_id(), viewport_size, {0, 1}, {1, 0}); // {0, 1} {1, 0} to display it correctly and not inverted
+
+		::ImGui::End();
+		::ImGui::PopStyleVar();
 	}
 
 	FMT_FORMATTER(Editor);

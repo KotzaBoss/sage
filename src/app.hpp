@@ -49,8 +49,6 @@ private:
 
 	ImGui& imgui;
 
-	oslinux::graphics::Frame_Buffer frame_buffer = {{ .size={1280, 720} }};
-
 public:
 	App()
 		: input{window.native_handle()}
@@ -113,12 +111,9 @@ public:
 				{
 					PROFILER_TIME(profiler, "Render Layers");
 
-					frame_buffer.bind();
-					renderer.clear();
 					renderer.scene(camera_controller.camera(), [&] {
 							layers.render(renderer, user_state);
 						});
-					frame_buffer.unbind();
 				}
 			}
 
@@ -126,11 +121,7 @@ public:
 				PROFILER_TIME(profiler, "ImGui");
 
 				imgui.new_frame([&] {
-						layers.imgui_prepare(user_state);
-						::ImGui::Begin("Rendering");
-						// {0, 1} {1, 0} to display it correctly and not inverted
-						::ImGui::Image(frame_buffer.color_attachment_id(), { 1280.f , 720.f}, {0, 1}, {1, 0});
-						::ImGui::End();
+						layers.imgui_prepare(camera_controller, renderer.frame_buffer(), user_state);
 					});
 			}
 

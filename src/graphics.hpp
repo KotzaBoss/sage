@@ -302,10 +302,11 @@ struct Attrs {
 };
 
 template <typename FB>
-concept Concept = requires(FB fb) {
+concept Concept = requires(FB fb, const glm::vec2& new_size) {
 		{ fb.bind() } -> std::same_as<void>;
 		{ fb.unbind() } -> std::same_as<void>;
 		{ fb.color_attachment_id() } -> std::convertible_to<void*>;
+		{ fb.resize(new_size) } -> std::same_as<void>;
 	}
 	;
 
@@ -410,14 +411,15 @@ concept Concept_2D =
 	requires { typename R::Shader; } and shader::Concept<typename R::Shader>
 	and requires { typename R::Vertex_Array; } and array::vertex::Concept<typename R::Vertex_Array>
 	and requires { typename R::Draw_Args; }
+	and requires { typename R::Drawings; } // and is type::Set<...>
+		and (R::Drawings::size() > 0)
+		and detail::renderer_can_draw<R, typename R::Drawings>
+	and requires { typename R::Frame_Buffer; } and buffer::frame::Concept<typename R::Frame_Buffer>
 	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const Event& e) {
 		{ r.scene(cam, draws) } -> std::same_as<void>;
-		{ r.clear() } -> std::same_as<void>;
 		{ r.event_callback(e) } -> std::same_as<void>;
+		{ r.frame_buffer() } -> std::same_as<typename R::Frame_Buffer&>;
 	}
-	and requires { typename R::Drawings; } // and is type::Set<...>
-	and (R::Drawings::size() > 0)
-	and detail::renderer_can_draw<R, typename R::Drawings>
 	;
 
 struct Null {
@@ -531,11 +533,13 @@ public:
 	}
 };
 
-template <typename _Vertex_Array, typename _Texture, typename Draw_Call, typename _Shader>
+template <typename _Vertex_Array, typename _Texture, typename Draw_Call, typename Clear_Call, typename _Frame_Buffer, typename _Shader>
 	requires
 			array::vertex::Concept<_Vertex_Array>
 		and texture::Concept<_Texture>
 		and std::invocable<Draw_Call, const Batch<_Texture>&>
+		and std::invocable<Clear_Call>
+		and buffer::frame::Concept<_Frame_Buffer>
 		and shader::Concept<_Shader>
 struct Base_2D {
 protected:
@@ -543,11 +547,13 @@ protected:
 	using Texture = _Texture;
 	using Sub_Texture = texture::Sub_Texture<Texture>;
 	using Batch = renderer::Batch<Texture>;
+	using Frame_Buffer = _Frame_Buffer;
 	using Shader = _Shader;
 
 protected:
 	struct Scene_Data {
 		Vertex_Array vertex_array;
+		Frame_Buffer frame_buffer;
 		Shader shader;
 	};
 
@@ -560,6 +566,8 @@ private:
 	bool scene_active = false;
 
 	Draw_Call draw_call;
+
+	Clear_Call clear_call;
 
 	Profiler& profiler;
 
@@ -595,6 +603,10 @@ public:
 
 		scene_active = true;
 
+		scene_data.frame_buffer.bind();
+
+		std::invoke(clear_call);
+
 		SAGE_ASSERT(batch.verteces_are_empty(), "Make sure to clear when flushing");
 
 		scene_data.shader.bind();
@@ -603,6 +615,8 @@ public:
 		draws();
 
 		flush();
+
+		scene_data.frame_buffer.unbind();
 
 		scene_active = false;
 	}
@@ -688,6 +702,11 @@ public:
 					},
 				};
 		batch.push_quad(std::move(verts));
+	}
+
+public:
+	auto frame_buffer() -> Frame_Buffer& {
+		return scene_data.frame_buffer;
 	}
 
 private:

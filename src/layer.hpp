@@ -5,6 +5,7 @@
 #include "src/graphics.hpp"
 #include "src/event.hpp"
 #include "src/input.hpp"
+#include "src/camera.hpp"
 #include "src/util.hpp"
 
 #include "src/repr.hpp"
@@ -16,11 +17,18 @@ concept Concept =
 		requires { typename Layer::Input; } and input::Concept<typename Layer::Input>
 	and requires { typename Layer::Renderer; } and graphics::renderer::Concept_2D<typename Layer::Renderer>
 	and requires { typename Layer::User_State; }
-	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Layer::Renderer& renderer, Layer::Input& input, Layer::User_State& user_state) {
+
+	and requires (Layer l, const std::chrono::milliseconds delta, Layer::Input& input, Layer::User_State& user_state) {
 		{ l.update(delta, input, user_state) } -> std::same_as<void>;
+	}
+	and requires (Layer l, Layer::Renderer& renderer, Layer::User_State& user_state) {
 		{ l.render(renderer, user_state) } -> std::same_as<void>;
-		{ l.imgui_prepare(user_state) } -> std::same_as<void>;	// Must be called in layer::ImGui::new_frame()
+	}
+	and requires (Layer l, const Event& event, Layer::User_State& user_state) {
 		{ l.event_callback(event, user_state) } -> std::same_as<void>;
+	}
+	and requires (Layer l, camera::Controller<typename Layer::Input>& cam_contr, Layer::Renderer::Frame_Buffer& frame_buffer, Layer::User_State& user_state) {
+		{ l.imgui_prepare(cam_contr, frame_buffer, user_state) } -> std::same_as<void>;	// Must be called in layer::ImGui::new_frame()
 	}
 	;
 
@@ -61,9 +69,9 @@ public:
 			});
 	}
 
-	auto imgui_prepare(User_State& us) -> void {
+	auto imgui_prepare(camera::Controller<Input>& cc, Renderer::Frame_Buffer& fb, User_State& us) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.imgui_prepare(us);
+				layer.imgui_prepare(cc, fb, us);
 			});
 	}
 

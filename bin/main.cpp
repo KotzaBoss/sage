@@ -1,6 +1,7 @@
 #include "src/sage.hpp"
 
 #include "bin/sandbox.hpp"
+#include "bin/editor.hpp"
 
 using namespace sage;
 
@@ -10,7 +11,8 @@ using The_App = sage::App<
 	oslinux::Renderer_2D,
 	Game_State,
 	Layer_2D,
-	Rocket_Flame
+	Rocket_Flame,
+	Editor
 >;
 
 auto main() -> int {

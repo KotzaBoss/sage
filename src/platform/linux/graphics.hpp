@@ -691,6 +691,42 @@ public:
 	Frame_Buffer(Attrs&& a)
 		: _attrs{std::move(a)}
 	{
+		make_frame_buffer();
+	}
+
+	~Frame_Buffer() {
+		delete_frame_buffer();
+	}
+
+public:
+	auto color_attachment_id() const -> void* {
+		return reinterpret_cast<void*>(*_color_attachment_id);
+	}
+
+	auto resize(const glm::vec2& sz) -> void {
+		if (sz.x < 1.f or sz.y < 1.f) {
+			return;
+		}
+		else if (_attrs.size == sz)
+			return;
+
+		delete_frame_buffer();
+		_attrs.size = sz;
+		make_frame_buffer();
+	}
+
+	auto bind() -> void {
+		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
+		glViewport(0, 0, _attrs.size.x, _attrs.size.y);
+	}
+
+	auto unbind() -> void {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+private:
+	auto make_frame_buffer() -> void {
+		SAGE_ASSERT(not (renderer_id and _color_attachment_id and depth_attachment_id), "Ids must not be set");
+
 		renderer_id.emplace();
 		glCreateFramebuffers(1, &renderer_id.value());
 		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
@@ -698,7 +734,6 @@ public:
 		_color_attachment_id.emplace();
 		glCreateTextures(GL_TEXTURE_2D, 1, &_color_attachment_id.value());
 		glBindTexture(GL_TEXTURE_2D, *_color_attachment_id);
-
 		glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
@@ -717,7 +752,7 @@ public:
 		depth_attachment_id.emplace();
 		glCreateTextures(GL_TEXTURE_2D, 1, &depth_attachment_id.value());
 		glBindTexture(GL_TEXTURE_2D, *depth_attachment_id);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, _attrs.size.x, _attrs.size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, _attrs.size.x, _attrs.size.y);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, *depth_attachment_id, 0);
 
@@ -726,21 +761,14 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	~Frame_Buffer() {
+	auto delete_frame_buffer() -> void {
+		SAGE_ASSERT(renderer_id and _color_attachment_id and depth_attachment_id);
+
 		glDeleteFramebuffers(1, &renderer_id.value());
-	}
+		glDeleteTextures(1, &_color_attachment_id.value());
+		glDeleteTextures(1, &depth_attachment_id.value());
 
-public:
-	auto color_attachment_id() const -> void* {
-		return reinterpret_cast<void*>(*_color_attachment_id);
-	}
-
-	auto bind() -> void {
-		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
-	}
-
-	auto unbind() -> void {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		renderer_id = _color_attachment_id = depth_attachment_id = std::nullopt;
 	}
 };
 
@@ -750,15 +778,21 @@ using Renderer_2D_Base = sage::graphics::renderer::Base_2D<
 		decltype([] (const auto& batch) {
 				glDrawElements(GL_TRIANGLES, batch.indeces(), GL_UNSIGNED_INT, nullptr);
 			}),
+		decltype([] {
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			}),
+		Frame_Buffer,
 		Shader
 	>;
 
 struct Renderer_2D : Renderer_2D_Base {
 	using Base = Renderer_2D_Base;
+
 	using Texture = Base::Texture;
 	using Sub_Texture = Base::Sub_Texture;
 	using Batch = Base::Batch;
 	using Vertex_Array = Base::Vertex_Array;
+	using Frame_Buffer = Base::Frame_Buffer;
 	using Shader = Base::Shader;
 	using Draw_Args = Base::Draw_Args;
 	using Drawings = Base::Drawings;
@@ -774,7 +808,8 @@ public:
 					},
 					Index_Buffer{Batch::max_indeces}
 				},
-				.shader{"asset/shader/texture.glsl"}
+				.frame_buffer = Frame_Buffer{{ .size={1280, 720} }},
+				.shader{"asset/shader/texture.glsl"},
 			},
 			prof
 		}
@@ -790,10 +825,6 @@ public:
 		auto iota = std::array<int, Base::Batch::max_texture_slots>{};
 		rg::iota(iota, 0);
 		scene_data.shader.upload_uniform("u_Textures", std::span{iota});
-	}
-
-	auto clear() -> void {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	auto event_callback(const Event& e) -> void {
