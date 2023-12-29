@@ -13,19 +13,34 @@ struct Editor {
 	using Renderer = oslinux::Renderer_2D;
 	using User_State = Game_State;	// TODO: How to "ignore" User_State
 
+private:
+	struct {
+		bool is_focused = false;
+		bool is_hovered = false;
+	} viewport;
+
 public:
-	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, auto&) -> void {
+	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, camera::Controller<Input>& cam, User_State&) -> void {
+		if (viewport.is_focused)
+			cam.update(delta, input);
 	}
 
 	auto render(oslinux::Renderer_2D& renderer, auto&) -> void {
 	}
 
-	auto event_callback(const Event& e, auto&) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>& cam, auto&) -> void {
+		if (viewport.is_focused and viewport.is_hovered)
+			cam.event_callback(e);
 	}
 
 	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer& frame_buffer, auto& state) -> void {
 		::ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
 		::ImGui::Begin("Rendering");
+
+		viewport = {
+			.is_focused = ImGui::IsWindowFocused(),
+			.is_hovered = ImGui::IsWindowHovered(),
+		};
 
 		const auto viewport_size = ::ImGui::GetContentRegionAvail();
 		cam.resize({ viewport_size.x, viewport_size.y });

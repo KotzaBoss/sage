@@ -75,7 +75,7 @@ struct Controller {
 
 private:
 	float aspect_ratio;
-	Zoom zoom;
+	Zoom _zoom;
 	glm::vec3 position;
 	float move_speed;
 	Rotation rotation;
@@ -89,7 +89,7 @@ public:
 				.max = 10.f,
 				.level = 10.f
 			};
-		glm::vec3&& position = {0, 0, 0};
+		glm::vec3 position = {0, 0, 0};
 		Rotation rotation = {
 				.level = 0,
 				.speed = 180.f
@@ -98,7 +98,7 @@ public:
 	};
 	Controller(Controller_Args&& args = {})
 		: aspect_ratio{args.aspect_ratio}
-		, zoom{args.zoom}
+		, _zoom{args.zoom}
 		, position{args.position}
 		, move_speed{args.move_speed}
 		, rotation{args.rotation}
@@ -123,29 +123,36 @@ public:
 
 	auto event_callback(const Event& e) -> void {
 		switch (e.type) {
-			case Event::Type::Mouse_Scrolled:
+			case Event::Type::Mouse_Scrolled: {
 				SAGE_ASSERT(std::holds_alternative<input::Mouse::Scroll>(e.payload));
 
-				zoom.level = std::clamp(zoom.level - 0.5 * std::get<input::Mouse::Scroll>(e.payload).offset.y, 0.25, 30.0);
-				move_speed = zoom.level;
+				const auto offset = std::get<input::Mouse::Scroll>(e.payload).offset;
+				zoom({offset.x, offset.y});
 				break;
+			}
+
 			case Event::Type::Window_Resized: {
 				SAGE_ASSERT(std::holds_alternative<Size<size_t>>(e.payload));
 
-				// TODO: Get rid of math::Size and use glm
+				// TODO: Only use glm:: instead of the ad-hoc math::Size
 				const auto sz = std::get<Size<size_t>>(e.payload).to<float>();
-				aspect_ratio = sz.width / sz.height;
+				resize({sz.width, sz.height});
 				break;
 			}
+
 			default:
 				return;
 		}
-
-		_camera.set_projection(projection_mat_args());
 	}
 
 public:
-	auto resize(const glm::vec2 sz) -> void {
+	auto zoom(const glm::vec2& offset) -> void {
+		_zoom.level = std::clamp(_zoom.level - 0.5 * offset.y, 0.25, 30.0);
+		move_speed = _zoom.level;
+		_camera.set_projection(projection_mat_args());
+	}
+
+	auto resize(const glm::vec2& sz) -> void {
 		aspect_ratio = sz.x / sz.y;
 		_camera.set_projection(projection_mat_args());
 	}
@@ -163,10 +170,10 @@ private:
 
 	auto projection_mat_args() const -> camera::Orthographic::Projection_Args {
 		return {
-				.left	= -aspect_ratio * zoom.level,
-				.right	= aspect_ratio * zoom.level,
-				.bottom	= -zoom.level,
-				.top	= zoom.level,
+				.left	= -aspect_ratio * _zoom.level,
+				.right	= aspect_ratio * _zoom.level,
+				.bottom	= -_zoom.level,
+				.top	= _zoom.level,
 			};
 	}
 

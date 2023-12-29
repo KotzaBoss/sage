@@ -74,15 +74,8 @@ public:
 					{
 						PROFILER_TIME(profiler, "    Layers");
 
-						layers.event_callback(*event, user_state);
+						layers.event_callback(*event, camera_controller, user_state);
 					}
-
-					{
-						PROFILER_TIME(profiler, "    Camera Controller");
-
-						camera_controller.event_callback(*event);
-					}
-
 
 					{
 						PROFILER_TIME(profiler, "    Renderer");
@@ -99,13 +92,7 @@ public:
 				{
 					PROFILER_TIME(profiler, "Update Layers");
 
-					layers.update(delta, input, user_state);
-				}
-
-				{
-					PROFILER_TIME(profiler, "Update Camera Controller");
-
-					camera_controller.update(delta, input);
+					layers.update(delta, input, camera_controller, user_state);
 				}
 
 				{
@@ -115,14 +102,14 @@ public:
 							layers.render(renderer, user_state);
 						});
 				}
-			}
 
-			if constexpr (build::debug) {
-				PROFILER_TIME(profiler, "ImGui");
+				{
+					PROFILER_TIME(profiler, "ImGui");
 
-				imgui.new_frame([&] {
-						layers.imgui_prepare(camera_controller, renderer.frame_buffer(), user_state);
-					});
+					imgui.new_frame([&] {
+							layers.imgui_prepare(camera_controller, renderer.frame_buffer(), user_state);
+						});
+				}
 			}
 
 			window.update();

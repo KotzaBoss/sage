@@ -18,14 +18,14 @@ concept Concept =
 	and requires { typename Layer::Renderer; } and graphics::renderer::Concept_2D<typename Layer::Renderer>
 	and requires { typename Layer::User_State; }
 
-	and requires (Layer l, const std::chrono::milliseconds delta, Layer::Input& input, Layer::User_State& user_state) {
-		{ l.update(delta, input, user_state) } -> std::same_as<void>;
+	and requires (Layer l, const std::chrono::milliseconds delta, Layer::Input& input, camera::Controller<typename Layer::Input>& cam, Layer::User_State& user_state) {
+		{ l.update(delta, input, cam, user_state) } -> std::same_as<void>;
 	}
 	and requires (Layer l, Layer::Renderer& renderer, Layer::User_State& user_state) {
 		{ l.render(renderer, user_state) } -> std::same_as<void>;
 	}
-	and requires (Layer l, const Event& event, Layer::User_State& user_state) {
-		{ l.event_callback(event, user_state) } -> std::same_as<void>;
+	and requires (Layer l, const Event& event, camera::Controller<typename Layer::Input>& cam, Layer::User_State& user_state) {
+		{ l.event_callback(event, cam, user_state) } -> std::same_as<void>;
 	}
 	and requires (Layer l, camera::Controller<typename Layer::Input>& cam_contr, Layer::Renderer::Frame_Buffer& frame_buffer, Layer::User_State& user_state) {
 		{ l.imgui_prepare(cam_contr, frame_buffer, user_state) } -> std::same_as<void>;	// Must be called in layer::ImGui::new_frame()
@@ -57,9 +57,9 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta, Input& input, User_State& user_state) -> void {
+	auto update(const std::chrono::milliseconds delta, Input& input, camera::Controller<Input>& cam, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.update(delta, input, user_state);
+				layer.update(delta, input, cam, user_state);
 			});
 	}
 
@@ -75,9 +75,9 @@ public:
 			});
 	}
 
-	auto event_callback(const Event& e, User_State& user_state) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>& cam, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.event_callback(e, user_state);
+				layer.event_callback(e, cam, user_state);
 			});
 	}
 

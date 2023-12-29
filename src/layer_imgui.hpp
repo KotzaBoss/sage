@@ -15,7 +15,6 @@ struct ImGui {
 	using Renderer = _Renderer;
 	using Input = _Input;
 	using User_State = _User_State;
-	using Layer = ImGui;
 
 private:
 	float time = 0.0f;
@@ -63,10 +62,10 @@ public:
 	}
 
 public:
-	auto update(const std::chrono::milliseconds, input::Concept auto&, auto& /* user_state */) -> void {}
+	auto update(const std::chrono::milliseconds, Input&, camera::Controller<Input>&, User_State&) -> void {}
 	auto render(auto& /* renderer */, auto& /* user_state */) -> void {}
 
-	auto event_callback(const Event& e, auto& /* user_state */) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>&, auto& /* user_state */) -> void {
 		using namespace sage;
 
 #pragma GCC diagnostic push
