@@ -1,12 +1,12 @@
 # Overview
 
-35 items to be done.
+37 items to be done.
 
 # Entries
 
 ## TODO
 
-24 items available.
+26 items available.
 
 | Source | Line Number | Description |
 |:-|:-|:-|
@@ -16,24 +16,26 @@
 | [src/platform/linux/window.hpp](src/platform/linux/window.hpp) | 74 | Change switches to array lookups for clarity |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 60 | Check error |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 54 | Check error |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 691 | Query GPU |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 313 | if constexpr (build::release) clear index/vertex buffers |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 215 | This could be a range::chunk or range::slide in c++23? |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 105 | Split dynamic/static vertex_buffer? |
 | [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
-| [src/layer_imgui.hpp](src/layer_imgui.hpp) | 130 | ImGui is abit special but is there a way to integrate this in .render()? |
+| [src/layer_imgui.hpp](src/layer_imgui.hpp) | 129 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
-| [src/graphics.hpp](src/graphics.hpp) | 559 | Use scene_active only in debug mode |
-| [src/graphics.hpp](src/graphics.hpp) | 481 | Make a namespace for shapes |
-| [src/graphics.hpp](src/graphics.hpp) | 466 | More type safety |
-| [src/graphics.hpp](src/graphics.hpp) | 445 | Query from GPU |
-| [src/graphics.hpp](src/graphics.hpp) | 438 | Proper asset system and asset handles |
+| [src/graphics.hpp](src/graphics.hpp) | 565 | Use scene_active only in debug mode |
+| [src/graphics.hpp](src/graphics.hpp) | 483 | Make a namespace for shapes |
+| [src/graphics.hpp](src/graphics.hpp) | 468 | More type safety |
+| [src/graphics.hpp](src/graphics.hpp) | 447 | Query from GPU |
+| [src/graphics.hpp](src/graphics.hpp) | 440 | Proper asset system and asset handles |
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
+| [src/camera.hpp](src/camera.hpp) | 137 | Only use glm:: instead of the ad-hoc math::Size |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
-| [src/app.hpp](src/app.hpp) | 142 | Fixed rate updates how to? Hardcode to 144fps for now. |
-| [src/app.hpp](src/app.hpp) | 29 | layer input/rendering/... must match Window, Input, etc |
+| [src/app.hpp](src/app.hpp) | 120 | Fixed rate updates how to? Hardcode to 144fps for now. |
 | [bin/sandbox.hpp](bin/sandbox.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 | [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
+| [bin/editor.hpp](bin/editor.hpp) | 14 | How to "ignore" User_State |
 
 ## FIXME
 
