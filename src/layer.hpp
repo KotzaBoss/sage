@@ -19,10 +19,7 @@ concept Concept =
 	and requires (Layer l, const Event& event, const std::chrono::milliseconds delta, typename Layer::Renderer& renderer, Layer::Input& input, Layer::User_State& user_state) {
 		{ l.update(delta, input, user_state) } -> std::same_as<void>;
 		{ l.render(renderer, user_state) } -> std::same_as<void>;
-		// Must be called in layer::ImGui::new_frame()
-		{ l.imgui_prepare(user_state) } -> std::same_as<void>;
-		// layers.event_callback(window.pending_event());
-		// instead of checking the pending_event first.
+		{ l.imgui_prepare(user_state) } -> std::same_as<void>;	// Must be called in layer::ImGui::new_frame()
 		{ l.event_callback(event, user_state) } -> std::same_as<void>;
 	}
 	;
@@ -30,11 +27,16 @@ concept Concept =
 struct Null_User_State {};
 inline auto null_user_state = Null_User_State{};
 
+template<typename... Ls>
+concept Are_Coherent =
+		(layer::Concept<Ls> and ...)
+	and	type::All<typename Ls::Input...>
+	and type::All<typename Ls::Renderer...>
+	and type::All<typename Ls::User_State...>
+	;
+
 template <layer::Concept... Ls>
-	requires	// All layers must share the same Input, Renderer, User_State, ...
-			type::All<typename Ls::Input...>
-		and type::All<typename Ls::Renderer...>
-		and type::All<typename Ls::User_State...>
+	requires Are_Coherent<Ls...>
 struct Array : util::Polymorphic_Array<Ls...> {
 	using Base = util::Polymorphic_Array<Ls...>;
 	using Input = type::Front<typename Ls::Input...>;
@@ -78,10 +80,7 @@ public:
 };
 
 template <layer::Concept... Ls>
-	requires	// All layers must share the same Input, Renderer, User_State, ...
-			type::All<typename Ls::Input...>
-		and type::All<typename Ls::Renderer...>
-		and type::All<typename Ls::User_State...>
+	requires Are_Coherent<Ls...>
 struct Storage : util::Polymorphic_Storage<Ls...> {
 	using Base = util::Polymorphic_Storage<Ls...>;
 	using Input = type::Front<typename Ls::Input...>;

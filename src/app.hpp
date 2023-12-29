@@ -25,8 +25,8 @@ template <
 		layer::Concept... Ls
 	>
 	requires
-			type::Not_In<layer::ImGui<Input, Renderer, User_State>, Ls...>	// The ImGui layer will always be provided by sage as the "overlay"
-			// TODO: layer input/rendering/... must match Window, Input, etc
+			type::Not_In<layer::ImGui<Input, Renderer, User_State>, Ls...>	// ImGui layer always provided as the "overlay"
+		and layer::Are_Coherent<Ls...>
 struct App {
 	using ImGui = layer::ImGui<Input, Renderer, User_State>;
 	using Layers = sage::layer::Array<ImGui, Ls...>;
