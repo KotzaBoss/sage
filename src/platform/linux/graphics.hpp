@@ -688,6 +688,9 @@ private:
 	glfw::ID renderer_id, _color_attachment_id, depth_attachment_id;
 
 public:
+	static constexpr auto max_size = 8192.f;	// TODO: Query GPU
+
+public:
 	Frame_Buffer(Attrs&& a)
 		: _attrs{std::move(a)}
 	{
@@ -704,7 +707,8 @@ public:
 	}
 
 	auto resize(const glm::vec2& sz) -> void {
-		if (sz.x < 1.f or sz.y < 1.f) {
+		if (not math::in_range(sz.x, 1.f, max_size) or not math::in_range(sz.x, 1.f, max_size)) {
+			SAGE_LOG_WARN("Attempting to resize buffer to ({}, {}), skipping...", sz.x, sz.y);
 			return;
 		}
 		else if (_attrs.size == sz)
