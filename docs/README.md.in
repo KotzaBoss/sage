@@ -2,15 +2,12 @@ ${toc}
 
 # SAGE: *Super Advanced Game Engine*
 
-> [!TIP] When in doubt...
-> `cmake --build build -- usage`
-
 ## Getting Started
 ```
 git clone https://github.com/KotzaBoss/sage.git
 cd sage
 cmake -B build
-cmake --build build
+cmake --build build -- sage
 ./build/bin/sage
 ```
 To customize the build see [[README#Build]].
@@ -18,7 +15,11 @@ To customize the build see [[README#Build]].
 Once you have a successful build you can begin reading [[bin/main.cpp]] and the tests to get a feel of the project.
 
 ## Development
-A big part of SAGE is automated. Once you are done tweaking/extending/refactoring, make sure you run cmake at least once to generate docs.
+
+> [!TIP] When in doubt...
+> `cmake --build build -- usage`
+
+A big part of SAGE is automated. Once you are done tweaking/extending/refactoring, make sure you _configure_ cmake at least once to generate docs.
 
 ### Build
 ```

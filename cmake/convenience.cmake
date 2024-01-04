@@ -3,8 +3,6 @@ docs(GET perf_docs TARGET perf PREPEND "    ")
 docs(SET GLOBAL DOCS
 		"Show usage:"
 		"    cmake --build build -- usage"
-		"TODO"
-		"    cat TODO.md"
 		"Build all:"
 		"    cmake --build build"
 		"Run tests:"
