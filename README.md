@@ -10,7 +10,7 @@
 git clone https://github.com/KotzaBoss/sage.git
 cd sage
 cmake -B build
-cmake --build build
+cmake --build build -- sage
 ./build/bin/sage
 ```
 To customize the build see [README#Build](README.md#build).
@@ -18,7 +18,7 @@ To customize the build see [README#Build](README.md#build).
 Once you have a successful build you can begin reading [bin/main.cpp](bin/main.cpp) and the tests to get a feel of the project.
 
 ## Development
-A big part of SAGE is automated. Once you are done tweaking/extending/refactoring, make sure you run cmake at least once to generate docs.
+A big part of SAGE is automated. Once you are done tweaking/extending/refactoring, make sure you _configure_ cmake at least once to generate docs.
 
 ### Build
 ```
