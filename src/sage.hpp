@@ -17,3 +17,4 @@
 #include "src/filesystem.hpp"
 #include "src/camera.hpp"
 #include "src/perf.hpp"
+#include "src/ecs.hpp"

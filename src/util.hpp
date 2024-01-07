@@ -407,10 +407,19 @@ namespace sage::inline util {
 template <typename... Ts>
 	requires type::Unique<Ts...>
 struct Polymorphic_Storage : Polymorphic_Container_Base<std::vector<Ts>...> {
+	using Types = type::Set<Ts...>;
 	template <typename Q>
 	using Vector = std::vector<Q>;
+	template <typename Q>
+	using Reference = std::vector<Q>&;
 	using Base = Polymorphic_Container_Base<Vector<Ts>...>;
 	using Base::Base;
+
+public:
+	constexpr
+	Polymorphic_Storage(const size_t size) {
+		resize(size);
+	}
 
 public:
 	constexpr auto size() const -> size_t {
@@ -447,6 +456,13 @@ public:
 				*this
 			);
 	}
+
+	constexpr auto resize(const size_t cap) -> void {
+		apply_group([&] (auto& vec) {
+				vec.resize(cap);
+			});
+	}
+
 };
 
 template <typename... Ts>
