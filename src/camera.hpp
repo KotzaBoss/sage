@@ -182,8 +182,15 @@ public:
 	auto camera()		-> Orthographic&		{ return _camera; }
 
 public:
+	static constexpr auto null() -> Controller& {
+		static auto c = Controller{};
+		return c;
+	}
+
+public:
 	friend FMT_FORMATTER(Controller);
 };
+
 
 }// sage::camera
 

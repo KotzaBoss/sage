@@ -310,6 +310,13 @@ concept Concept = requires(FB fb, const glm::vec2& new_size) {
 	}
 	;
 
+inline struct Null {
+	auto bind() -> void {}
+	auto unbind() -> void {}
+	auto color_attachment_id() -> void* { return nullptr; }
+	auto resize(const glm::vec2&) -> void {}
+} null;
+
 }// buffer::frame
 
 }// buffer
@@ -422,17 +429,22 @@ concept Concept_2D =
 	}
 	;
 
-struct Null {
+inline struct Null {
 	using Shader = shader::Null;
 	using Vertex_Array = array::vertex::Null;
 	using Draw_Args = std::any;
 	using Drawings = type::Set<std::any>;
+	using Frame_Buffer = buffer::frame::Null;
 
 	auto draw(const auto&, const auto&) -> void {}
 	auto scene(const auto&, const auto&) -> void {}
 	auto clear() -> void {}
 	auto event_callback(const auto&) -> void {}
-};
+	auto frame_buffer() -> Frame_Buffer& {
+		return buffer::frame::null;
+	}
+} null;
+static_assert(Concept_2D<Null>);
 
 template<texture::Concept Texture>
 struct Batch {

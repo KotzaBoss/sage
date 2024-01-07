@@ -67,6 +67,7 @@ struct Null {
 		return {0, 0};
 	}
 };
+static_assert(Concept<Null>);
 
 inline Null null;
 

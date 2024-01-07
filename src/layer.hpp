@@ -49,7 +49,9 @@ struct Array : util::Polymorphic_Array<Ls...> {
 	using Base = util::Polymorphic_Array<Ls...>;
 	using Input = type::Front<typename Ls::Input...>;
 	using Renderer = type::Front<typename Ls::Renderer...>;
+	using Frame_buffer = Renderer::Frame_Buffer;
 	using User_State = type::Front<typename Ls::User_State...>;
+	using Camera_Controller = camera::Controller<Input>;
 
 public:
 	Array(type::Any<Ls...> auto&&... ls)
@@ -69,17 +71,18 @@ public:
 			});
 	}
 
+	auto event_callback(const Event& e, camera::Controller<Input>& cam, User_State& user_state) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.event_callback(e, cam, user_state);
+			});
+	}
+
 	auto imgui_prepare(camera::Controller<Input>& cc, Renderer::Frame_Buffer& fb, User_State& us) -> void {
 		Base::apply([&] (auto& layer) {
 				layer.imgui_prepare(cc, fb, us);
 			});
 	}
 
-	auto event_callback(const Event& e, camera::Controller<Input>& cam, User_State& user_state) -> void {
-		Base::apply([&] (auto& layer) {
-				layer.event_callback(e, cam, user_state);
-			});
-	}
 
 public:
 	friend REPR_DEF_FMT(Array<Ls...>)
@@ -93,7 +96,9 @@ struct Storage : util::Polymorphic_Storage<Ls...> {
 	using Base = util::Polymorphic_Storage<Ls...>;
 	using Input = type::Front<typename Ls::Input...>;
 	using Renderer = type::Front<typename Ls::Renderer...>;
+	using Frame_buffer = Renderer::Frame_Buffer;
 	using User_State = type::Front<typename Ls::User_State...>;
+	using Camera_Controller = camera::Controller<Input>;
 
 public:
 	Storage(typename Base::Vector<Ls>&&... layers)
@@ -101,15 +106,9 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds delta, Input& input, User_State& user_state) -> void {
+	auto update(const std::chrono::milliseconds delta, Input& input, camera::Controller<Input>& cam, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.update(delta, input, user_state);
-			});
-	}
-
-	auto imgui_prepare(User_State& us) -> void {
-		Base::apply([&] (auto& layer) {
-				layer.imgui_prepare(us);
+				layer.update(delta, input, cam, user_state);
 			});
 	}
 
@@ -119,11 +118,19 @@ public:
 			});
 	}
 
-	auto event_callback(const Event& e, User_State& user_state) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>& cam, User_State& user_state) -> void {
 		Base::apply([&] (auto& layer) {
-				layer.event_callback(e, user_state);
+				layer.event_callback(e, cam, user_state);
 			});
 	}
+
+	auto imgui_prepare(camera::Controller<Input>& cc, Renderer::Frame_Buffer& fb, User_State& us) -> void {
+		Base::apply([&] (auto& layer) {
+				layer.imgui_prepare(cc, fb, us);
+			});
+	}
+
+
 
 public:
 	friend REPR_DEF_FMT(Storage<Ls...>)
