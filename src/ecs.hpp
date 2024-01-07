@@ -59,7 +59,7 @@ public:
 			SAGE_ASSERT(not entity->has_value());
 
 			const auto idx = std::distance(entities.begin(), entity);
-			*entity = Entity{idx};
+			*entity = Entity{static_cast<size_t>(idx)};
 
 			return *entity;
 		}
