@@ -1,6 +1,6 @@
 # Overview
 
-37 items to be done.
+38 items to be done.
 
 # Entries
 
@@ -23,11 +23,11 @@
 | [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
 | [src/layer_imgui.hpp](src/layer_imgui.hpp) | 129 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
-| [src/graphics.hpp](src/graphics.hpp) | 565 | Use scene_active only in debug mode |
-| [src/graphics.hpp](src/graphics.hpp) | 483 | Make a namespace for shapes |
-| [src/graphics.hpp](src/graphics.hpp) | 468 | More type safety |
-| [src/graphics.hpp](src/graphics.hpp) | 447 | Query from GPU |
-| [src/graphics.hpp](src/graphics.hpp) | 440 | Proper asset system and asset handles |
+| [src/graphics.hpp](src/graphics.hpp) | 577 | Use scene_active only in debug mode |
+| [src/graphics.hpp](src/graphics.hpp) | 495 | Make a namespace for shapes |
+| [src/graphics.hpp](src/graphics.hpp) | 480 | More type safety |
+| [src/graphics.hpp](src/graphics.hpp) | 459 | Query from GPU |
+| [src/graphics.hpp](src/graphics.hpp) | 452 | Proper asset system and asset handles |
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 137 | Only use glm:: instead of the ad-hoc math::Size |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
@@ -70,11 +70,12 @@
 
 ## OPTIMIZE
 
-1 items available.
+2 items available.
 
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 591 | ? |
+| [src/ecs.hpp](src/ecs.hpp) | 53 | If necessary use a more sophisticated method |
 
 
 

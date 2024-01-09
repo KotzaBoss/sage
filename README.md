@@ -12,7 +12,7 @@ cmake --build build -- sage
 ```
 To customize the build see [README#Build](README.md#build).
 
-Once you have a successful build you can begin reading [bin/main.cpp](bin/main.cpp) and the tests to get a feel of the project.
+Once you have a successful build you can begin reading [bin/main.cpp](bin/main.cpp) and the tests to get a feel for the project.
 
 ## Development
 
@@ -27,6 +27,7 @@ cmake -B build	\
       -G Ninja	\
       -D CMAKE_LINKER=mold
 cmake --build build
+./build/bin/sage
 ```
 
 | Option | Doc |
@@ -36,7 +37,7 @@ cmake --build build
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
-14M used in 16 directories, 309 files.
+14M used in 16 directories, 311 files.
 ```
 ./
 ├── asset/
@@ -330,6 +331,7 @@ cmake --build build
 │   ├── app.hpp
 │   ├── camera.hpp
 │   ├── CMakeLists.txt
+│   ├── ecs.hpp
 │   ├── event.hpp
 │   ├── filesystem.hpp
 │   ├── glm.hpp
@@ -350,6 +352,7 @@ cmake --build build
 │   └── window.hpp
 ├── test/
 │   ├── CMakeLists.txt
+│   ├── ecs.test.cpp
 │   ├── event.test.cpp
 │   ├── glm.test.cpp
 │   ├── layer_imgui.test.cpp
