@@ -13,6 +13,8 @@ TEST_CASE ("Must not compile") {
 	//func(ent);
 }
 
+constexpr auto infinity = std::numeric_limits<float>::infinity();
+
 TEST_CASE ("ECS") {
 	struct Physics {
 		glm::vec2 velocity;
@@ -26,6 +28,7 @@ TEST_CASE ("ECS") {
 
 	auto entities = std::vector<entity::Entity>{};
 	entities.reserve(max_entities);
+	constexpr auto change_test_entity = entity::Entity{0};
 
 	auto ecs = ECS<Physics, Collision>{max_entities};
 
@@ -42,7 +45,8 @@ TEST_CASE ("ECS") {
 
 	// View
 	auto view = ecs.view<Physics, Collision>();
-	rg::for_each(view, [] (const auto& entt_comps) {
+	REQUIRE(not view.empty());
+	rg::for_each(view, [&] (const auto& entt_comps) {
 			const auto& [_e, ph, col] = entt_comps;
 			SAGE_ASSERT(_e.has_value());
 
@@ -53,11 +57,49 @@ TEST_CASE ("ECS") {
 			CHECK_EQ(e, col.a.y);
 			CHECK_EQ(e, col.b.x);
 			CHECK_EQ(e, col.b.y);
+
+			// Tweak values of one to confirm they are retained
+			if (_e == change_test_entity) {
+				ph.velocity.x =
+				ph.velocity.y =
+				col.a.x =
+				col.a.y =
+				col.b.x =
+				col.b.y = infinity
+				;
+			}
 		});
 
+	// Check if changes remain
+	const auto components = ecs.components_of<Physics, Collision>(change_test_entity);
+	REQUIRE(components.has_value());
+	std::apply(
+			[&] <typename... Cs> (const Cs&... comps) {
+				CHECK_GT(sizeof...(comps), 0);
+				(
+					std::invoke([&] {
+						if constexpr (std::same_as<Physics, Cs>) {
+							CHECK_EQ(comps.velocity, glm::vec2{infinity, infinity});
+						}
+						else if constexpr (std::same_as<Collision, Cs>) {
+							CHECK_EQ(comps.a, comps.b);
+							CHECK_EQ(comps.a, glm::vec2{infinity, infinity});
+						}
+						else
+							static_assert(false);
+					})
+					, ...
+				);
+			},
+			*components
+		);
+
 	// Destroy
-	for (const auto& e : entities) {
-		CHECK(ecs.destroy(e));
-	}
-	CHECK_EQ(ecs.size(), 0ul);
+	CHECK(ecs.destroy(change_test_entity));
+	CHECK_EQ(ecs.size(), max_entities - 1);
+
+	// Clear
+	ecs.clear();
+	CHECK_EQ(ecs.size(), 0);
+	CHECK(ecs.view<Physics, Collision>().empty());
 }

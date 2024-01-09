@@ -25,7 +25,7 @@ constexpr auto null = Entity{std::numeric_limits<Rep>::max()};
 namespace component {
 
 template <typename C>
-concept Concept = std::semiregular<C>;
+concept Concept = std::semiregular<C>;	// copyable, movable, default_initializable
 
 using Transform = glm::mat4;
 
@@ -73,14 +73,13 @@ public:
 			return false;
 		else {
 			entities[idx] = std::nullopt;
-
 			return true;
 		}
 	}
 
 	// The Cs arguments can be deduced so prefer to call it without explicit template parameters:
 	//
-	// ecs.push(entt, Component1{...}, Component2{...} );
+	// ecs.push(entt, Component1{...}, Component2{...});
 	//
 	template <typename... Cs>
 		requires (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
@@ -101,19 +100,23 @@ public:
 		}
 	}
 
+	// Return a view of tuples over all the valid entities and their components.
+	// The first value of the tuples is an optional<Entity> that will always have a value.
+	//
+	// CAUTION:
 	// Should not be used as const.
 	//
 	// Do not:
 	//
 	// const auto view = ecs.view();
-	// std::apply([] (const auto&... components) { ... };
+	// std::apply([] (const auto&... components) { ... });
 	//
 	// The compiler error says that the constraint for ranges::begin/end(__t)
 	// is not satisfied but the explanation is propably:
 	// https://stackoverflow.com/questions/66366084/why-cant-i-call-rangesbegin-on-a-const-filter-view
 	//
 	template <typename... Cs>
-		requires (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
 	auto view() -> decltype(auto) /* view<tuple<optional<Entity>, Cs...>>*/ {
 		components.apply_group([&] (const auto& vec) {
 				SAGE_ASSERT(vec.size() == entities.size());
@@ -124,6 +127,23 @@ public:
 					return is_valid(std::get<0>(entt_comps));
 				})
 			;
+	}
+
+	template <typename... Cs>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
+	auto components_of(const Entity e) -> decltype(auto) /* optional<tuple<Cs&...>> */ {
+		const auto idx = entity::rep(e);
+		components.apply_group([&] (const auto& vec) {
+				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
+			});
+
+		auto comps = std::forward_as_tuple(
+				std::get<typename Components::Vector<Cs>>(components)[idx]
+				...
+			);
+		using Optional = std::optional<decltype(comps)>;
+
+		return is_valid(idx) ? Optional{std::move(comps)} : Optional{std::nullopt};
 	}
 
 	template<type::Any<Entity, std::optional<Entity>, entity::Rep> Entt>
@@ -144,6 +164,10 @@ public:
 
 	auto size() const -> size_t {
 		return rg::count_if(entities, [] (const auto& e) { return e.has_value(); });
+	}
+
+	auto clear() -> void {
+		rg::fill(entities, std::nullopt);
 	}
 };
 
