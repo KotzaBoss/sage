@@ -12,7 +12,7 @@ cmake --build build -- sage
 ```
 To customize the build see [[README#Build]].
 
-Once you have a successful build you can begin reading [[bin/main.cpp]] and the tests to get a feel of the project.
+Once you have a successful build you can begin reading [[bin/main.cpp]] and the tests to get a feel for the project.
 
 ## Development
 
@@ -27,6 +27,7 @@ cmake -B build	\
       -G Ninja	\
       -D CMAKE_LINKER=mold
 cmake --build build
+./build/bin/sage
 ```
 
 ${options}
