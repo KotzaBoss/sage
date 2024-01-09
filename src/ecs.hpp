@@ -31,15 +31,15 @@ using Transform = glm::mat4;
 
 }// sage::ecs::components
 
-template <component::Concept... _Components>
+template <component::Concept... Components>
 struct ECS {
 	using Entity = entity::Entity;
 	using Entities = std::vector<std::optional<Entity>>;
-	using Components = util::Polymorphic_Storage<_Components...>;
+	using Component_Storage = util::Polymorphic_Storage<Components...>;
 
 private:
 	Entities entities;
-	Components components;
+	Component_Storage components;
 
 public:
 	ECS(const size_t max_entities)
@@ -82,7 +82,7 @@ public:
 	// ecs.push(entt, Component1{...}, Component2{...});
 	//
 	template <typename... Cs>
-		requires (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
+		requires (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
 	auto push(const Entity e, Cs&&... cs) -> bool {
 		const auto idx = entity::rep(e);
 		if (not is_valid(idx))
@@ -90,7 +90,7 @@ public:
 		else {
 			(
 				std::invoke([&] {
-					auto& vec = std::get<typename Components::Vector<Cs>>(components);
+					auto& vec = std::get<typename Component_Storage::Vector<Cs>>(components);
 					vec[idx] = std::forward<Cs>(cs);
 				})
 				, ...
@@ -116,13 +116,13 @@ public:
 	// https://stackoverflow.com/questions/66366084/why-cant-i-call-rangesbegin-on-a-const-filter-view
 	//
 	template <typename... Cs>
-		requires (sizeof...(Cs) > 0) and (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
 	auto view() -> decltype(auto) /* view<tuple<optional<Entity>, Cs...>>*/ {
 		components.apply_group([&] (const auto& vec) {
 				SAGE_ASSERT(vec.size() == entities.size());
 			});
 
-		return vw::zip(entities, std::get<typename Components::Vector<Cs>>(components)...)
+		return vw::zip(entities, std::get<typename Component_Storage::Vector<Cs>>(components)...)
 			| vw::filter([&] (const auto& entt_comps) {
 					return is_valid(std::get<0>(entt_comps));
 				})
@@ -130,7 +130,7 @@ public:
 	}
 
 	template <typename... Cs>
-		requires (sizeof...(Cs) > 0) and (type::Any<Cs, _Components...> and ...) and type::Unique<Cs...>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
 	auto components_of(const Entity e) -> decltype(auto) /* optional<tuple<Cs&...>> */ {
 		const auto idx = entity::rep(e);
 		components.apply_group([&] (const auto& vec) {
@@ -138,7 +138,7 @@ public:
 			});
 
 		auto comps = std::forward_as_tuple(
-				std::get<typename Components::Vector<Cs>>(components)[idx]
+				std::get<typename Component_Storage::Vector<Cs>>(components)[idx]
 				...
 			);
 		using Optional = std::optional<decltype(comps)>;
