@@ -11,7 +11,7 @@ namespace entity {
 
 using Rep = size_t;
 
-enum class Entity : size_t {};
+enum class Entity : Rep {};
 
 constexpr auto rep(const Entity& e) -> Rep {
 	return Rep(e);
