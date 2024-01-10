@@ -11,8 +11,8 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [test/util.test.cpp](test/util.test.cpp) | 64 | Weird behaviour for Set<>::count<>() |
-| [src/util.hpp](src/util.hpp) | 354 | add check std>=23 todo deduce this |
-| [src/util.hpp](src/util.hpp) | 352 | Deduce this to add const-correctness to Polymorphic_Containers. |
+| [src/util.hpp](src/util.hpp) | 355 | add check std>=23 todo deduce this |
+| [src/util.hpp](src/util.hpp) | 353 | Deduce this to add const-correctness to Polymorphic_Containers. |
 | [src/platform/linux/window.hpp](src/platform/linux/window.hpp) | 74 | Change switches to array lookups for clarity |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 60 | Check error |
 | [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 54 | Check error |
@@ -23,18 +23,18 @@
 | [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
 | [src/layer_imgui.hpp](src/layer_imgui.hpp) | 129 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
-| [src/graphics.hpp](src/graphics.hpp) | 577 | Use scene_active only in debug mode |
-| [src/graphics.hpp](src/graphics.hpp) | 495 | Make a namespace for shapes |
-| [src/graphics.hpp](src/graphics.hpp) | 480 | More type safety |
-| [src/graphics.hpp](src/graphics.hpp) | 459 | Query from GPU |
-| [src/graphics.hpp](src/graphics.hpp) | 452 | Proper asset system and asset handles |
+| [src/graphics.hpp](src/graphics.hpp) | 579 | Use scene_active only in debug mode |
+| [src/graphics.hpp](src/graphics.hpp) | 497 | Make a namespace for shapes |
+| [src/graphics.hpp](src/graphics.hpp) | 482 | More type safety |
+| [src/graphics.hpp](src/graphics.hpp) | 461 | Query from GPU |
+| [src/graphics.hpp](src/graphics.hpp) | 454 | Proper asset system and asset handles |
+| [src/graphics.hpp](src/graphics.hpp) | 424 | Try to make this a constraint |
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
 | [src/camera.hpp](src/camera.hpp) | 137 | Only use glm:: instead of the ad-hoc math::Size |
 | [src/camera.hpp](src/camera.hpp) | 70 | Make a separete unit::Degrees struct? |
 | [src/camera.hpp](src/camera.hpp) | 14 | Not sure if this API is necessary, maybe have public members? |
 | [src/app.hpp](src/app.hpp) | 120 | Fixed rate updates how to? Hardcode to 144fps for now. |
 | [bin/sandbox.hpp](bin/sandbox.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
-| [bin/layer_2d.hpp](bin/layer_2d.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
 | [bin/editor.hpp](bin/editor.hpp) | 14 | How to "ignore" User_State |
 
 ## FIXME
@@ -75,7 +75,7 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 591 | ? |
-| [src/ecs.hpp](src/ecs.hpp) | 53 | If necessary use a more sophisticated method |
+| [src/ecs.hpp](src/ecs.hpp) | 59 | If necessary use a more sophisticated method |
 
 
 

@@ -37,7 +37,7 @@ cmake --build build
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
-14M used in 16 directories, 311 files.
+14M used in 16 directories, 310 files.
 ```
 ./
 ├── asset/
@@ -295,7 +295,6 @@ cmake --build build
 ├── bin/
 │   ├── CMakeLists.txt
 │   ├── editor.hpp
-│   ├── layer_2d.hpp
 │   ├── main.cpp
 │   └── sandbox.hpp
 ├── cmake/
