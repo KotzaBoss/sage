@@ -27,7 +27,13 @@ namespace component {
 template <typename C>
 concept Concept = std::semiregular<C>;	// copyable, movable, default_initializable
 
-using Transform = glm::mat4;
+struct Transform {
+	glm::mat4 trans = math::identity<glm::mat4>;
+};
+
+struct Sprite {
+	glm::vec4 color = math::identity<glm::vec4>;
+};
 
 }// sage::ecs::components
 
@@ -92,20 +98,94 @@ public:
 	//
 	template <typename... Cs>
 		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto set_components(const Entity e, Cs&&... cs) -> decltype(auto /* optional<tuple<Cs&...>> */) {
+	auto set_components(const Entity e, Cs&&... cs) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
 		const auto idx = entity::rep(e);
 		components.apply_group([&] (const auto& vec) {
 				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
 			});
 
 		auto comps = std::forward_as_tuple(
-				*(std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx] = std::forward<Cs>(cs))
+				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx] = std::forward<Cs>(cs)
 				...
 			);
 		using Optional = std::optional<decltype(comps)>;
 
 		return is_valid(idx)
 			? Optional{comps}
+			: Optional{std::nullopt}
+			;
+	}
+
+	//
+	template <typename... Cs>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
+	auto set_components(const Entity e, std::invocable<std::tuple<std::optional<Cs>&...>> auto&& fn) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
+		const auto idx = entity::rep(e);
+		components.apply_group([&] (const auto& vec) {
+				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
+			});
+
+		auto comps = std::forward_as_tuple(
+				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
+				...
+			);
+		using Optional = std::optional<decltype(comps)>;
+
+		if (is_valid(idx)) {
+			fn(comps);
+			return Optional{comps};
+		}
+		else
+			Optional{std::nullopt};
+	}
+
+
+	template <typename... Cs>
+		requires (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
+	auto components_of(const Entity e) -> decltype(auto /* optional<tuple<optional<Cs>&...>> */) {
+		const auto idx = entity::rep(e);
+		components.apply_group([&] (const auto& vec) {
+				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
+			});
+
+		auto comps = std::invoke([&] {
+				if constexpr (sizeof...(Cs) == 0)
+					// Fetch all Components
+					return std::forward_as_tuple(
+						std::get<typename Component_Storage::Vector<std::optional<Components>>>(components)[idx]
+						...
+					);
+				else
+					// Fetch only requested Components
+					return std::forward_as_tuple(
+						std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
+						...
+					);
+			});
+		using Optional = std::optional<decltype(comps)>;
+
+		return is_valid(idx)
+			? Optional{std::move(comps)}
+			: Optional{std::nullopt}
+			;
+	}
+
+	template <typename... Cs>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
+	auto has_components(const Entity e) -> decltype(auto /* optional<tuple<bool...>> */) {
+		const auto idx = entity::rep(e);
+		components.apply_group([&] (const auto& vec) {
+				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
+			});
+
+		auto comps = std::make_tuple(
+				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx].has_value()
+				...
+			);
+		using Optional = std::optional<decltype(comps)>;
+
+		return is_valid(idx)
+			? Optional{std::move(comps)}
 			: Optional{std::nullopt}
 			;
 	}
@@ -139,47 +219,6 @@ public:
 				})
 			;
 	}
-
-	template <typename... Cs>
-		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto components_of(const Entity e) -> decltype(auto /* optional<tuple<optional<Cs>&...>> */) {
-		const auto idx = entity::rep(e);
-		components.apply_group([&] (const auto& vec) {
-				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
-			});
-
-		auto comps = std::forward_as_tuple(
-				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
-				...
-			);
-		using Optional = std::optional<decltype(comps)>;
-
-		return is_valid(idx)
-			? Optional{std::move(comps)}
-			: Optional{std::nullopt}
-			;
-	}
-
-	template <typename... Cs>
-		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto has_components(const Entity e) -> decltype(auto /* optional<tuple<bool...>> */) {
-		const auto idx = entity::rep(e);
-		components.apply_group([&] (const auto& vec) {
-				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
-			});
-
-		auto comps = std::make_tuple(
-				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx].has_value()
-				...
-			);
-		using Optional = std::optional<decltype(comps)>;
-
-		return is_valid(idx)
-			? Optional{std::move(comps)}
-			: Optional{std::nullopt}
-			;
-	}
-
 
 	template<type::Any<Entity, std::optional<Entity>, entity::Rep> Entt>
 	auto is_valid(const Entt& e) const -> bool {

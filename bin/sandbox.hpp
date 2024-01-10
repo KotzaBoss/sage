@@ -30,7 +30,8 @@ public:
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		renderer.draw(texture, {
+		using Simple_Args = oslinux::Renderer_2D::Simple_Args;
+		renderer.draw(texture, Simple_Args{
 				.position = _position,
 				.size = {1.0f, 1.3f},
 				.rotation = 3.f * _velocity.y - 90.f,
@@ -87,7 +88,8 @@ public:
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		renderer.draw(glm::vec4{1.f, 0, 0, 1.f}, { .position = _position, .size = size, .rotation = rotation });
+		using Simple_Args = oslinux::Renderer_2D::Simple_Args;
+		renderer.draw(glm::vec4{1.f, 0, 0, 1.f}, Simple_Args{ .position = _position, .size = size, .rotation = rotation });
 	}
 
 	auto position() const -> const glm::vec3& {
@@ -98,13 +100,6 @@ public:
 struct Level {
 private:
 	Player _player;
-	// Conceptually the vector has the same "direction" as the incoming obstacles meaning
-	// the front() is the left-most obstacle
-	std::vector<Obstacle> obstacles;
-
-	static constexpr auto obstacle_distance = 20.f;
-	static constexpr auto max_obstacles = 100;
-	static constexpr auto rand_y = [] { return glm::linearRand(-5.f, 5.f); };
 
 	oslinux::Renderer_2D::Texture atlas = {"asset/texture/kenney_rpg-base/Spritesheet/RPGpack_sheet_2X.png"};
 
@@ -156,24 +151,24 @@ private:
 			"WWWWWWWWWWWWWWWWWWWWWWW"sv,
 		};
 
+private:
+	ECS<component::Sprite, component::Transform> ecs;
+	entity::Entity square;
+
 public:
-	Level() {
-		obstacles.reserve(max_obstacles);
-		rg::generate_n(std::back_inserter(obstacles), obstacles.capacity(),
-				[&] mutable {
-					return Obstacle{glm::vec2{obstacles.size() * obstacle_distance, rand_y()}, glm::vec2{1.f, 1.f}, 20.f, 50.f};
-				}
-			);
+	Level()
+		: ecs{1ul}
+		, square{*ecs.create()}
+	{
+		ecs.set_components(square, component::Sprite{}, component::Transform{});
 	}
 
 public:
 	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) {
-		//_player.update(delta, input);
-		//rg::for_each(obstacles, [&] (auto& o) { o.update(delta, input); });
 	}
 
 	auto render(oslinux::Renderer_2D& renderer) {
-		using Draw_Args = oslinux::Renderer_2D::Draw_Args;
+		using Simple_Args = oslinux::Renderer_2D::Simple_Args;
 
 		constexpr auto size = glm::vec2{ 1.f, 1.f };
 
@@ -184,27 +179,38 @@ public:
 			for (const auto x : vw::iota(0ul, str.size())) {
 				switch (str[x]) {
 					// size() - y to make sure the map is rendered correctly, otherwise its upside down
-					case 'W': renderer.draw(water, { .position={x, map.size() - y, 0.f}, .size={1, 1} });
+					case 'W': renderer.draw(water, Simple_Args{ .position={x, map.size() - y, 0.f}, .size={1, 1} });
 						break;
-					case 'D': renderer.draw(dirt, { .position={x, map.size() - y, 0.f}, .size={1, 1} });
+					case 'D': renderer.draw(dirt, Simple_Args{ .position={x, map.size() - y, 0.f}, .size={1, 1} });
 						break;
 					default: SAGE_DIE();
 				}
 			}
 		}
+
+		auto comps = ecs.components_of(square);
+		SAGE_ASSERT(comps.has_value());
+
+		auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
+		auto& transform = std::get<std::optional<component::Transform>&>(*comps);
+		SAGE_ASSERT(sprite.has_value());
+		SAGE_ASSERT(transform.has_value());
+
+		renderer.draw(sprite->color, transform->trans);
 	}
 
 	auto imgui_prepare() {
-		//ImGui::Begin("Level");
-		//ImGui::Text("Handle: %p", atlas.native_handle());
-		//ImGui::Text("Size: %d x %d", atlas.width(), atlas.height());
-		//ImGui::Text("Sprite Unit: %d x %d", 128, 128);
-		//ImGui::Image(
-		//		atlas.native_handle(),
-		//		{atlas.width() * 0.25f, atlas.height() * 0.25f},
-		//		{0.f, 0.f}, {1.f, 1.f}
-		//	);
-		//ImGui::End();
+		ImGui::Begin("Level");
+
+		auto comps = ecs.components_of<component::Sprite>(square);
+		SAGE_ASSERT(comps.has_value());
+
+		auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
+		SAGE_ASSERT(sprite.has_value());
+
+		ImGui::ColorEdit4("Square Color", glm::value_ptr(sprite->color));
+
+		ImGui::End();
 	}
 
 public:
@@ -310,7 +316,8 @@ public:
 	auto render(oslinux::Renderer_2D& renderer, Game_State&) -> void {
 		Base::render([&] (const auto& particles) {
 				rg::for_each(particles, [&] (const auto& p) {
-						renderer.draw(p.properties.color, {
+						using Simple_Args = oslinux::Renderer_2D::Simple_Args;
+						renderer.draw(p.properties.color, Simple_Args{
 								.position = {p.properties.position, 1.f},
 								.size = {p.properties.size, p.properties.size},
 								.rotation = p.properties.rotation

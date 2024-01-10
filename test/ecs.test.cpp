@@ -41,7 +41,9 @@ TEST_CASE ("ECS") {
 
 		auto comps = ecs.set_components(*entt, Physics{{e, e}}, Collision{{e, e}, {e, e}});
 		CHECK(comps.has_value());
-		CHECK_EQ(std::get<Physics&>(*comps).velocity, glm::vec2{e, e});
+		auto& ph =std::get<std::optional<Physics>&>(*comps);
+		REQUIRE(ph.has_value());
+		CHECK_EQ(ph->velocity, glm::vec2{e, e});
 	}
 	CHECK_EQ(ecs.size(), max_entities);
 

@@ -417,10 +417,12 @@ template <typename R>
 concept Concept_2D =
 	requires { typename R::Shader; } and shader::Concept<typename R::Shader>
 	and requires { typename R::Vertex_Array; } and array::vertex::Concept<typename R::Vertex_Array>
-	and requires { typename R::Draw_Args; }
+	and requires { typename R::Draw_Args; } // and is type::Set<...>
 	and requires { typename R::Drawings; } // and is type::Set<...>
 		and (R::Drawings::size() > 0)
-		and detail::renderer_can_draw<R, typename R::Drawings>
+		and (R::Draw_Args::size() > 0)
+		// TODO: Try to make this a constraint
+		//and detail::renderer_can_draw<R, typename R::Drawings, typename R::Draw_Args>
 	and requires { typename R::Frame_Buffer; } and buffer::frame::Concept<typename R::Frame_Buffer>
 	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const Event& e) {
 		{ r.scene(cam, draws) } -> std::same_as<void>;
@@ -432,7 +434,7 @@ concept Concept_2D =
 inline struct Null {
 	using Shader = shader::Null;
 	using Vertex_Array = array::vertex::Null;
-	using Draw_Args = std::any;
+	using Draw_Args = type::Set<std::any>;
 	using Drawings = type::Set<std::any>;
 	using Frame_Buffer = buffer::frame::Null;
 
@@ -635,11 +637,13 @@ public:
 
 	using Drawings = type::Set<Texture, Sub_Texture, glm::vec4>;
 
-	struct Draw_Args {
+	struct Simple_Args {
 		const glm::vec3& position;
 		const glm::vec2& size;
 		float rotation = 0.f;
 	};
+
+	using Draw_Args = type::Set<Simple_Args, glm::mat4>;
 
 	// Drawing is drawn with its center at `args.position` expanding outward.
 	// Example (size width/height chose to make the code diagram legible)
@@ -657,9 +661,11 @@ public:
 	//                |
 	//                V
 	//
-	template <typename Drawing>
-		requires (Drawings::template contains<Drawing>())
-	auto draw(const Drawing& drawing, const Draw_Args& args) {
+	template <typename Drawing, typename _Draw_Args>
+		requires
+				(Drawings::template contains<Drawing>())
+			and (Draw_Args::template contains<_Draw_Args>())
+	auto draw(const Drawing& drawing, const _Draw_Args& args) {
 		using namespace sage::math;
 
 		SAGE_ASSERT(scene_active);
@@ -669,11 +675,17 @@ public:
 		if (batch.indeces() >= Batch::max_indeces)
 			flush();
 
-		const auto transform =
-			glm::translate(identity<glm::mat4>, args.position)
-			* glm::rotate(identity<glm::mat4>, glm::radians(args.rotation), { 0.f, 0.f, 1.f })
-			* glm::scale(identity<glm::mat4>, { args.size.x, args.size.y, 1.f })
-			;
+		const auto transform = std::invoke([&] {
+				if constexpr (std::same_as<_Draw_Args, Simple_Args>)
+					return glm::translate(identity<glm::mat4>, args.position)
+						* glm::rotate(identity<glm::mat4>, glm::radians(args.rotation), { 0.f, 0.f, 1.f })
+						* glm::scale(identity<glm::mat4>, { args.size.x, args.size.y, 1.f })
+						;
+				else if constexpr (std::same_as<_Draw_Args, glm::mat4>)
+					return args;
+				else
+					static_assert(false);
+			});
 
 		const auto verteces =
 			transform
