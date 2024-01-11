@@ -1,6 +1,6 @@
 # Overview
 
-38 items to be done.
+39 items to be done.
 
 # Entries
 
@@ -39,7 +39,7 @@
 
 ## FIXME
 
-8 items available.
+9 items available.
 
 | Source | Line Number | Description |
 |:-|:-|:-|
@@ -49,8 +49,9 @@
 | [src/particle.hpp](src/particle.hpp) | 44 | Why the default template for Lifetime doesnt work? |
 | [src/math.hpp](src/math.hpp) | 40 | default template does not work. |
 | [src/graphics.hpp](src/graphics.hpp) | 23 | Is the uniform different from the shader::data::Types? |
-| [cmake/docs.cmake](cmake/docs.cmake) | 278 | Remove the extra newlines added at the end of the file |
+| [cmake/docs.cmake](cmake/docs.cmake) | 280 | Remove the extra newlines added at the end of the file |
 | [cmake/docs.cmake](cmake/docs.cmake) | 102 | for platform/linux/sage.hpp it puts two `#linux` tags |
+| [asset/texture/CMakeLists.txt](asset/texture/CMakeLists.txt) | 3 | Copying all the assets with each build is a bit much but i wont bother with cmake |
 
 ## CONFUSION
 
@@ -58,7 +59,7 @@
 
 | Source | Line Number | Description |
 |:-|:-|:-|
-| [cmake/docs.cmake](cmake/docs.cmake) | 193 | There is some when it comes to portable cmake. Should we just use execute_process so that we do not |
+| [cmake/docs.cmake](cmake/docs.cmake) | 195 | There is some when it comes to portable cmake. Should we just use execute_process so that we do not |
 
 ## RND
 

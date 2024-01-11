@@ -44,7 +44,7 @@ Assume we make a module `src/platform/linux/my_module.hpp`:
 #include "..."
 
 namespace sage {
-struct Something { ... };
+struct Something { ... }\;
 }
 
 // Note that the path _after_ src has to be included.
@@ -56,7 +56,7 @@ struct Something { ... };
 
 namespace {     // Recommended if we use `using namespace sage`
 
-using namespace sage;
+using namespace sage\;
 
 TEST_CASE ("My Module") {
     ...

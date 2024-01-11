@@ -36,6 +36,42 @@ cmake --build build
 |`SAGE_OPT_OBSIDIAN`| Tell SAGE to use Gkiwnis' [.obsidian](https://obsidian.md/)|
 |`SAGE_OPT_VERBOSE`| |
 
+### Test
+
+The testing framework used is [Doctest](https://github.com/doctest/doctest). Following the patterns proposed by its devs, the test code for a module is in the module file itself. The convention is that a preprocessor `#define`, based on the path to the file, guards the doctest code, generally at the bottom of the file. A full example will make this clear.
+
+Assume we make a module `src/platform/linux/my_module.hpp`:
+
+```cpp
+#pragma once
+
+#include "..."
+
+namespace sage {
+struct Something { ... }
+}
+
+// Note that the path _after_ src has to be included.
+// If our module was `src/my_module.hpp` then the guard would be `SAGE_TEST_MY_MODULE`
+#ifdef SAGE_TEST_PLATFORM_LINUX_MY_MODULE
+
+#include "src/some_other_module.hpp"
+#include "test/some_testing_stuff.hpp"
+
+namespace {     // Recommended if we use `using namespace sage`
+
+using namespace sage
+
+TEST_CASE ("My Module") {
+    ...
+}
+
+}
+#endif
+```
+
+The test executable will be automatically generated when you configure `cmake` so be sure to run it before testing/commiting. See [test/CMakeLists.txt](test/CMakeLists.txt) for the details.
+
 ## Project Overview
 14M used in 16 directories, 311 files.
 ```
@@ -359,9 +395,9 @@ cmake --build build
 │   ├── test.glm.cpp
 │   ├── test.layer.cpp
 │   ├── test.layer_imgui.cpp
-│   ├── test.linux.input.cpp
-│   ├── test.linux.window.cpp
 │   ├── test.log.cpp
+│   ├── test.platform.linux.input.cpp
+│   ├── test.platform.linux.window.cpp
 │   └── test.util.cpp
 ├── CMakeLists.txt
 ├── README.md
