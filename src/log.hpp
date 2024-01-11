@@ -2,10 +2,10 @@
 
 #include "src/std.hpp"
 
-#ifdef NDEBUG
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
+#ifdef SAGE_DEBUG
+#	define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#	define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
 #endif
 
 #include "spdlog/spdlog.h"
@@ -27,20 +27,22 @@
 #define SAGE_LOG_ERROR(...)	SPDLOG_LOGGER_ERROR(::sage::Log::logger, __VA_ARGS__)
 #define SAGE_LOG_CRITICAL(...)	SPDLOG_LOGGER_CRITICAL(::sage::Log::logger, __VA_ARGS__)
 
-#define SAGE_ASSERT(expr, ...)	\
-	{\
-		if (not sage::truth(expr)) {	\
-			SAGE_LOG_CRITICAL("`{}` evaluated to false.", #expr);	\
-			if (not sage::log::detail::variadic_pack_is_empty(__VA_ARGS__))	\
-				/* spdlog doesn't use __VA_OPT__ so add an "" to make it work when __VA_ARGS__ is empty */	\
-				SAGE_LOG_CRITICAL("\t" __VA_ARGS__);	\
-			\
-			std::terminate();	\
-		}	\
-	}\
-	(void)0
-
-#define SAGE_DIE(...)	SAGE_ASSERT(false, __VA_ARGS__)
+#ifdef SAGE_DEBUG
+#	define SAGE_ASSERT(expr, ...)	\
+		{\
+			if (not sage::truth(expr)) {	\
+				SAGE_LOG_CRITICAL("`{}` evaluated to false.", #expr);	\
+				if (not sage::log::detail::variadic_pack_is_empty(__VA_ARGS__))	\
+					/* spdlog doesn't use __VA_OPT__ so add an "" to make it work when __VA_ARGS__ is empty */	\
+					SAGE_LOG_CRITICAL("\t" __VA_ARGS__);	\
+				\
+				std::terminate();	\
+			}	\
+		}\
+		(void)0
+#else
+#	define SAGE_ASSERT(...) (void)0
+#endif
 
 #define SAGE_ASSERT_PATH_EXISTS(path)	SAGE_ASSERT(fs::exists(path), "{}", fs::current_path()/path);
 
@@ -53,6 +55,8 @@
 		SAGE_ASSERT(not err, "{}: {}", path, err.message());	\
 	}	\
 	(void)0
+
+#define SAGE_DIE(...)	SAGE_ASSERT(false, __VA_ARGS__)
 
 namespace sage::inline log {
 
