@@ -498,7 +498,7 @@ FMT_FORMATTER(sage::util::type::Real_Name_Ptr) {
 	}
 };
 
-#ifdef SAGE_UTIL_TEST
+#ifdef SAGE_TEST_UTIL
 
 #include "src/math.hpp"
 

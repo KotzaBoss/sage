@@ -179,7 +179,7 @@ FMT_FORMATTER(sage::layer::ImGui<Ts...>) {
 	}
 };
 
-#ifdef SAGE_LAYER_IMGUI_TEST
+#ifdef SAGE_TEST_LAYER_IMGUI
 namespace {
 
 using namespace sage;

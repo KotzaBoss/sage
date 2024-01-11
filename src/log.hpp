@@ -105,7 +105,7 @@ inline const Log Log::log = Log();
 
 }
 
-#ifdef SAGE_LOG_TEST
+#ifdef SAGE_TEST_LOG
 TEST_CASE ("Log") {
 	SAGE_LOG_TRACE("This is some: TRACE");
 	SAGE_LOG_DEBUG("This is some: DEBUG");

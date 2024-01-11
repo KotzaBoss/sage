@@ -257,7 +257,7 @@ FMT_FORMATTER(sage::entity::Entity) {
 	}
 };
 
-#ifdef SAGE_ECS_TEST
+#ifdef SAGE_TEST_ECS
 namespace {
 
 using namespace sage;

@@ -4,7 +4,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
 
-#ifdef SAGE_GLM_TEST
+#ifdef SAGE_TEST_GLM
 namespace {
 
 glm::mat4 camera(float Translate, glm::vec2 const& Rotate)

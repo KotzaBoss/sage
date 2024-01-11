@@ -157,7 +157,7 @@ FMT_FORMATTER(sage::layer::Storage<Ls...>) {
 	}
 };
 
-#ifdef SAGE_LAYER_TEST
+#ifdef SAGE_TEST_LAYER
 namespace {
 
 #include "test/placeholder_layers.hpp"

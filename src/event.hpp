@@ -217,7 +217,7 @@ REPR_DEF_FMT(Event::Payload);
 REPR_DEF_FMT(Event);
 }
 
-#ifdef SAGE_EVENT_TEST
+#ifdef SAGE_TEST_EVENT
 TEST_CASE ("Event") {
 	using namespace sage;
 	MESSAGE(Event::make_window_closed());
