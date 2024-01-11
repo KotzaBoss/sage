@@ -10,16 +10,16 @@
 
 | Source | Line Number | Description |
 |:-|:-|:-|
-| [test/util.test.cpp](test/util.test.cpp) | 64 | Weird behaviour for Set<>::count<>() |
-| [src/util.hpp](src/util.hpp) | 355 | add check std>=23 todo deduce this |
-| [src/util.hpp](src/util.hpp) | 353 | Deduce this to add const-correctness to Polymorphic_Containers. |
+| [src/util.hpp](src/util.hpp) | 567 | Weird behaviour for Set<>::count<>() |
+| [src/util.hpp](src/util.hpp) | 354 | add check std>=23 todo deduce this |
+| [src/util.hpp](src/util.hpp) | 352 | Deduce this to add const-correctness to Polymorphic_Containers. |
 | [src/platform/linux/window.hpp](src/platform/linux/window.hpp) | 74 | Change switches to array lookups for clarity |
-| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 60 | Check error |
-| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 54 | Check error |
-| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 691 | Query GPU |
-| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 313 | if constexpr (build::release) clear index/vertex buffers |
-| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 215 | This could be a range::chunk or range::slide in c++23? |
-| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 105 | Split dynamic/static vertex_buffer? |
+| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 61 | Check error |
+| [src/platform/linux/input.hpp](src/platform/linux/input.hpp) | 55 | Check error |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 690 | Query GPU |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 312 | if constexpr (build::release) clear index/vertex buffers |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 214 | This could be a range::chunk or range::slide in c++23? |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 104 | Split dynamic/static vertex_buffer? |
 | [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
 | [src/layer_imgui.hpp](src/layer_imgui.hpp) | 129 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
@@ -43,9 +43,9 @@
 
 | Source | Line Number | Description |
 |:-|:-|:-|
-| [test/util.test.cpp](test/util.test.cpp) | 126 | Add constness, see pragma in Polymorphic_Array |
-| [test/util.test.cpp](test/util.test.cpp) | 87 | Add constness, see pragma in Polymorphic_Array |
-| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 386 | why shader.size() doesnt work? its an array |
+| [src/util.hpp](src/util.hpp) | 629 | Add constness, see pragma in Polymorphic_Array |
+| [src/util.hpp](src/util.hpp) | 590 | Add constness, see pragma in Polymorphic_Array |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 385 | why shader.size() doesnt work? its an array |
 | [src/particle.hpp](src/particle.hpp) | 44 | Why the default template for Lifetime doesnt work? |
 | [src/math.hpp](src/math.hpp) | 40 | default template does not work. |
 | [src/graphics.hpp](src/graphics.hpp) | 23 | Is the uniform different from the shader::data::Types? |
@@ -74,7 +74,7 @@
 
 | Source | Line Number | Description |
 |:-|:-|:-|
-| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 591 | ? |
+| [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 590 | ? |
 | [src/ecs.hpp](src/ecs.hpp) | 59 | If necessary use a more sophisticated method |
 
 

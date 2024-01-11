@@ -4,7 +4,7 @@
 
 ## Getting Started
 ```
-git clone https://github.com/KotzaBoss/sage.git
+git clone git@github.com:KotzaBoss/sage.git
 cd sage
 cmake -B build
 cmake --build build -- sage
@@ -37,7 +37,7 @@ cmake --build build
 |`SAGE_OPT_VERBOSE`| |
 
 ## Project Overview
-14M used in 16 directories, 310 files.
+14M used in 16 directories, 311 files.
 ```
 ./
 ├── asset/
@@ -333,6 +333,7 @@ cmake --build build
 │   ├── ecs.hpp
 │   ├── event.hpp
 │   ├── filesystem.hpp
+│   ├── fmt.hpp
 │   ├── glm.hpp
 │   ├── graphics.hpp
 │   ├── input.hpp
@@ -351,17 +352,17 @@ cmake --build build
 │   └── window.hpp
 ├── test/
 │   ├── CMakeLists.txt
-│   ├── ecs.test.cpp
-│   ├── event.test.cpp
-│   ├── glm.test.cpp
-│   ├── layer_imgui.test.cpp
-│   ├── layer.test.cpp
-│   ├── linux_input.test.cpp
-│   ├── linux_window.test.cpp
-│   ├── log.test.cpp
+│   ├── doctest.hpp
 │   ├── placeholder_layers.hpp
-│   ├── test.hpp
-│   └── util.test.cpp
+│   ├── test.ecs.cpp
+│   ├── test.event.cpp
+│   ├── test.glm.cpp
+│   ├── test.layer.cpp
+│   ├── test.layer_imgui.cpp
+│   ├── test.linux.input.cpp
+│   ├── test.linux.window.cpp
+│   ├── test.log.cpp
+│   └── test.util.cpp
 ├── CMakeLists.txt
 ├── README.md
 └── TODO.md

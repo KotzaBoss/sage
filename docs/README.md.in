@@ -4,7 +4,7 @@ ${toc}
 
 ## Getting Started
 ```
-git clone https://github.com/KotzaBoss/sage.git
+git clone git@github.com:KotzaBoss/sage.git
 cd sage
 cmake -B build
 cmake --build build -- sage
