@@ -56,6 +56,7 @@
 	}	\
 	(void)0
 
+// TODO: Settle on a pattern for "should not be reached" vs "catastrophic when reached"
 #define SAGE_DIE(...)	SAGE_ASSERT(false, __VA_ARGS__)
 
 namespace sage::inline log {
