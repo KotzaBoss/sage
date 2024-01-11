@@ -210,3 +210,19 @@ FMT_FORMATTER(sage::Event) {
 	}
 };
 
+namespace sage::event {
+REPR_DEF_FMT(Event::Type);
+REPR_DEF_FMT(Event::Category);
+REPR_DEF_FMT(Event::Payload);
+REPR_DEF_FMT(Event);
+}
+
+#ifdef SAGE_EVENT_TEST
+TEST_CASE ("Event") {
+	using namespace sage;
+	MESSAGE(Event::make_window_closed());
+	for (auto i = 0; i < 10; ++i)
+		MESSAGE(Event::make_window_resized(Size<size_t>{(size_t)std::rand() % 4000, (size_t)std::rand() % 4000}));
+}
+#endif
+

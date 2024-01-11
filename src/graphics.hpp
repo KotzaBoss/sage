@@ -844,3 +844,7 @@ FMT_FORMATTER(sage::graphics::shader::Source) {
 		return fmt::format_to(ctx.out(), "\n\t;");
 	}
 };
+
+namespace sage::graphics::buffer {
+REPR_DEF_FMT(Element);
+}

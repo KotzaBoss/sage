@@ -3,8 +3,9 @@
 #include "src/std.hpp"
 
 #include "src/input.hpp"
+#include "src/util.hpp"
 
-#include "GLFW/glfw3.h"
+#include "src/platform/linux/glfw.hpp"
 
 namespace sage::oslinux::inline input {
 
@@ -69,3 +70,29 @@ public:
 };
 
 }// sage::oslinux::input
+
+#ifdef SAGE_LINUX_INPUT_TEST
+#include "src/platform/linux/window.hpp"
+
+namespace {
+
+using namespace sage;
+
+TEST_CASE ("Linux Input") {
+	auto win = oslinux::Window{window::Properties{}};
+	auto input = oslinux::Input{win.native_handle()};
+	MESSAGE(win);
+
+	const auto end = std::chrono::steady_clock::now() + 2s;
+	while (std::chrono::steady_clock::now() < end) {
+		win.update();
+		MESSAGE(
+				"key: ", input.is_key_pressed(input::Key::Left_Ctrl), ", ",
+				"mouse_button: ", input.is_mouse_button_pressed(input::Mouse::Button::Left), ", ",
+				input.mouse_pos()
+			);
+	}
+}
+
+}
+#endif

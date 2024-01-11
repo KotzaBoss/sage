@@ -132,3 +132,8 @@ FMT_FORMATTER(sage::input::Mouse::Scroll) {
 		return fmt::format_to(ctx.out(), "input::Mouse::Scroll: offset.x={} offset.y={};", obj.offset.x, obj.offset.y);
 	}
 };
+
+namespace sage::input {
+REPR_DEF_FMT(Mouse::Pos);
+}
+

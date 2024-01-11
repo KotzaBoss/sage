@@ -5,7 +5,6 @@
 
 #include "src/math.hpp"
 
-#include "glad/gl.h"
 #include "glfw.hpp"
 
 #include "stb_image.h"
@@ -852,6 +851,10 @@ FMT_FORMATTER(sage::oslinux::Vertex_Buffer) {
 	}
 };
 
+namespace sage::oslinux::graphics {
+REPR_DEF_FMT(Vertex_Buffer)
+}
+
 template <>
 FMT_FORMATTER(sage::oslinux::Index_Buffer) {
 	FMT_FORMATTER_DEFAULT_PARSE
@@ -871,3 +874,4 @@ FMT_FORMATTER(sage::oslinux::Vertex_Array) {
 			);
 	}
 };
+

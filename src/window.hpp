@@ -70,3 +70,7 @@ FMT_FORMATTER(sage::window::Properties) {
 	}
 };
 
+namespace sage::window {
+REPR_DEF_FMT(Properties)
+}
+

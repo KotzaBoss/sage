@@ -7,6 +7,7 @@
 #include "src/math.hpp"
 #include "src/util.hpp"
 
+#include "glad/gl.h"
 #include "GLFW/glfw3.h"
 
 namespace sage::glfw {
