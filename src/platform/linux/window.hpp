@@ -160,7 +160,7 @@ namespace sage::oslinux::window {
 REPR_DEF_FMT(Window)
 }
 
-#ifdef SAGE_TEST_LINUX_WINDOW
+#ifdef SAGE_TEST_PLATFORM_LINUX_WINDOW
 namespace {
 
 using namespace sage;

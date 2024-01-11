@@ -47,10 +47,11 @@ include(dependencies)
 
 add_subdirectory(src)
 add_subdirectory(asset)
-add_subdirectory(test)
 add_subdirectory(perf)
 add_subdirectory(bin)
 add_subdirectory(docs)
+
+add_subdirectory(test)
 
 include(convenience)
 

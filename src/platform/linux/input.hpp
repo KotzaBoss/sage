@@ -71,7 +71,7 @@ public:
 
 }// sage::oslinux::input
 
-#ifdef SAGE_TEST_LINUX_INPUT
+#ifdef SAGE_TEST_PLATFORM_LINUX_INPUT
 #include "src/platform/linux/window.hpp"
 
 namespace {
