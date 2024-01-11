@@ -57,7 +57,14 @@ include_directories(${fmt_SOURCE_DIR}/include)
 section_pass(${fmt_SOURCE_DIR})
 
 section_start("spdlog")
-set(SPDLOG_FMT_EXTERNAL ON)
+# Not the official way but only one that seems to work consistently and
+# i have no interest in bothering more...
+add_compile_definitions(
+		SPDLOG_ENABLE_PCH
+		SPDLOG_BUILD_PIC
+		SPDLOG_FMT_EXTERNAL
+		SPDLOG_FMT_NO_EXCEPTIONS
+	)
 FetchContent_MakeAvailable(spdlog)
 include_directories(${spdlog_SOURCE_DIR}/include)
 section_pass(${spdlog_SOURCE_DIR})
