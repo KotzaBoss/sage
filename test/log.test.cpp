@@ -11,3 +11,10 @@ TEST_CASE ("Log") {
 	SAGE_LOG_ERROR("This is some: ERROR");
 	SAGE_LOG_CRITICAL("This is some: CRITICAL");
 }
+
+TEST_CASE ("Should die"
+			* doctest::should_fail()
+		)
+{
+	SAGE_DIE("boom");
+}

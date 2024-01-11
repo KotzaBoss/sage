@@ -27,15 +27,19 @@
 #define SAGE_LOG_ERROR(...)	SPDLOG_LOGGER_ERROR(::sage::Log::logger, __VA_ARGS__)
 #define SAGE_LOG_CRITICAL(...)	SPDLOG_LOGGER_CRITICAL(::sage::Log::logger, __VA_ARGS__)
 
+#define _LOG_IF_VA_ARGS_HAS_STUFF(sage_log_level, ...)	\
+	if (not sage::log::detail::variadic_pack_is_empty(__VA_ARGS__))	{	\
+		/* spdlog doesn't use __VA_OPT__ so add an "" to make it work when __VA_ARGS__ is empty */	\
+		sage_log_level("\t" __VA_ARGS__);	\
+	}	\
+	(void)0
+
 #ifdef SAGE_DEBUG
 #	define SAGE_ASSERT(expr, ...)	\
 		{\
 			if (not sage::truth(expr)) {	\
 				SAGE_LOG_CRITICAL("`{}` evaluated to false.", #expr);	\
-				if (not sage::log::detail::variadic_pack_is_empty(__VA_ARGS__))	\
-					/* spdlog doesn't use __VA_OPT__ so add an "" to make it work when __VA_ARGS__ is empty */	\
-					SAGE_LOG_CRITICAL("\t" __VA_ARGS__);	\
-				\
+				_LOG_IF_VA_ARGS_HAS_STUFF(SAGE_LOG_CRITICAL, __VA_ARGS__);	\
 				std::terminate();	\
 			}	\
 		}\
@@ -56,8 +60,16 @@
 	}	\
 	(void)0
 
-// TODO: Settle on a pattern for "should not be reached" vs "catastrophic when reached"
-#define SAGE_DIE(...)	SAGE_ASSERT(false, __VA_ARGS__)
+#define SAGE_UNREACHABLE(...)	\
+	SAGE_LOG_ERROR("Unreachable code executed");	\
+	_LOG_IF_VA_ARGS_HAS_STUFF(SAGE_LOG_ERROR, __VA_ARGS__);	\
+	std::unreachable()
+
+#define SAGE_DIE(...)	\
+	SAGE_LOG_CRITICAL("SAGE entered catastrophic state");	\
+	_LOG_IF_VA_ARGS_HAS_STUFF(SAGE_LOG_CRITICAL, __VA_ARGS__);	\
+	std::terminate()
+
 
 namespace sage::inline log {
 
