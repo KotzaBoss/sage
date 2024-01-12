@@ -347,7 +347,7 @@ The test executable will be automatically generated when you configure `cmake` s
 │   └── summary.cmake
 ├── docs/
 │   ├── CMakeLists.txt
-│   ├── cpp_file.in
+│   ├── file.in
 │   ├── README.md.in
 │   ├── TODO.md.in
 │   └── todo_note.md.in
