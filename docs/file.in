@@ -7,7 +7,7 @@ ${links}
 
 ![[${file_link}]]
 
-```cpp
+```${file_type}
 ${code}
 ```
 

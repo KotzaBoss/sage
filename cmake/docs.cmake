@@ -82,10 +82,19 @@ function (external_docs)
 		file(GLOB_RECURSE dir_files ${glob})
 		foreach (file ${dir_files})
 			block()
-				cmake_path(GET file EXTENSION ext)
+				cmake_path(GET file EXTENSION extension)
+
+				# file_type
+				if ((${extensions} STREQUAL ".cmake") OR (${file} MATCHES ".*/CMakeLists.txt"))
+					set(file_type cmake)
+				elseif (${extension} MATCHES "\.[hc](pp)?")
+					set(file_type cpp)
+				else()
+					set(file_type)
+				endif()
 
 				# For code files, collect #include links
-				if (NOT ext STREQUAL ".cmake")
+				if (NOT ${file_type} STREQUAL cmake)
 					file(STRINGS ${file} code)
 					# Find links to other files
 					foreach (line in ${code})
@@ -99,12 +108,9 @@ function (external_docs)
 				list(JOIN links "\n" links)
 
 				# Collect tags
-				# FIXME: for platform/linux/sage.hpp it puts two `#linux` tags
 				cmake_path(GET dir FILENAME dir)
 				list(APPEND tags "\"#${dir}\"")
-				if (${file} MATCHES ".*/linux/.*")
-					list(APPEND tags "\"#linux\"")
-				elseif(${file} MATCHES ".*/CMakeLists.txt")
+				if(${file_type} MATCHES cmake)
 					list(APPEND tags "\"#cmake\"")
 				endif()
 				list(TRANSFORM tags PREPEND "  - ")
@@ -113,11 +119,12 @@ function (external_docs)
 				cmake_path(RELATIVE_PATH file BASE_DIRECTORY "${PROJECT_SOURCE_DIR}" OUTPUT_VARIABLE dest)
 				set(file_link ${dest})
 
+				message(WARNING "${file} ${EXT_DOCS_OUTPUT_DIR}////${dest}")
 				# Make symbolic link to source file
 				file(CREATE_LINK ${file} ${EXT_DOCS_OUTPUT_DIR}/${dest} SYMBOLIC)
 				file(READ ${file} code)
 
-				configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cpp_file.in ${EXT_DOCS_OUTPUT_DIR}/${dest}.md)
+				configure_file(${CMAKE_CURRENT_SOURCE_DIR}/file.in ${EXT_DOCS_OUTPUT_DIR}/${dest}.md)
 			endblock()
 		endforeach()
 	endforeach()
