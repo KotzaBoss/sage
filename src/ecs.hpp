@@ -9,15 +9,7 @@ namespace sage::inline ecs {
 
 namespace entity {
 
-using Rep = size_t;
-
-enum class Entity : Rep {};
-
-constexpr auto rep(const Entity& e) -> Rep {
-	return Rep(e);
-}
-
-constexpr auto null = Entity{std::numeric_limits<Rep>::max()};
+using ID = util::ID;
 
 }// ecs::entity
 
@@ -37,10 +29,12 @@ struct Sprite {
 
 }// sage::ecs::components
 
+// TODO: Rethink what is returned by components_of, view.
+//       How should unset components be filtered? Atm the are optional but perhaps they should
+//       be skipped entirely with a vw::filter?
 template <component::Concept... Components>
 struct ECS {
-	using Entity = entity::Entity;
-	using Entities = std::vector<std::optional<Entity>>;
+	using Entities = std::vector<entity::ID>;
 	using Component_Storage = util::Polymorphic_Storage<std::optional<Components>...>;
 
 private:
@@ -55,7 +49,7 @@ public:
 
 public:
 	[[nodiscard]]
-	auto create() -> std::optional<Entity> {
+	auto create() -> entity::ID {
 		// OPTIMIZE: If necessary use a more sophisticated method
 		//
 		// A simple find(entities, std::nullopt) gives gcc a seizure...
@@ -64,13 +58,13 @@ public:
 		{
 			SAGE_ASSERT(not is_valid(*entity));
 
-			const auto idx = static_cast<size_t>(std::distance(entities.begin(), entity));	// Ok to cast, it will be between begin/end
+			const auto idx = static_cast<entity::ID::Rep>(std::distance(entities.begin(), entity));	// Ok to cast, it will be between begin/end
 			components.apply_group([&] (const auto& comps) {
 					SAGE_ASSERT(idx < comps.size(), "Components must be allocated");
 					SAGE_ASSERT(not comps[idx].has_value(), "Cleanup has not been performed since last destroy/initialization");
 				});
 
-			*entity = Entity{idx};
+			*entity = entity::ID{Raw_ID{idx}};
 
 			return *entity;
 		}
@@ -78,11 +72,11 @@ public:
 			return std::nullopt;
 	}
 
-	auto destroy(const Entity e) -> bool {
-		const auto idx = entity::rep(e);
-		if (not is_valid(idx))
+	auto destroy(const entity::ID e) -> bool {
+		if (not is_valid(e))
 			return false;
 		else {
+			const auto idx = e.raw();
 			entities[idx] = std::nullopt;
 			components.apply_group([&] (auto& comps) {
 					SAGE_ASSERT(idx < comps.size(), "Memory for components has not been allocated");
@@ -98,100 +92,93 @@ public:
 	//
 	template <typename... Cs>
 		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto set_components(const Entity e, Cs&&... cs) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
-		const auto idx = entity::rep(e);
-		components.apply_group([&] (const auto& vec) {
-				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
-			});
+	auto set_components(const entity::ID e, Cs&&... cs) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
+		using Optional = std::optional<typename Component_Storage::Forward_Tuple>;
 
-		auto comps = std::forward_as_tuple(
-				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx] = std::forward<Cs>(cs)
-				...
-			);
+		if (not is_valid(e))
+			return Optional{std::nullopt};
+		else {
+			const auto idx = e.raw();
+			auto comps = std::forward_as_tuple(
+					std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx] = std::forward<Cs>(cs)
+					...
+				);
+			return Optional{comps};
+		}
+	}
+
+	template <typename... Cs>
+		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
+	auto set_components(const entity::ID e, std::invocable<std::tuple<std::optional<Cs>&...>> auto&& fn) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
+		using Optional = std::optional<typename Component_Storage::Forward_Tuple>;
+
+		if (not is_valid(e))
+			return Optional{std::nullopt};
+		else {
+			const auto idx = e.raw();
+			auto comps = std::forward_as_tuple(
+					std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
+					...
+				);
+			fn(comps);
+			return Optional{comps};
+		}
+	}
+
+	template <typename... Cs>
+		requires (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
+	auto components_of(const entity::ID e) -> decltype(auto /* optional<tuple<optional<Cs>&...>> */) {
+		// Even if entity is not valid we can reference the first element to make the type deduction work
+		const auto idx = std::to_underlying(e.value_or(Raw_ID{0}));
+		components.apply_group([&] (const auto& vec) {
+			SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
+		});
+
+		auto comps = std::invoke([&] {
+			if constexpr (sizeof...(Cs) == 0)
+				// Fetch all Components
+				return std::forward_as_tuple(
+					std::get<typename Component_Storage::Vector<std::optional<Components>>>(components)[idx]
+					...
+				);
+			else
+				// Fetch only requested Components
+				return std::forward_as_tuple(
+					std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
+					...
+				);
+		});
+
 		using Optional = std::optional<decltype(comps)>;
 
-		return is_valid(idx)
+		return is_valid(e)
 			? Optional{comps}
 			: Optional{std::nullopt}
 			;
 	}
 
-	//
 	template <typename... Cs>
 		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto set_components(const Entity e, std::invocable<std::tuple<std::optional<Cs>&...>> auto&& fn) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
-		const auto idx = entity::rep(e);
-		components.apply_group([&] (const auto& vec) {
-				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
-			});
-
-		auto comps = std::forward_as_tuple(
-				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
+	auto has_components(const entity::ID e) -> decltype(auto /* optional<tuple<bool...>> */) {
+		using Optional = std::optional<decltype(std::make_tuple(
+				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components).front().has_value()
 				...
-			);
-		using Optional = std::optional<decltype(comps)>;
+			))>;
 
-		if (is_valid(idx)) {
-			fn(comps);
-			return Optional{comps};
-		}
-		else
-			Optional{std::nullopt};
-	}
-
-
-	template <typename... Cs>
-		requires (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto components_of(const Entity e) -> decltype(auto /* optional<tuple<optional<Cs>&...>> */) {
-		const auto idx = entity::rep(e);
-		components.apply_group([&] (const auto& vec) {
-				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
-			});
-
-		auto comps = std::invoke([&] {
-				if constexpr (sizeof...(Cs) == 0)
-					// Fetch all Components
-					return std::forward_as_tuple(
-						std::get<typename Component_Storage::Vector<std::optional<Components>>>(components)[idx]
-						...
-					);
-				else
-					// Fetch only requested Components
-					return std::forward_as_tuple(
-						std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
-						...
-					);
-			});
-		using Optional = std::optional<decltype(comps)>;
-
-		return is_valid(idx)
-			? Optional{std::move(comps)}
-			: Optional{std::nullopt}
-			;
-	}
-
-	template <typename... Cs>
-		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto has_components(const Entity e) -> decltype(auto /* optional<tuple<bool...>> */) {
-		const auto idx = entity::rep(e);
-		components.apply_group([&] (const auto& vec) {
-				SAGE_ASSERT(idx < vec.size(), "Expect memory for components to be allocated");
-			});
-
-		auto comps = std::make_tuple(
+		if (not is_valid(e))
+			return Optional{std::nullopt};
+		else {
+			const auto idx = e.raw();
+			auto comps = std::make_tuple(
 				std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx].has_value()
 				...
 			);
-		using Optional = std::optional<decltype(comps)>;
-
-		return is_valid(idx)
-			? Optional{std::move(comps)}
-			: Optional{std::nullopt}
-			;
+			return Optional{comps};
+		}
 	}
 
 	// Return a view of tuples over all the valid entities and their components.
-	// The first value of the tuples is an optional<Entity> that will always have a value.
+	// The first value of the tuples is an entity::ID that will always have a value.
 	// The components are returned as optional<Component> and may/may not have value.
 	//
 	// CAUTION:
@@ -206,9 +193,10 @@ public:
 	// is not satisfied but the explanation is propably:
 	// https://stackoverflow.com/questions/66366084/why-cant-i-call-rangesbegin-on-a-const-filter-view
 	//
+	// TODO: if sizeof...(Cs) == 0 return all
 	template <typename... Cs>
 		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto view() -> decltype(auto /* view<tuple<optional<Entity>, optional<Cs>...>> */) {
+	auto view() -> decltype(auto /* view<tuple<entity::ID, optional<Cs>...>> */) {
 		components.apply_group([&] (const auto& vec) {
 				SAGE_ASSERT(vec.size() == entities.size(), "Entities and components must all have the same size");
 			});
@@ -220,22 +208,13 @@ public:
 			;
 	}
 
-	template<type::Any<Entity, std::optional<Entity>, entity::Rep> Entt>
-	auto is_valid(const Entt& e) const -> bool {
-		const auto& entity = std::invoke([&] {
-				if constexpr (std::same_as<Entity, Entt>)
-					return entities[entity::rep(e)];
-				else if constexpr (std::same_as<std::optional<Entity>, Entt>)
-					return e;
-				else if constexpr (std::same_as<entity::Rep, Entt>)
-					return entities[e];
-				else
-					static_assert(false);
-			});
+private:
+	using _Validateable_Types = type::Set<entity::ID, std::optional<entity::ID>>;
 
-		return entity.has_value();
+public:
+	auto is_valid(const std::same_as<entity::ID> auto& e) const -> bool {
+		return e.has_value() and entities[e.raw()].has_value();
 	}
-
 
 	auto size() const -> size_t {
 		return rg::count_if(entities, [] (const auto& e) { return e.has_value(); });
@@ -249,11 +228,11 @@ public:
 } //sage
 
 template <>
-FMT_FORMATTER(sage::entity::Entity) {
+FMT_FORMATTER(sage::entity::ID) {
 	FMT_FORMATTER_DEFAULT_PARSE
 
-	FMT_FORMATTER_FORMAT(sage::entity::Entity) {
-		return fmt::format_to(ctx.out(), "Entity: {}", sage::entity::rep(obj));
+	FMT_FORMATTER_FORMAT(sage::entity::ID) {
+		return fmt::format_to(ctx.out(), "entity::ID: {}", obj);
 	}
 };
 
@@ -263,7 +242,7 @@ namespace {
 using namespace sage;
 
 TEST_CASE ("Must not compile") {
-	//const Entity ent = 666;
+	//const entity::ID ent = 666;
 
 	//const auto func = [] (const size_t e) {
 	//	return e + 1;
@@ -284,16 +263,16 @@ TEST_CASE ("ECS") {
 
 	constexpr auto max_entities = 100ul;
 
-	auto entities = std::vector<entity::Entity>{};
+	auto entities = std::vector<entity::ID>{};
 	entities.reserve(max_entities);
-	constexpr auto test_entity = entity::Entity{0};
+	constexpr auto test_entity = entity::ID{Raw_ID{0}};
 
 	auto ecs = ECS<Physics, Collision>{max_entities};
 
 	// Create
 	for (const auto e : vw::iota(0ul, max_entities)) {
 		const auto entt = ecs.create();
-		SAGE_ASSERT(entt.has_value());
+		REQUIRE(entt.has_value());
 
 		entities.push_back(*entt);
 
@@ -310,9 +289,9 @@ TEST_CASE ("ECS") {
 	REQUIRE(not view.empty());
 	rg::for_each(view, [&] (const auto& entt_comps) {
 			const auto& [_e, ph, col] = entt_comps;
-			SAGE_ASSERT(_e.has_value() and ph.has_value() and col.has_value());
+			REQUIRE((_e.has_value() and ph.has_value() and col.has_value()));
 
-			const auto e = entity::rep(*_e);
+			const auto e = _e.raw();
 			CHECK_EQ(e, ph->velocity.x);
 			CHECK_EQ(e, ph->velocity.y);
 			CHECK_EQ(e, col->a.x);

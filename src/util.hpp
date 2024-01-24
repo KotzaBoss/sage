@@ -11,14 +11,31 @@ constexpr auto toogle_if(const bool x, const bool cond) -> bool {
 	return x ^ cond;
 }
 
-struct ID : std::optional<uint32_t> {
-	using Rep = uint32_t;
-	using std::optional<Rep>::optional;
+template <typename T>
+concept Boolean_Testable =
+	requires (T&& t) {
+		{ static_cast<bool>(std::forward<T>(t)) } -> std::same_as<bool>;
+	}
+	;
+
+template <Boolean_Testable T>
+constexpr auto truth(T&& x) -> bool {
+	return static_cast<bool>(std::forward<T>(x));
+}
+
+enum class Raw_ID : uint32_t {};
+
+using Base_ID = std::optional<Raw_ID>;
+
+struct ID : Base_ID {
+	using Base = Base_ID;
+	using Rep = std::underlying_type_t<Base::value_type>;
+	using Base::Base;
 
 	constexpr ID(const ID&) = default;
 
 	constexpr ID(ID&& other)
-		: std::optional<Rep>::optional{std::move(other)}
+		: Base{std::move(other)}
 	{
 		other.reset();
 	}
@@ -26,6 +43,17 @@ struct ID : std::optional<uint32_t> {
 	constexpr auto operator= (const ID&) -> ID& = default;
 
 	constexpr auto operator<=> (const ID&) const = default;
+
+	// Raw access
+	constexpr auto raw() const -> const Rep& {
+		SAGE_ASSERT(has_value());
+		return reinterpret_cast<const Rep&>(*(*this));
+	}
+
+	constexpr auto raw() -> Rep& {
+		SAGE_ASSERT(has_value());
+		return reinterpret_cast<Rep&>(*(*this));
+	}
 };
 
 
@@ -51,18 +79,6 @@ constexpr auto trim(std::string& s, const char to_trim = ' ') -> void {
 		);
 }
 } // sage::util::string
-
-template <typename T>
-concept Boolean_Testable =
-	requires (T&& t) {
-		{ static_cast<bool>(std::forward<T>(t)) } -> std::same_as<bool>;
-	}
-	;
-
-template <Boolean_Testable T>
-constexpr auto truth(T&& x) -> bool {
-	return static_cast<bool>(std::forward<T>(x));
-}
 
 template<std::integral I>
 constexpr auto bits = sizeof(I) * 8;
@@ -408,10 +424,27 @@ template <typename... Ts>
 	requires type::Unique<Ts...>
 struct Polymorphic_Storage : Polymorphic_Container_Base<std::vector<Ts>...> {
 	using Types = type::Set<Ts...>;
+
 	template <typename Q>
 	using Vector = std::vector<Q>;
+
 	template <typename Q>
 	using Reference = std::vector<Q>&;
+
+	using Forward_Tuple = std::tuple<
+			typename Vector<Ts>::reference
+			...
+		>;
+
+	template<typename... _Ts>
+		requires
+				(type::Any<_Ts, Ts...> and ...)
+			and type::Unique<Ts...>
+	using Forward_Tuple_Of = std::tuple<
+			typename Vector<_Ts>::reference
+			...
+		>;
+
 	using Base = Polymorphic_Container_Base<Vector<Ts>...>;
 	using Base::Base;
 

@@ -116,8 +116,8 @@ public:
 		: _layout{std::move(l)}
 	{
 		renderer_id.emplace();
-		glCreateBuffers(1, &renderer_id.value());
-		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		glCreateBuffers(1, &renderer_id.raw());
+		glBindBuffer(GL_ARRAY_BUFFER, renderer_id.raw());
 		glBufferData(
 				GL_ARRAY_BUFFER,
 				size,
@@ -131,8 +131,8 @@ public:
 		, _layout{std::move(l)}
 	{
 		renderer_id.emplace();
-		glCreateBuffers(1, &renderer_id.value());
-		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		glCreateBuffers(1, &renderer_id.raw());
+		glBindBuffer(GL_ARRAY_BUFFER, renderer_id.raw());
 		glBufferData(
 				GL_ARRAY_BUFFER,
 				_verteces.size() * sizeof(Vertices::value_type),
@@ -149,13 +149,13 @@ public:
 
 	~Vertex_Buffer() {
 		if (renderer_id)
-			glDeleteBuffers(1, &renderer_id.value());
+			glDeleteBuffers(1, &renderer_id.raw());
 	}
 
 public:
 	auto bind() const -> void {
-		SAGE_ASSERT(*renderer_id);
-		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		SAGE_ASSERT(renderer_id.raw());
+		glBindBuffer(GL_ARRAY_BUFFER, renderer_id.raw());
 	}
 
 	auto unbind() const -> void {
@@ -168,8 +168,8 @@ public:
 	}
 
 	auto set_verteces(const std::span<const std::byte> bytes) -> void {
-		SAGE_ASSERT(*renderer_id);
-		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		SAGE_ASSERT(renderer_id.raw());
+		glBindBuffer(GL_ARRAY_BUFFER, renderer_id.raw());
 		glBufferSubData(GL_ARRAY_BUFFER, 0, bytes.size(), bytes.data());
 	}
 
@@ -194,12 +194,12 @@ public:
 		: _indeces{std::move(indeces)}
 	{
 		renderer_id.emplace();
-		glCreateBuffers(1, &renderer_id.value());
+		glCreateBuffers(1, &renderer_id.raw());
 
 		// GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
 		// Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state.
 		// Thanks: TheCherno/Hazel
-		glBindBuffer(GL_ARRAY_BUFFER, *renderer_id);
+		glBindBuffer(GL_ARRAY_BUFFER, renderer_id.raw());
 		glBufferData(
 				GL_ARRAY_BUFFER,
 				_indeces.size() * sizeof(Indeces::value_type),
@@ -246,7 +246,7 @@ public:
 
 	~Index_Buffer() {
 		if (renderer_id)
-			glDeleteBuffers(1, &renderer_id.value());
+			glDeleteBuffers(1, &renderer_id.raw());
 	}
 
 public:
@@ -256,8 +256,8 @@ public:
 
 public:
 	auto bind() const -> void {
-		SAGE_ASSERT(*renderer_id);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *renderer_id);
+		SAGE_ASSERT(renderer_id.raw());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer_id.raw());
 	}
 
 	auto unbind() const -> void {
@@ -287,9 +287,9 @@ public:
 		SAGE_ASSERT(_index_buffer.indeces().size());
 
 		renderer_id.emplace();
-		glCreateVertexArrays(1, &renderer_id.value());
+		glCreateVertexArrays(1, &renderer_id.raw());
 
-		glBindVertexArray(*renderer_id);
+		glBindVertexArray(renderer_id.raw());
 
 		_vertex_buffer.bind();
 
@@ -320,18 +320,18 @@ public:
 
 	~Vertex_Array() {
 		if (renderer_id) {
-			glDeleteVertexArrays(1, &renderer_id.value());
+			glDeleteVertexArrays(1, &renderer_id.raw());
 		}
 	}
 
 public:
 	auto bind() const -> void {
 		SAGE_ASSERT(renderer_id);
-		glBindVertexArray(*renderer_id);
+		glBindVertexArray(renderer_id.raw());
 	}
 
 	auto unbind() const -> void {
-		glBindVertexArray(*renderer_id);
+		glBindVertexArray(renderer_id.raw());
 	}
 
 public:
@@ -468,7 +468,7 @@ public:
 				glDetachShader(program, shader);
 			});
 
-		renderer_id = program;
+		renderer_id = util::Raw_ID{program};
 	}
 
 	Shader(Shader&& other)
@@ -477,11 +477,11 @@ public:
 
 	~Shader() {
 		if (renderer_id)
-			glDeleteProgram(*renderer_id);
+			glDeleteProgram(renderer_id.raw());
 	}
 
 	auto bind() const -> void {
-		glUseProgram(*renderer_id);
+		glUseProgram(renderer_id.raw());
 	}
 
 	auto unbind() const -> void {
@@ -490,8 +490,8 @@ public:
 
 	auto upload_uniform(const std::string& name, const sage::graphics::shader::Uniform& uniform) const -> void {
 		SAGE_ASSERT(renderer_id);
-		glUseProgram(*renderer_id);
-		const auto loc = glGetUniformLocation(*renderer_id, name.c_str());
+		glUseProgram(renderer_id.raw());
+		const auto loc = glGetUniformLocation(renderer_id.raw(), name.c_str());
 		SAGE_ASSERT(loc != -1, "Cannot find uniform {:?}", name);
 
 		std::visit(Overloaded {
@@ -578,14 +578,14 @@ public:
 		data_format = channels == 3 ? GL_RGB : GL_RGBA;
 
 		renderer_id.emplace();
-		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id.value());
-		glTextureStorage2D(*renderer_id, 1, internal_format, size.width, size.height);
+		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id.raw());
+		glTextureStorage2D(renderer_id.raw(), 1, internal_format, size.width, size.height);
 
-		glTextureParameteri(*renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(*renderer_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		// OPTIMIZE: ?
 		const auto data = std::vector(size.width * size.height * channels, std::byte{0xff});
@@ -611,16 +611,16 @@ public:
 		data_format = channels == 3 ? GL_RGB : GL_RGBA;
 
 		renderer_id.emplace();
-		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id.value());
-		glTextureStorage2D(*renderer_id, 1, internal_format, size.width, size.height);
+		glCreateTextures(GL_TEXTURE_2D, 1, &renderer_id.raw());
+		glTextureStorage2D(renderer_id.raw(), 1, internal_format, size.width, size.height);
 
-		glTextureParameteri(*renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(*renderer_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTextureParameteri(*renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(renderer_id.raw(), GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		glTextureSubImage2D(*renderer_id,
+		glTextureSubImage2D(renderer_id.raw(),
 				0,
 				0, 0,
 				size.width, size.height,
@@ -640,7 +640,7 @@ public:
 
 	~Texture2D() {
 		if (renderer_id)
-			glDeleteTextures(1, &renderer_id.value());
+			glDeleteTextures(1, &renderer_id.raw());
 	}
 
 public:
@@ -654,7 +654,7 @@ public:
 				"Data must fill the entire texture");
 
 		glTextureSubImage2D(
-				*renderer_id,
+				renderer_id.raw(),
 				0,
 				0, 0,
 				size.width, size.height,
@@ -666,12 +666,13 @@ public:
 
 	auto bind(const size_t slot = 0) const -> void {
 		SAGE_ASSERT(renderer_id);
-		glBindTextureUnit(slot, *renderer_id);
+		glBindTextureUnit(slot, renderer_id.raw());
 	}
 	auto unbind() const -> void {}
 
 	auto native_handle() const -> void* {
-		return reinterpret_cast<void*>(renderer_id.value_or(0));
+		const auto handle = renderer_id.value_or(Raw_ID{0});
+		return reinterpret_cast<void*>(std::to_underlying(handle));
 	}
 
 	auto operator== (const Texture2D& other) const -> bool {
@@ -719,7 +720,7 @@ public:
 	}
 
 	auto bind() -> void {
-		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
+		glBindFramebuffer(GL_FRAMEBUFFER, renderer_id.raw());
 		glViewport(0, 0, _attrs.size.x, _attrs.size.y);
 	}
 
@@ -731,12 +732,12 @@ private:
 		SAGE_ASSERT(not (renderer_id and _color_attachment_id and depth_attachment_id), "Ids must not be set");
 
 		renderer_id.emplace();
-		glCreateFramebuffers(1, &renderer_id.value());
-		glBindFramebuffer(GL_FRAMEBUFFER, *renderer_id);
+		glCreateFramebuffers(1, &renderer_id.raw());
+		glBindFramebuffer(GL_FRAMEBUFFER, renderer_id.raw());
 
 		_color_attachment_id.emplace();
-		glCreateTextures(GL_TEXTURE_2D, 1, &_color_attachment_id.value());
-		glBindTexture(GL_TEXTURE_2D, *_color_attachment_id);
+		glCreateTextures(GL_TEXTURE_2D, 1, &_color_attachment_id.raw());
+		glBindTexture(GL_TEXTURE_2D, _color_attachment_id.raw());
 		glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
@@ -750,14 +751,14 @@ private:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *_color_attachment_id, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _color_attachment_id.raw(), 0);
 
 		depth_attachment_id.emplace();
-		glCreateTextures(GL_TEXTURE_2D, 1, &depth_attachment_id.value());
-		glBindTexture(GL_TEXTURE_2D, *depth_attachment_id);
+		glCreateTextures(GL_TEXTURE_2D, 1, &depth_attachment_id.raw());
+		glBindTexture(GL_TEXTURE_2D, depth_attachment_id.raw());
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, _attrs.size.x, _attrs.size.y);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, *depth_attachment_id, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth_attachment_id.raw(), 0);
 
 		SAGE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
@@ -767,9 +768,9 @@ private:
 	auto delete_frame_buffer() -> void {
 		SAGE_ASSERT(renderer_id and _color_attachment_id and depth_attachment_id);
 
-		glDeleteFramebuffers(1, &renderer_id.value());
-		glDeleteTextures(1, &_color_attachment_id.value());
-		glDeleteTextures(1, &depth_attachment_id.value());
+		glDeleteFramebuffers(1, &renderer_id.raw());
+		glDeleteTextures(1, &_color_attachment_id.raw());
+		glDeleteTextures(1, &depth_attachment_id.raw());
 
 		renderer_id = _color_attachment_id = depth_attachment_id = std::nullopt;
 	}

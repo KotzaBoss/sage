@@ -153,7 +153,7 @@ private:
 
 private:
 	ECS<component::Sprite, component::Transform> ecs;
-	entity::Entity square;
+	entity::ID square;
 
 public:
 	Level()
