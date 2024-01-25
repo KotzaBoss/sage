@@ -45,6 +45,7 @@ struct ECS {
 	using IDs = std::vector<entity::ID>;
 	using Component_Storage = util::Polymorphic_Storage<std::optional<Components>...>;
 
+	// Returned to the user but should only be constructed and assigned by ECS.
 	struct Entity {
 		friend struct ECS;	// Only ECS can tweak internals
 
@@ -80,25 +81,25 @@ struct ECS {
 	public:
 		template <typename... Cs>
 		auto set(Cs&&... cs) -> decltype(auto) {
-			SAGE_ASSERT(is_valid());
+			SAGE_ASSERT(ecs != nullptr);
 			return ecs->set_components<Cs...>(*this, std::forward<Cs>(cs)...);
 		}
 
 		template <typename... Cs>
 		auto set(std::invocable<std::tuple<std::optional<Cs>&...>> auto&& fn) -> decltype(auto) {
-			SAGE_ASSERT(is_valid());
+			SAGE_ASSERT(ecs != nullptr);
 			return ecs->set_components<Cs...>(std::forward<decltype(fn)>(fn));
 		}
 
 		template <typename... Cs>
 		auto components() -> decltype(auto) {
-			SAGE_ASSERT(is_valid());
+			SAGE_ASSERT(ecs != nullptr);
 			return ecs->components_of<Cs...>(*this);
 		}
 
 		template <typename... Cs>
 		auto has() -> decltype(auto) {
-			SAGE_ASSERT(is_valid());
+			SAGE_ASSERT(ecs != nullptr);
 			return ecs->has_components<Cs...>(*this);
 		}
 
