@@ -50,23 +50,29 @@ struct ECS {
 
 	private:
 		entity::ID _id;
-		ECS& ecs;
+		ECS* ecs;
 
 	public:
-		Entity(entity::ID id, ECS& _parent)
+		Entity()
+			: ecs{nullptr}
+		{}
+
+		Entity(entity::ID id, ECS* _parent)
 			: _id{std::move(id)}
 			, ecs{_parent}
 		{}
 
 		Entity(Entity&& e)
 			: _id{std::exchange(e._id, std::nullopt)}
-			, ecs{e.ecs}
+			, ecs{std::exchange(e.ecs, nullptr)}
 		{}
 
 		auto operator= (Entity&& e) -> Entity& {
-			SAGE_ASSERT(&ecs == &e.ecs, "Entities do not come from the same ECS");
+			SAGE_ASSERT(e.ecs != nullptr, "Attempting to assign from a null Entity");
+			SAGE_ASSERT(ecs == nullptr or ecs == e.ecs, "Entities do not come from the same ECS");
 
 			_id = std::exchange(e._id, std::nullopt);
+			ecs = std::exchange(e.ecs, nullptr);
 			return *this;
 		}
 
@@ -74,32 +80,34 @@ struct ECS {
 	public:
 		template <typename... Cs>
 		auto set(Cs&&... cs) -> decltype(auto) {
-			return ecs.set_components<Cs...>(*this, std::forward<Cs>(cs)...);
+			SAGE_ASSERT(is_valid());
+			return ecs->set_components<Cs...>(*this, std::forward<Cs>(cs)...);
 		}
 
 		template <typename... Cs>
 		auto set(std::invocable<std::tuple<std::optional<Cs>&...>> auto&& fn) -> decltype(auto) {
-			return ecs.set_components<Cs...>(std::forward<decltype(fn)>(fn));
+			SAGE_ASSERT(is_valid());
+			return ecs->set_components<Cs...>(std::forward<decltype(fn)>(fn));
 		}
 
 		template <typename... Cs>
 		auto components() -> decltype(auto) {
-			return ecs.components_of<Cs...>(*this);
+			SAGE_ASSERT(is_valid());
+			return ecs->components_of<Cs...>(*this);
 		}
 
 		template <typename... Cs>
 		auto has() -> decltype(auto) {
-			return ecs.has_components<Cs...>(*this);
+			SAGE_ASSERT(is_valid());
+			return ecs->has_components<Cs...>(*this);
 		}
 
 		auto is_valid() const -> bool {
-			return ecs.is_valid(*this);
+			return ecs->is_valid(*this);
 		}
 
 		auto operator== (const Entity& e) const -> bool {
-			SAGE_ASSERT(&ecs == &e.ecs, "Entities do not come from the same ECS ({} != {})", fmt::ptr(&ecs), fmt::ptr(&e.ecs));
-
-			return _id == e._id and &ecs == &e.ecs;
+			return ecs != nullptr and e.ecs != nullptr and _id == e._id and ecs == e.ecs;
 		}
 
 		auto id() const -> const entity::ID& { return _id; }
@@ -110,7 +118,6 @@ struct ECS {
 
 private:
 	IDs ids;
-	inline static auto null_id = entity::ID{};
 	Component_Storage components;
 
 
@@ -139,7 +146,7 @@ public:
 
 			*id = entity::ID{Raw_ID{idx}};
 
-			return std::make_optional<Entity>(*id, *this);	// Wont bother dealing with "cannot be converted from brace enclosed initializer list to Entity"...
+			return std::make_optional<Entity>(*id, this);	// Wont bother dealing with "cannot be converted from brace enclosed initializer list to Entity"...
 		}
 		else
 			return std::nullopt;
@@ -159,7 +166,7 @@ public:
 	}
 
 	auto null() -> Entity {
-		return { null_id, *this };
+		return { std::nullopt, this };
 	}
 
 	auto destroy(Entity& e) -> bool {
@@ -284,10 +291,8 @@ public:
 
 	template <type::Any<Entity, entity::ID> Entt>
 	auto is_valid(const Entt& e) const -> bool {
-		if constexpr (std::same_as<Entt, Entity>) {
-			SAGE_ASSERT(&e.ecs == this, "Entity does not come from this ECS (at {})", fmt::ptr(this));
-			return e._id.has_value() and ids[e._id.raw()] == e._id;
-		}
+		if constexpr (std::same_as<Entt, Entity>)
+			return e.ecs == this and e._id.has_value() and ids[e._id.raw()] == e._id;
 		else if constexpr (std::same_as<Entt, entity::ID>)
 			return e.has_value();
 		else

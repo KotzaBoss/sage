@@ -159,11 +159,7 @@ private:
 public:
 	Level()
 		: ecs{1ul}
-		, square{*ecs.create()}
-	{
-		// TODO: 10/10, make Entity default constructible, ECS*
-		ecs.destroy(square);
-	}
+	{}
 
 public:
 	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) {
