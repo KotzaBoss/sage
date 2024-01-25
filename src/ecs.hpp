@@ -192,24 +192,6 @@ public:
 	}
 
 	template <typename... Cs>
-		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
-	auto set_components(const Entity& e, std::invocable<std::tuple<std::optional<Cs>&...>> auto&& fn) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
-		using Optional = std::optional<typename Component_Storage::Forward_Tuple>;
-
-		if (not is_valid(e))
-			return Optional{std::nullopt};
-		else {
-			const auto idx = e._id.raw();
-			auto comps = std::forward_as_tuple(
-					std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)[idx]
-					...
-				);
-			fn(comps);
-			return Optional{comps};
-		}
-	}
-
-	template <typename... Cs>
 		requires (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
 	auto components_of(const Entity& e) -> decltype(auto /* optional<tuple<optional<Cs>&...>> */) {
 		// Even if entity is not valid we can reference the first element to make the type deduction work
