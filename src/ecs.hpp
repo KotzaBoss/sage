@@ -19,6 +19,14 @@ namespace component {
 template <typename C>
 concept Concept = std::semiregular<C>;	// copyable, movable, default_initializable
 
+struct Name {
+private:
+	inline static auto counter = 1ul;
+
+public:
+	std::string name = fmt::format("Unamed Entity {}", counter++);
+};
+
 struct Transform {
 	glm::mat4 trans = math::identity<glm::mat4>;
 };
@@ -177,7 +185,7 @@ public:
 	template <typename... Cs>
 		requires (sizeof...(Cs) > 0) and (type::Any<Cs, Components...> and ...) and type::Unique<Cs...>
 	auto set_components(const Entity& e, Cs&&... cs) -> decltype(auto /* optional<tuple<std::optional<Cs>&...>> */) {
-		using Optional = std::optional<typename Component_Storage::Forward_Tuple>;
+		using Optional = std::optional<std::tuple<std::optional<Cs>&...>>;
 
 		if (not is_valid(e))
 			return Optional{std::nullopt};

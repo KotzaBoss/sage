@@ -152,7 +152,7 @@ private:
 		};
 
 private:
-	using ECS = sage::ECS<component::Sprite, component::Transform>;
+	using ECS = sage::ECS<component::Name, component::Sprite, component::Transform>;
 	ECS ecs;
 	ECS::Entity square;
 
@@ -161,7 +161,8 @@ public:
 		: ecs{1ul}
 		, square{*ecs.create()}
 	{
-		square.set(component::Sprite{}, component::Transform{});
+		// TODO: 10/10, make Entity default constructible, ECS*
+		ecs.destroy(square);
 	}
 
 public:
@@ -189,27 +190,86 @@ public:
 			}
 		}
 
-		auto comps = square.components();
-		SAGE_ASSERT(comps.has_value());
+		if (square.is_valid()) {
+			auto comps = square.components();
+			SAGE_ASSERT(comps.has_value());
 
-		auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
-		auto& transform = std::get<std::optional<component::Transform>&>(*comps);
-		SAGE_ASSERT(sprite.has_value());
-		SAGE_ASSERT(transform.has_value());
+			auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
+			auto& transform = std::get<std::optional<component::Transform>&>(*comps);
+			SAGE_ASSERT(sprite.has_value());
+			SAGE_ASSERT(transform.has_value());
 
-		renderer.draw(sprite->color, transform->trans);
+			renderer.draw(sprite->color, transform->trans);
+		}
 	}
 
 	auto imgui_prepare() {
 		ImGui::Begin("Level");
 
-		auto comps = square.components<component::Sprite>();
-		SAGE_ASSERT(comps.has_value());
+		const auto square_is_valid = square.is_valid();
 
-		auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
-		SAGE_ASSERT(sprite.has_value());
+		{
+			auto* color = std::invoke([&] {
+					if (square_is_valid) {
+						auto comps = square.components<component::Sprite>();
+						SAGE_ASSERT(comps.has_value());
+						auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
+						SAGE_ASSERT(sprite.has_value());
+						return glm::value_ptr(sprite->color);
+					}
+					else {
+						static glm::vec4 no_square_color;
+						no_square_color = glm::vec4{};	// Reset to show that it is not tweaking anything
+						return glm::value_ptr(no_square_color);
+					}
+				});
+			ImGui::ColorEdit4("Square Color", color);
+		}
 
-		ImGui::ColorEdit4("Square Color", glm::value_ptr(sprite->color));
+		{
+        	if (ImGui::BeginListBox("Names")) {
+				if (square_is_valid) {
+					auto names = square.components<component::Name>();
+					SAGE_ASSERT(names.has_value());
+					std::apply(
+							[&] (const auto&... ns) {
+								(
+								 std::invoke([&, n = 0] mutable {
+										SAGE_ASSERT(ns.has_value());
+
+										static int item_current_idx = 0; // Here we store our selection data as an index.
+										static bool is_selected = false;
+										if (ImGui::Selectable(ns->name.c_str(), &is_selected))
+											item_current_idx = n;
+
+										// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+										if (is_selected) {
+											ImGui::SetItemDefaultFocus();
+
+											ecs.destroy(square);
+											is_selected = false;
+										}
+
+										++n;
+									})
+								 , ...
+								);
+							},
+							*names
+						);
+				}
+
+        	    ImGui::EndListBox();
+        	}
+		}
+
+		if (ImGui::Button("Recreate Square")) {
+			if (not square.is_valid()) {
+				const auto ok = ecs.create(square);
+				SAGE_ASSERT(ok);
+				square.set(component::Name{"Square"s}, component::Sprite{}, component::Transform{});
+			}
+		}
 
 		ImGui::End();
 	}
