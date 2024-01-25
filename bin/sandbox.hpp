@@ -152,15 +152,16 @@ private:
 		};
 
 private:
-	ECS<component::Sprite, component::Transform> ecs;
-	entity::ID square;
+	using ECS = sage::ECS<component::Sprite, component::Transform>;
+	ECS ecs;
+	ECS::Entity square;
 
 public:
 	Level()
 		: ecs{1ul}
 		, square{*ecs.create()}
 	{
-		ecs.set_components(square, component::Sprite{}, component::Transform{});
+		square.set(component::Sprite{}, component::Transform{});
 	}
 
 public:
@@ -188,7 +189,7 @@ public:
 			}
 		}
 
-		auto comps = ecs.components_of(square);
+		auto comps = square.components();
 		SAGE_ASSERT(comps.has_value());
 
 		auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
@@ -202,7 +203,7 @@ public:
 	auto imgui_prepare() {
 		ImGui::Begin("Level");
 
-		auto comps = ecs.components_of<component::Sprite>(square);
+		auto comps = square.components<component::Sprite>();
 		SAGE_ASSERT(comps.has_value());
 
 		auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
