@@ -119,7 +119,6 @@ function (external_docs)
 				cmake_path(RELATIVE_PATH file BASE_DIRECTORY "${PROJECT_SOURCE_DIR}" OUTPUT_VARIABLE dest)
 				set(file_link ${dest})
 
-				message(WARNING "${file} ${EXT_DOCS_OUTPUT_DIR}////${dest}")
 				# Make symbolic link to source file
 				file(CREATE_LINK ${file} ${EXT_DOCS_OUTPUT_DIR}/${dest} SYMBOLIC)
 				file(READ ${file} code)
