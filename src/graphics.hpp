@@ -612,7 +612,8 @@ public:
 	//	 	}
 	//	};
 	//
-	auto scene(const camera::Orthographic& cam, std::invocable auto&& draws) -> void {
+	template<std::invocable Draws>
+	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
 		SAGE_ASSERT(not scene_active, "Must only call scene once: renderer.scene(camera, [] { render1(); render2(); });");
 
 		scene_active = true;
@@ -626,7 +627,7 @@ public:
 		scene_data.shader.bind();
 		scene_data.shader.set("u_ViewProjection", cam.view_proj_mat());
 
-		draws();
+		std::invoke(std::forward<Draws>(draws));
 
 		flush();
 
