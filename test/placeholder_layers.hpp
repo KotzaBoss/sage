@@ -20,11 +20,11 @@ public:
 
 	~Dump_Layer() { MESSAGE("DUMP Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta, auto&, auto&, auto&) -> void {
+	auto update(const std::chrono::milliseconds delta, auto&, auto&, auto&, auto&) -> void {
 		MESSAGE("DUMP Updating {}", id, delta);
 	}
-	auto render(auto&, auto&) {}
-	auto imgui_prepare(auto&, auto&, auto&) -> void {
+	auto render(auto&, auto&, auto&) {}
+	auto imgui_prepare(auto&, auto&, auto&, auto&) -> void {
 		// Create a window called "My First Tool", with a menu bar.
 		static auto my_tool_active = true;
 		ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
@@ -58,7 +58,7 @@ public:
 		ImGui::EndChild();
 		ImGui::End();
 	}
-	auto event_callback(const sage::Event& event, auto&, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
+	auto event_callback(const sage::Event& event, auto&, auto&, auto&) -> void { MESSAGE("DUMP ", id, "got Event ", event); }
 };
 
 template <typename _Input, typename _Renderer, typename _User_State>
@@ -78,11 +78,11 @@ public:
 
 	~Other_Layer() { MESSAGE("OTHER Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta, auto&, auto&, auto&) -> void {
+	auto update(const std::chrono::milliseconds delta, auto&, auto&,auto&, auto&) -> void {
 		MESSAGE("OTHER Updating {}", id, delta);
 	}
-	auto render(auto&, auto&) {}
-	auto imgui_prepare(auto&, auto&, auto&) -> void {
+	auto render(auto&, auto&, auto&) {}
+	auto imgui_prepare(auto&, auto&, auto&, auto&) -> void {
 		ImGui::Text("Hello, world %d", 123);
 		if (ImGui::Button("Save"))
 		    SAGE_LOG_INFO("Saving");
@@ -91,7 +91,7 @@ public:
 		float f;
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	}
-	auto event_callback(const sage::Event& event, auto&, auto&) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
+	auto event_callback(const sage::Event& event, auto&, auto&, auto&) -> void { MESSAGE("OTHER Layer \"", id, "\" got Event ", event); }
 };
 
 template <typename _Input, typename _Renderer, typename _User_State>
@@ -111,14 +111,14 @@ public:
 
 	~Last_Layer() { MESSAGE("LAST Tearing down ", id); }
 
-	auto update(const std::chrono::milliseconds delta, auto&, auto&, auto&) -> void {
+	auto update(const std::chrono::milliseconds delta, auto&, auto&, auto&, auto&) -> void {
 		MESSAGE("LAST Updating {}", id, delta);
 	}
-	auto render(auto&, auto&) {}
-	auto imgui_prepare(auto&, auto&, auto&) -> void {
+	auto render(auto&, auto&, auto&) {}
+	auto imgui_prepare(auto&, auto&, auto&, auto&) -> void {
 		ImGui::Text(fmt::format("Brrrrrrrrrrrrrr {}", id).c_str());
 	}
-	auto event_callback(const sage::Event& event, auto&, auto&) -> void {
+	auto event_callback(const sage::Event& event, auto&, auto&, auto&) -> void {
 		MESSAGE("LAST ", id, "got Event ", event);
 	}
 };

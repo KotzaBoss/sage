@@ -208,10 +208,11 @@ TEST_CASE ("Layer") {
 
 	const auto start = std::chrono::steady_clock::now();
 	auto& cam = camera::Controller<input::Null>::null();
+	auto ecs = ECS{666ul};
 	for (auto tick = sage::Tick{}; tick.current_time_point() < start + 1s; ) {
-		layers.update(tick(), input::null, cam, layer::null_user_state);
-		layers.render(graphics::renderer::null, layer::null_user_state);
-		layers.event_callback(Event{}, cam, layer::null_user_state);
+		layers.update(tick(), input::null, cam, ecs, layer::null_user_state);
+		layers.render(graphics::renderer::null, ecs, layer::null_user_state);
+		layers.event_callback(Event{}, cam, ecs, layer::null_user_state);
 	}
 }
 
