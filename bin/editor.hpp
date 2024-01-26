@@ -20,20 +20,20 @@ private:
 	} viewport;
 
 public:
-	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, camera::Controller<Input>& cam, User_State&) -> void {
+	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, camera::Controller<Input>& cam, ECS&, User_State&) -> void {
 		if (viewport.is_focused)
 			cam.update(delta, input);
 	}
 
-	auto render(oslinux::Renderer_2D& renderer, auto&) -> void {
+	auto render(oslinux::Renderer_2D& renderer, ECS&, auto&) -> void {
 	}
 
-	auto event_callback(const Event& e, camera::Controller<Input>& cam, auto&) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>& cam, ECS&, auto&) -> void {
 		if (viewport.is_focused and viewport.is_hovered)
 			cam.event_callback(e);
 	}
 
-	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer& frame_buffer, auto& state) -> void {
+	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer& frame_buffer, ECS&, auto& state) -> void {
 		::ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
 		::ImGui::Begin("Rendering");
 

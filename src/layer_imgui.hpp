@@ -62,10 +62,10 @@ public:
 	}
 
 public:
-	auto update(const std::chrono::milliseconds, Input&, camera::Controller<Input>&, User_State&) -> void {}
-	auto render(auto& /* renderer */, auto& /* user_state */) -> void {}
+	auto update(const std::chrono::milliseconds, Input&, camera::Controller<Input>&, ECS&, User_State&) -> void {}
+	auto render(Renderer&, ECS&, User_State&) -> void {}
 
-	auto event_callback(const Event& e, camera::Controller<Input>&, auto& /* user_state */) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>&, ECS&, User_State&) -> void {
 		using namespace sage;
 
 #pragma GCC diagnostic push
@@ -155,7 +155,7 @@ public:
 		}
 	}
 
-	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, User_State&) {
+	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, ECS&, User_State&) {
 		::ImGui::DockSpaceOverViewport(::ImGui::GetMainViewport());
 		if constexpr (build::debug) {
 			static auto show = true;

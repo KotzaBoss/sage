@@ -49,6 +49,8 @@ private:
 
 	ImGui& imgui;
 
+	ECS ecs;
+
 public:
 	App()
 		: input{window.native_handle()}
@@ -56,6 +58,7 @@ public:
 		, renderer{profiler}
 		, layers{ImGui{&window}, Ls{}...}
 		, imgui{layers.front()}
+		, ecs{100ul}
 	{
 		SAGE_LOG_DEBUG(*this);
 	}
@@ -74,7 +77,7 @@ public:
 					{
 						PROFILER_TIME(profiler, "    Layers");
 
-						layers.event_callback(*event, camera_controller, user_state);
+						layers.event_callback(*event, camera_controller, ecs, user_state);
 					}
 
 					{
@@ -92,14 +95,14 @@ public:
 				{
 					PROFILER_TIME(profiler, "Update Layers");
 
-					layers.update(delta, input, camera_controller, user_state);
+					layers.update(delta, input, camera_controller, ecs, user_state);
 				}
 
 				{
 					PROFILER_TIME(profiler, "Render Layers");
 
 					renderer.scene(camera_controller.camera(), [&] {
-							layers.render(renderer, user_state);
+							layers.render(renderer, ecs, user_state);
 						});
 				}
 
@@ -107,7 +110,7 @@ public:
 					PROFILER_TIME(profiler, "ImGui");
 
 					imgui.new_frame([&] {
-							layers.imgui_prepare(camera_controller, renderer.frame_buffer(), user_state);
+							layers.imgui_prepare(camera_controller, renderer.frame_buffer(), ecs, user_state);
 						});
 				}
 			}

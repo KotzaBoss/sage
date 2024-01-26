@@ -152,14 +152,7 @@ private:
 		};
 
 private:
-	using ECS = sage::ECS<component::Name, component::Sprite, component::Transform>;
-	ECS ecs;
 	ECS::Entity square;
-
-public:
-	Level()
-		: ecs{1ul}
-	{}
 
 public:
 	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) {
@@ -199,7 +192,7 @@ public:
 		}
 	}
 
-	auto imgui_prepare() {
+	auto imgui_prepare(ECS& ecs) {
 		ImGui::Begin("Level");
 
 		const auto square_is_valid = square.is_valid();
@@ -287,21 +280,21 @@ struct Layer_2D {
 	using User_State = Game_State;
 
 public:
-	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, camera::Controller<Input>&, Game_State& gs) -> void {
+	auto update(const std::chrono::milliseconds delta, oslinux::Input& input, camera::Controller<Input>&, ECS&, Game_State& gs) -> void {
 		if (gs.should_update)
 			gs.level.update(delta, input);
 	}
 
-	auto render(oslinux::Renderer_2D& renderer, Game_State& gs) -> void {
+	auto render(oslinux::Renderer_2D& renderer, ECS&, Game_State& gs) -> void {
 		gs.level.render(renderer);
 	}
 
-	auto event_callback(const Event& e, camera::Controller<Input>&, Game_State& gs) -> void {
+	auto event_callback(const Event& e, camera::Controller<Input>&, ECS&, Game_State& gs) -> void {
 		gs.should_update = toogle_if(gs.should_update, e.type == Event::Type::Key_Pressed and std::get<input::Key>(e.payload) == input::Key::P);
 	}
 
-	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, Game_State& gs) -> void {
-		gs.level.imgui_prepare();
+	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, ECS& ecs, Game_State& gs) -> void {
+		gs.level.imgui_prepare(ecs);
 	}
 
 };
@@ -318,7 +311,7 @@ public:
 	{}
 
 public:
-	auto update(const std::chrono::milliseconds dt, oslinux::Input& input, camera::Controller<Input>&, Game_State& gs) -> void {
+	auto update(const std::chrono::milliseconds dt, oslinux::Input& input, camera::Controller<Input>&, ECS&, Game_State& gs) -> void {
 		if (not gs.should_update)
 			return;
 
@@ -370,7 +363,7 @@ public:
 			});
 	}
 
-	auto render(oslinux::Renderer_2D& renderer, Game_State&) -> void {
+	auto render(oslinux::Renderer_2D& renderer, ECS&, Game_State&) -> void {
 		Base::render([&] (const auto& particles) {
 				rg::for_each(particles, [&] (const auto& p) {
 						using Simple_Args = oslinux::Renderer_2D::Simple_Args;
@@ -383,10 +376,10 @@ public:
 			});
 	}
 
-	auto event_callback(const Event&, camera::Controller<Input>&, Game_State&) -> void {
+	auto event_callback(const Event&, camera::Controller<Input>&, ECS&, Game_State&) -> void {
 	}
 
-	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, Game_State&) -> void {
+	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, ECS&, Game_State&) -> void {
 	}
 
 	FMT_FORMATTER(Rocket_Flame);

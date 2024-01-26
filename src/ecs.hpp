@@ -4,6 +4,7 @@
 
 #include "src/math.hpp"
 #include "src/util.hpp"
+#include "src/camera.hpp"
 
 namespace sage::inline ecs {
 
@@ -35,30 +36,42 @@ struct Sprite {
 	glm::vec4 color = math::identity<glm::vec4>;
 };
 
+struct Camera {
+	camera::Camera camera;
+};
+
+#define _ALL_COMPONENTS \
+	component::Name,	\
+	component::Transform,	\
+	component::Sprite,	\
+	component::Camera
+	/* Add new component here with no comma at the end and dont forget the '\' at the end of the item above */
+
 }// sage::ecs::components
+
 
 // TODO: Rethink what is returned by components_of, view.
 //       How should unset components be filtered? Atm the are optional but perhaps they should
 //       be skipped entirely with a vw::filter?
 template <component::Concept... Components>
-struct ECS {
+struct Basic_ECS {
 	using IDs = std::vector<entity::ID>;
 	using Component_Storage = util::Polymorphic_Storage<std::optional<Components>...>;
 
 	// Returned to the user but should only be constructed and assigned by ECS.
 	struct Entity {
-		friend struct ECS;	// Only ECS can tweak internals
+		friend struct Basic_ECS;	// Only ECS can tweak internals
 
 	private:
 		entity::ID _id;
-		ECS* ecs;
+		Basic_ECS* ecs;
 
 	public:
 		Entity()
 			: ecs{nullptr}
 		{}
 
-		Entity(entity::ID id, ECS* _parent)
+		Entity(entity::ID id, Basic_ECS* _parent)
 			: _id{std::move(id)}
 			, ecs{_parent}
 		{}
@@ -77,7 +90,7 @@ struct ECS {
 			return *this;
 		}
 
-						// See ECS for details
+						// See Basic_ECS for details
 	public:
 		template <typename... Cs>
 		auto set(Cs&&... cs) -> decltype(auto) {
@@ -123,7 +136,7 @@ private:
 
 
 public:
-	ECS(const size_t max_entities)
+	Basic_ECS(const size_t max_entities)
 		: ids{max_entities}
 		, components{max_entities}
 	{}
@@ -309,6 +322,8 @@ public:
 	}
 };
 
+using ECS = Basic_ECS<_ALL_COMPONENTS>;		// Excessive? maybe, I care? no.
+
 } //sage
 
 template <>
@@ -349,7 +364,7 @@ TEST_CASE ("ECS") {
 
 	constexpr auto max_entities = 100ul;
 
-	using ECS = sage::ECS<Physics, Collision>;
+	using ECS = sage::Basic_ECS<Physics, Collision>;
 	auto ecs = ECS{max_entities};
 
 	auto entities = std::vector<ECS::Entity>{};
