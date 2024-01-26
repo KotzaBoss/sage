@@ -11,6 +11,11 @@
 
 namespace sage::camera {
 
+struct Camera {
+	// RND: Look into the details for cameras projection math
+	glm::mat4 projection;
+};
+
 // TODO: Not sure if this API is necessary, maybe have public members?
 struct Orthographic {
 	template <input::Concept>
