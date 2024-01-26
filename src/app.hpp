@@ -26,7 +26,6 @@ template <
 	>
 	requires
 			type::Not_In<layer::ImGui<Input, Renderer, User_State>, Ls...>	// ImGui layer always provided as the "overlay"
-		and layer::Are_Coherent<Ls...>
 struct App {
 	using ImGui = layer::ImGui<Input, Renderer, User_State>;
 	using Layers = sage::layer::Array<ImGui, Ls...>;
