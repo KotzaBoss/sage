@@ -121,7 +121,7 @@ public:
 
 			// TODO: Fixed rate updates how to? Hardcode to 144fps for now.
 			// Look into: https://johnaustin.io/articles/2019/fix-your-unity-timestep
-			const auto next_time_point = perf::target::time_point::_144(tick.current_time_point());
+			const auto next_time_point = perf::target::fps144::next_time_point(tick.current_time_point());
 			std::this_thread::sleep_until(next_time_point);
 		}
 

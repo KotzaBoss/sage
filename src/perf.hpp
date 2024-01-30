@@ -9,19 +9,17 @@
 namespace sage::inline perf {
 
 namespace target {
-	namespace fps {
-		constexpr auto _30 = 1000ms / 30;
-		constexpr auto _60 = 1000ms / 60;
-		constexpr auto _144 = 1000ms / 144;
+	using Time_Point = std::chrono::steady_clock::time_point;
+
+#define _FPS_TARGET_DECLARATIONS(_fps_) \
+	namespace fps##_fps_ {	\
+		constexpr auto duration = 1000ms / _fps_;	\
+		constexpr auto next_time_point(const Time_Point& start) -> Time_Point { return start + duration;	}	\
 	}
 
-	namespace time_point {
-		using Time_Point = std::chrono::steady_clock::time_point;
-
-		constexpr auto _30	(const Time_Point& start) -> Time_Point { return start + fps::_30;	}
-		constexpr auto _60	(const Time_Point& start) -> Time_Point { return start + fps::_60;	}
-		constexpr auto _144	(const Time_Point& start) -> Time_Point { return start + fps::_144;	}
-	}
+	_FPS_TARGET_DECLARATIONS(30)
+	_FPS_TARGET_DECLARATIONS(60)
+	_FPS_TARGET_DECLARATIONS(144)
 
 	constexpr auto legend() -> std::string {
 		// This is ugly x( but it works x)
@@ -31,7 +29,7 @@ R"(FPS:
 	 60 -> {:>5}
 	144 -> {:>5}
 )",
-				fps::_30, fps::_60, fps::_144
+				fps30::duration, fps60::duration, fps144::duration
 			);
 	}
 } //targets
