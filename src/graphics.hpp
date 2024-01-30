@@ -424,7 +424,7 @@ concept Concept_2D =
 		// TODO: Try to make this a constraint
 		//and detail::renderer_can_draw<R, typename R::Drawings, typename R::Draw_Args>
 	and requires { typename R::Frame_Buffer; } and buffer::frame::Concept<typename R::Frame_Buffer>
-	and requires (R r, const camera::Orthographic& cam, const std::function<void()>& draws, const Event& e) {
+	and requires (R r, const camera::Camera& cam, const std::function<void()>& draws, const Event& e) {
 		{ r.scene(cam, draws) } -> std::same_as<void>;
 		{ r.event_callback(e) } -> std::same_as<void>;
 		{ r.frame_buffer() } -> std::same_as<typename R::Frame_Buffer&>;
@@ -613,7 +613,7 @@ public:
 	//	};
 	//
 	template<std::invocable Draws>
-	auto scene(const camera::Orthographic& cam, Draws&& draws) -> void {
+	auto scene(const camera::Camera& cam, Draws&& draws) -> void {
 		SAGE_ASSERT(not scene_active, "Must only call scene once: renderer.scene(camera, [] { render1(); render2(); });");
 
 		scene_active = true;
@@ -625,7 +625,7 @@ public:
 		SAGE_ASSERT(batch.verteces_are_empty(), "Make sure to clear when flushing");
 
 		scene_data.shader.bind();
-		scene_data.shader.set("u_ViewProjection", cam.view_proj_mat());
+		scene_data.shader.set("u_ViewProjection", cam.projection);
 
 		std::invoke(std::forward<Draws>(draws));
 

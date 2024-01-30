@@ -100,7 +100,7 @@ public:
 				{
 					PROFILER_TIME(profiler, "Render Layers");
 
-					renderer.scene(camera_controller.camera(), [&] {
+					renderer.scene(camera_controller.camera, [&] {
 							layers.render(renderer, ecs, user_state);
 						});
 				}
