@@ -18,7 +18,20 @@ using ID = util::ID;
 namespace component {
 
 template <typename C>
-concept Concept = std::semiregular<C>;	// copyable, movable, default_initializable
+concept Concept =
+		std::semiregular<C>	// copyable, movable, default_initializable
+	and requires {
+		{ C::type_name() } -> std::same_as<std::string_view>;
+	}
+	;
+
+#define TYPE_NAME_GETTER(klass)	\
+	static constexpr auto type_name() -> std::string_view {	\
+		return std::string_view{#klass};	\
+	}
+
+// TODO: The components need rework to be flexible. The problem is that if the templates
+//       are kept then the Components... cant really be passed to App...
 
 struct Name {
 private:
@@ -26,25 +39,41 @@ private:
 
 public:
 	std::string name = fmt::format("Unamed Entity {}", counter++);
+
+	TYPE_NAME_GETTER(Name)
 };
 
 struct Transform {
 	glm::mat4 trans = math::identity<glm::mat4>;
+
+	TYPE_NAME_GETTER(Transform)
 };
 
 struct Sprite {
 	glm::vec4 color = math::identity<glm::vec4>;
+
+	TYPE_NAME_GETTER(Sprite)
 };
 
 struct Camera {
-	camera::Camera camera;
+	camera::Scene_Camera camera;
+	bool has_fixed_aspect_ratio = false;
+
+	TYPE_NAME_GETTER(Camera)
+};
+
+struct Position {
+	glm::vec3 position;
+
+	TYPE_NAME_GETTER(Position)
 };
 
 #define _ALL_COMPONENTS \
 	component::Name,	\
 	component::Transform,	\
 	component::Sprite,	\
-	component::Camera
+	component::Camera,	\
+	component::Position
 	/* Add new component here with no comma at the end and dont forget the '\' at the end of the item above */
 
 }// sage::ecs::components
@@ -297,7 +326,7 @@ public:
 			});
 
 		return vw::zip(ids, std::get<typename Component_Storage::Vector<std::optional<Cs>>>(components)...)
-			| vw::filter([&] (const auto& entt_comps) {
+			| vw::filter([&] (auto&& entt_comps) {
 					return is_valid(std::get<0>(entt_comps));
 				})
 			;
@@ -313,8 +342,25 @@ public:
 			static_assert(false);
 	}
 
-	auto size() const -> size_t {
+	// ECS size is not the same as a vector size. ECS should preallocate its vectors.
+	//
+	auto size() /* const */ -> size_t {
+		// TODO: Fix constness of Polymorphic_* containers
+		//components.apply_group([&] (auto& vec) {
+		//		SAGE_ASSERT(ids.size() == vec.size(), "Entities and Components containers do not have the same preallocated size");
+		//	});
+
 		return rg::count_if(ids, [] (const auto& e) { return e.has_value(); });
+	}
+
+	// Be sure to note comment of size()
+	auto is_full() /* const */ -> bool {
+		const auto sz = size(),
+				   ids_size = ids.size();
+
+		SAGE_ASSERT(sz <= ids_size, "size() cannot be > ids.size(), make sure entity creation/deletion is correct");
+
+		return sz == ids_size;
 	}
 
 	auto clear() -> void {
@@ -332,6 +378,47 @@ FMT_FORMATTER(sage::entity::ID) {
 
 	FMT_FORMATTER_FORMAT(sage::entity::ID) {
 		return fmt::format_to(ctx.out(), "entity::ID: {}", obj);
+	}
+};
+
+template <>
+FMT_FORMATTER(sage::component::Name) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::component::Name) {
+		return fmt::format_to(ctx.out(), "{:?}", obj.name);
+	}
+};
+template <>
+FMT_FORMATTER(sage::component::Sprite) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::component::Sprite) {
+		return fmt::format_to(ctx.out(), "{}", glm::to_string(obj.color));
+	}
+};
+template <>
+FMT_FORMATTER(sage::component::Transform) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::component::Transform) {
+		return fmt::format_to(ctx.out(), "{}", glm::to_string(obj.trans));
+	}
+};
+template <>
+FMT_FORMATTER(sage::component::Camera) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::component::Camera) {
+		return fmt::format_to(ctx.out(), "TODO");
+	}
+};
+template <>
+FMT_FORMATTER(sage::component::Position) {
+	FMT_FORMATTER_DEFAULT_PARSE
+
+	FMT_FORMATTER_FORMAT(sage::component::Position) {
+		return fmt::format_to(ctx.out(), "{}", glm::to_string(obj.position));
 	}
 };
 

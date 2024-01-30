@@ -6,101 +6,8 @@
 
 using namespace sage;
 
-struct Player {
-private:
-	// TODO: What to encapsulate, player.update(), player knows renderer?
-	glm::vec3 _position = {0.f, 0.f, 0.f};
-	glm::vec2 _velocity = {0.f, 0.f};
-
-	float engine_power = 2.f;
-	float gravity = 0.8f;
-
-	oslinux::Texture2D texture = {"asset/texture/Ship.png"};
-
-public:
-	auto update([[maybe_unused]] const std::chrono::milliseconds delta, oslinux::Input& input) {
-		if (input.is_key_pressed(input::Key::Space))
-			_velocity.y += engine_power;
-		else
-			_velocity.y -= gravity;
-
-		_velocity.y = glm::clamp(_velocity.y, -20.f, 20.f);
-		const auto dt_coeff = std::chrono::duration<float, std::chrono::seconds::period>{delta}.count();
-		_position += glm::vec3(_velocity, 0.f) * dt_coeff;
-	}
-
-	auto render(oslinux::Renderer_2D& renderer) {
-		using Simple_Args = oslinux::Renderer_2D::Simple_Args;
-		renderer.draw(texture, Simple_Args{
-				.position = _position,
-				.size = {1.0f, 1.3f},
-				.rotation = 3.f * _velocity.y - 90.f,
-			});
-	}
-
-	auto imgui_prepare() {
-		::ImGui::DragFloat("Engine Power", &engine_power, 0.05f);
-		::ImGui::DragFloat("Gravity", &gravity, 0.01f);
-	}
-
-public:
-	auto position() const -> const glm::vec3& {
-		return _position;
-	}
-
-	auto velocity() const -> const glm::vec2& {
-		return _velocity;
-	}
-
-	auto rotation() const -> float {
-		return _velocity.y - 90.f;
-	}
-};
-
-struct Obstacle {
-
-private:
-	glm::vec3 _position;
-	glm::vec2 size;
-	float rotation;
-
-	float move_speed;
-	float rotation_speed;
-
-public:
-	Obstacle(glm::vec2&& p, glm::vec2&& sz, const float m_speed = 10.f, const float r_speed = 0.f)
-		: _position{std::move(p), 0.f}
-		, size{std::move(sz)}
-		, rotation{0.f}
-		, move_speed{m_speed}
-		, rotation_speed{r_speed}
-	{}
-
-	Obstacle(Obstacle&&) = default;
-	auto operator= (Obstacle&&) -> Obstacle& = default;
-
-public:
-	auto update(const std::chrono::milliseconds delta, input::Concept auto&) {
-		const auto dt_coeff = std::chrono::duration<float, std::chrono::seconds::period>{delta}.count();
-
-		_position.x -= move_speed * dt_coeff;
-		rotation += rotation_speed * dt_coeff;
-	}
-
-	auto render(oslinux::Renderer_2D& renderer) {
-		using Simple_Args = oslinux::Renderer_2D::Simple_Args;
-		renderer.draw(glm::vec4{1.f, 0, 0, 1.f}, Simple_Args{ .position = _position, .size = size, .rotation = rotation });
-	}
-
-	auto position() const -> const glm::vec3& {
-		return _position;
-	}
-};
-
 struct Level {
 private:
-	Player _player;
-
 	oslinux::Renderer_2D::Texture atlas = {"asset/texture/kenney_rpg-base/Spritesheet/RPGpack_sheet_2X.png"};
 
 	static constexpr auto cell_size = glm::vec2{ 128.f, 128.f };
@@ -137,22 +44,27 @@ private:
 		, building_roof			= oslinux::Renderer_2D::Sub_Texture(atlas, { .cell_size = cell_size, .offset = { 2, 4 }, .sprite_size = { 2, 3 } })
 		;
 
-	static constexpr auto map = std::array{
-			"WWWWWWWWWWWWWWWWWWWWWWW"sv,
-			"WWWWWWWDDDDDWWWWWWWWWWW"sv,
-			"WWWWWDDDDDDDDDDDDWWWWWW"sv,
-			"WWWWWDDDDDDDDDDWWWWWWWW"sv,
-			"WWWWDDDDDDDDDDDDDDWWWWW"sv,
-			"WWWWDDDDDDDDDDDDDWWWDWW"sv,
-			"WWDDDWWWWDDDDDDDWWWDWWW"sv,
-			"WWDDDDWWWDDDDDDWWWWDDWW"sv,
-			"WWDDWDDWWDDDDDDWWWDDDDW"sv,
-			"WDWWWWDDDWWWDDDWWWWWWWW"sv,
-			"WWWWWWWWWWWWWWWWWWWWWWW"sv,
-		};
+	static constexpr auto rank = 10ul;
+	std::array<std::array<ECS::Entity, rank>, rank> map;
+	static constexpr auto color_water = glm::vec4{0.f, 0.f, 1.f, 1.f};
+	static constexpr auto color_dirt = glm::vec4{1.f, 1.f, 0.f, 1.f};
 
 private:
 	ECS::Entity square;
+
+public:
+	Level(ECS& ecs) {
+		for (auto& e : map[0]) {
+			e = *ecs.create();
+			e.set(component::Name{"Tile of Dirt"}, component::Sprite{color_dirt});
+		}
+
+		for (auto& row : map | vw::drop(1))
+			for (auto& e : row) {
+				e = *ecs.create();
+				e.set(component::Name{"Tile of Water"}, component::Sprite{color_water});
+			}
+	}
 
 public:
 	auto update(const std::chrono::milliseconds delta, oslinux::Input& input) {
@@ -165,35 +77,65 @@ public:
 
 		SAGE_ASSERT(rg::all_of(map, [len = map.front().size()] (const auto& str) { return str.size() == len; }));
 
-		for (const auto y : vw::iota(0ul, map.size())) {
-			const auto& str = map[y];
-			for (const auto x : vw::iota(0ul, str.size())) {
-				switch (str[x]) {
-					// size() - y to make sure the map is rendered correctly, otherwise its upside down
-					case 'W': renderer.draw(water, Simple_Args{ .position={x, map.size() - y, 0.f}, .size={1, 1} });
-						break;
-					case 'D': renderer.draw(dirt, Simple_Args{ .position={x, map.size() - y, 0.f}, .size={1, 1} });
-						break;
-					default: SAGE_DIE();
-				}
-			}
-		}
+		for (const auto& [x, row] : map | vw::enumerate)
+			for (const auto& [y, tile] : row | vw::enumerate)
+				renderer.draw(std::get<0>(*tile.components<component::Sprite>())->color,
+						Simple_Args{ .position={x, map.size() - y, 0.f}, .size={1, 1} }
+					);
 
 		if (square.is_valid()) {
 			auto comps = square.components();
 			SAGE_ASSERT(comps.has_value());
 
 			auto& sprite = std::get<std::optional<component::Sprite>&>(*comps);
-			auto& transform = std::get<std::optional<component::Transform>&>(*comps);
+			auto& position = std::get<std::optional<component::Position>&>(*comps);
 			SAGE_ASSERT(sprite.has_value());
-			SAGE_ASSERT(transform.has_value());
+			SAGE_ASSERT(position.has_value());
 
-			renderer.draw(sprite->color, transform->trans);
+			renderer.draw(sprite->color, Simple_Args{ .position=position->position, .size={1, 1} });
 		}
 	}
 
-	auto imgui_prepare(ECS& ecs) {
+	auto imgui_prepare(camera::Controller<oslinux::Input>& cam, ECS& ecs) {
 		ImGui::Begin("Level");
+
+		// TODO: Fix orientation of map
+		auto flat_idx = 0ul;
+		for (const auto& [x, row] : map | vw::enumerate) {
+			for (const auto& [y, tile] : row | vw::enumerate) {
+				auto comps = tile.components<component::Name, component::Sprite>();
+				SAGE_ASSERT(comps.has_value());
+
+				auto& [name, sprite] = *comps;
+				SAGE_ASSERT(name.has_value());
+				SAGE_ASSERT(sprite.has_value());
+
+				if (y > 0)
+					ImGui::SameLine();
+
+				ImGui::PushID(flat_idx++);
+				ImGui::PushStyleColor(ImGuiCol_Button,			ImVec4{sprite->color.r, sprite->color.g, sprite->color.b, sprite->color.a});
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	ImVec4{sprite->color.r, sprite->color.g, sprite->color.b, sprite->color.a});
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive,	ImVec4{sprite->color.r, sprite->color.g, sprite->color.b, sprite->color.a});
+
+				if (ImGui::Button(" ")) {
+					if (name->name.contains("Water")) {
+						name = component::Name{"Tile of Dirt"s};
+						sprite = component::Sprite{color_dirt};
+					}
+					else {
+						name = component::Name{"Tile of Water"s};
+						sprite = component::Sprite{color_water};
+					}
+				}
+
+				ImGui::PopStyleColor(3);
+				ImGui::PopID();
+			}
+		}
+
+
+		ImGui::Separator();
 
 		const auto square_is_valid = square.is_valid();
 
@@ -254,24 +196,69 @@ public:
 
 		if (ImGui::Button("Recreate Square")) {
 			if (not square.is_valid()) {
-				const auto ok = ecs.create(square);
-				SAGE_ASSERT(ok);
-				square.set(component::Name{"Square"s}, component::Sprite{}, component::Transform{});
+				SAGE_ASSERT(not ecs.is_full());
+				square = *ecs.create();
+				square.set(component::Name{"Square"s}, component::Sprite{}, component::Transform{}, component::Camera{}, component::Position{});
+
+				cam.set_position(std::get<0>(*square.components<component::Position>())->position);
 			}
 		}
 
-		ImGui::End();
-	}
+		ImGui::SameLine();
+		ImGui::Text(square.is_valid() ? "Zoom from square" : "Zoom from mouse scroll");
 
-public:
-	auto player() const -> const Player& {
-		return _player;
+		// Components
+		if (square.is_valid()) {
+
+			auto comps = square.components();
+			SAGE_ASSERT(comps.has_value());
+
+			if (ImGui::BeginTable("Components", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+				std::apply(
+						[&] (auto&&... cs) {
+						(
+							std::invoke([&] {
+									using Cs = std::decay_t<decltype(cs)>::value_type;
+
+									ImGui::TableNextRow();
+
+									ImGui::TableNextColumn();
+									ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * 3.0f); // Small
+									ImGui::Text("%s", Cs::type_name().data());
+
+									ImGui::TableNextColumn();
+									ImGui::Text("%s", fmt::format("{}", cs).c_str());
+								})
+							, ...
+						);
+						},
+						*comps
+					);
+
+				ImGui::EndTable();
+			}
+
+			auto& cam_comp = std::get<std::optional<component::Camera>&>(*comps);
+			SAGE_ASSERT(cam_comp.has_value());
+
+			auto size = cam_comp->camera.size();
+			ImGui::DragFloat("Square Camera Size", &size, 0.25f, 0.25f, 30.f);
+			cam_comp->camera.set_size(size);
+
+			cam.set_zoom(size);
+		}
+
+		ImGui::End();
 	}
 };
 
 struct Game_State {
 	Level level;
 	bool should_update = true;
+
+	Game_State(ECS& ecs)
+		: level{ecs}
+	{}
 };
 
 struct Layer_2D {
@@ -293,8 +280,8 @@ public:
 		gs.should_update = toogle_if(gs.should_update, e.type == Event::Type::Key_Pressed and std::get<input::Key>(e.payload) == input::Key::P);
 	}
 
-	auto imgui_prepare(camera::Controller<Input>&, Renderer::Frame_Buffer&, ECS& ecs, Game_State& gs) -> void {
-		gs.level.imgui_prepare(ecs);
+	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer&, ECS& ecs, Game_State& gs) -> void {
+		gs.level.imgui_prepare(cam, ecs);
 	}
 
 };
@@ -315,9 +302,8 @@ public:
 		if (not gs.should_update)
 			return;
 
-		const auto& player = gs.level.player();
-		const auto position = player.position();
-		const auto rotation = player.rotation();
+		const auto position = glm::vec3{};;
+		const auto rotation = 0.f;
 		constexpr auto arc = 9.f;
 		const auto direction = glm::rotate(
 				identity<glm::vec2>,

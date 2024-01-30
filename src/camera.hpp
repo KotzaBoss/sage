@@ -23,6 +23,41 @@ struct Camera {
 	}
 };
 
+struct Scene_Camera : Camera {
+private:
+	float aspect_ratio = 0.f,
+		  _size = 10.f,
+		  near = -1.f, far = 1.f;
+
+public:
+	auto set_viewport_size(const glm::vec2& vp) -> void {
+		aspect_ratio = vp.x / vp.y;
+
+		calc_projection();
+	}
+
+	auto size() const -> float {
+		return _size;
+	}
+
+	auto set_size(const float s) -> void {
+		_size = s;
+		calc_projection();
+	}
+
+private:
+	auto calc_projection() -> void {
+		projection = glm::ortho(
+				-_size * aspect_ratio * 0.5f,
+				_size * aspect_ratio * 0.f,
+				-_size * 0.5f,
+				_size * 0.5f,
+				near,
+				far
+			);
+	}
+};
+
 // Keep the comments for a bit to save the math
 template <input::Concept Input>
 struct Controller {
@@ -89,12 +124,7 @@ public:
 		if		(input.is_key_pressed(input::Key::Q))	rotation.level -= rotation.speed * dt_coeff;
 		else if	(input.is_key_pressed(input::Key::E))	rotation.level += rotation.speed * dt_coeff;
 
-		transform =
-				glm::inverse(
-					glm::translate(glm::mat4(1.f), position)
-					* glm::rotate(glm::mat4(1.f), glm::radians(rotation.level), glm::vec3(0, 0, 1)
-				)
-			);
+		calc_transform();
 	}
 
 	auto event_callback(const Event& e) -> void {
@@ -122,9 +152,22 @@ public:
 	}
 
 public:
+	auto set_position(const glm::vec3& pos) -> void {
+		position = pos;
+
+		calc_transform();
+	}
+
 	auto zoom(const glm::vec2& offset) -> void {
 		_zoom.level = std::clamp(_zoom.level - 0.5 * offset.y, 0.25, 30.0);
 		move_speed = _zoom.level;
+
+		camera = Camera::orthographic(orthographic_args());
+		camera.projection *= transform;
+	}
+
+	auto set_zoom(const float& z) -> void {
+		_zoom.level = std::clamp(z, 0.25f, 30.0f);
 
 		camera = Camera::orthographic(orthographic_args());
 		camera.projection *= transform;
@@ -150,6 +193,16 @@ public:
 			.bottom	= -_zoom.level,
 			.top	= _zoom.level,
 		};
+	}
+
+private:
+	auto calc_transform() -> void {
+		transform =
+				glm::inverse(
+					glm::translate(glm::mat4(1.f), position)
+					* glm::rotate(glm::mat4(1.f), glm::radians(rotation.level), glm::vec3(0, 0, 1)
+				)
+			);
 	}
 
 public:

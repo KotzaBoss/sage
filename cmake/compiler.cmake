@@ -41,4 +41,11 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
 	add_link_options(-fsanitize=undefined,address)
 endif()
 
+sage_options(ADD CUSTOM_IMGUI_CONFIG DOC "Use src/imgui_config.h" INIT ON)
+if (SAGE_OPT_CUSTOM_IMGUI_CONFIG)
+	add_compile_definitions(IMGUI_USER_CONFIG=\"${PROJECT_SOURCE_DIR}/src/imgui_config.h\")
+endif()
+
+include_directories(${PROJECT_SOURCE_DIR})
+
 section_pass()

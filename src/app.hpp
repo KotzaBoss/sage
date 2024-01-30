@@ -26,6 +26,7 @@ template <
 	>
 	requires
 			type::Not_In<layer::ImGui<Input, Renderer, User_State>, Ls...>	// ImGui layer always provided as the "overlay"
+		and std::constructible_from<User_State, ECS&>
 struct App {
 	using ImGui = layer::ImGui<Input, Renderer, User_State>;
 	using Layers = sage::layer::Array<ImGui, Ls...>;
@@ -42,13 +43,13 @@ private:
 
 	Camera_Controller camera_controller;
 
-	User_State user_state;
-
 	Layers layers;
 
 	ImGui& imgui;
 
 	ECS ecs;
+
+	User_State user_state;
 
 public:
 	App()
@@ -57,7 +58,8 @@ public:
 		, renderer{profiler}
 		, layers{ImGui{&window}, Ls{}...}
 		, imgui{layers.front()}
-		, ecs{100ul}
+		, ecs{1000ul}
+		, user_state{ecs}
 	{
 		SAGE_LOG_DEBUG(*this);
 	}

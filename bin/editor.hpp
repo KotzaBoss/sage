@@ -33,7 +33,7 @@ public:
 			cam.event_callback(e);
 	}
 
-	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer& frame_buffer, ECS&, auto& state) -> void {
+	auto imgui_prepare(camera::Controller<Input>& cam, Renderer::Frame_Buffer& frame_buffer, ECS& ecs, auto& state) -> void {
 		::ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
 		::ImGui::Begin("Rendering");
 
@@ -43,9 +43,24 @@ public:
 		};
 
 		const auto viewport_size = ::ImGui::GetContentRegionAvail();
-		cam.resize({ viewport_size.x, viewport_size.y });
-		frame_buffer.resize({viewport_size.x, viewport_size.y});
+		cam.resize(viewport_size);
+		frame_buffer.resize(viewport_size);
 		::ImGui::Image(frame_buffer.color_attachment_id(), viewport_size, {0, 1}, {1, 0}); // {0, 1} {1, 0} to display it correctly and not inverted
+
+		rg::for_each(
+				ecs.view<component::Camera>()
+					| vw::filter([] (auto&& entt_cam) {
+							return std::get<1>(entt_cam).has_value();
+						}),
+				[&] (auto&& entt_comps) {
+					auto& cam = std::get<1>(entt_comps);
+					SAGE_ASSERT(cam.has_value());
+
+					if (not cam->has_fixed_aspect_ratio)
+						cam->camera.set_viewport_size(viewport_size);
+				}
+			);
+
 
 		::ImGui::End();
 		::ImGui::PopStyleVar();
