@@ -25,7 +25,7 @@ concept Concept =
 	}
 	;
 
-#define TYPE_NAME_GETTER(klass)	\
+#define SAGE_ECS_TYPE_NAME_GETTER(klass)	\
 	static constexpr auto type_name() -> std::string_view {	\
 		return std::string_view{#klass};	\
 	}
@@ -40,32 +40,32 @@ private:
 public:
 	std::string name = fmt::format("Unamed Entity {}", counter++);
 
-	TYPE_NAME_GETTER(Name)
+	SAGE_ECS_TYPE_NAME_GETTER(Name)
 };
 
 struct Transform {
 	glm::mat4 trans = math::identity<glm::mat4>;
 
-	TYPE_NAME_GETTER(Transform)
+	SAGE_ECS_TYPE_NAME_GETTER(Transform)
 };
 
 struct Sprite {
 	glm::vec4 color = math::identity<glm::vec4>;
 
-	TYPE_NAME_GETTER(Sprite)
+	SAGE_ECS_TYPE_NAME_GETTER(Sprite)
 };
 
 struct Camera {
 	camera::Scene_Camera camera;
 	bool has_fixed_aspect_ratio = false;
 
-	TYPE_NAME_GETTER(Camera)
+	SAGE_ECS_TYPE_NAME_GETTER(Camera)
 };
 
 struct Position {
 	glm::vec3 position;
 
-	TYPE_NAME_GETTER(Position)
+	SAGE_ECS_TYPE_NAME_GETTER(Position)
 };
 
 #define _ALL_COMPONENTS \
@@ -443,10 +443,14 @@ constexpr auto infinity = std::numeric_limits<float>::infinity();
 TEST_CASE ("ECS") {
 	struct Physics {
 		glm::vec2 velocity;
+
+		SAGE_ECS_TYPE_NAME_GETTER(Physics);
 	};
 
 	struct Collision {
 		glm::vec2 a, b;
+
+		SAGE_ECS_TYPE_NAME_GETTER(Collision);
 	};
 
 	constexpr auto max_entities = 100ul;
