@@ -195,19 +195,6 @@ public:
 			return std::nullopt;
 	}
 
-	// Reuse memory if possible. Should creation fail, the referenced entity is not affected.
-	auto create(Entity& e) -> bool {
-		SAGE_ASSERT(not is_valid(e), "Cannot reuse a currently valid entity");
-
-		auto new_entity = create();
-		if (new_entity.has_value()) {
-			e = std::move(*new_entity);
-			return true;
-		}
-		else
-			return false;
-	}
-
 	auto null() -> Entity {
 		return { std::nullopt, this };
 	}
@@ -465,23 +452,18 @@ TEST_CASE ("ECS") {
 	{
 		constexpr auto half_max_entities = size_t{max_entities / 2};
 
-		// 1. Normal
 		for ([[maybe_unused]] const auto _ : vw::iota(0ul, half_max_entities)) {
 			auto entt = ecs.create();
 			REQUIRE(entt.has_value());
 
 			// This is an interesting line of cpp.
 			// `entt` is auto& so *entt is also auto& so we need to move it otherwise we copy.
+			// However the optional is still considered to `has_value()`, its just that the value
+			// has been moved from.
 			// https://en.cppreference.com/w/cpp/utility/optional/operator*
 			// Note the &,&& on the right side of the functions (operator*() & or operator*() const&)
 			// https://godbolt.org/z/rYaGhf9nP
 			entities.push_back(std::move(*entt));
-		}
-
-		// 2. "Reuse" memory
-		for ([[maybe_unused]] const auto _ : vw::iota(half_max_entities, max_entities)) {
-			entities.push_back(ecs.null());
-			REQUIRE(ecs.create(entities.back()));
 		}
 
 		// Set test data
