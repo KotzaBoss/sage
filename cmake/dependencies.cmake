@@ -16,21 +16,20 @@ FetchContent_Declare(spdlog
 		BUILD_ALWAYS OFF
 	)
 
-FetchContent_Declare(glad
-		GIT_REPOSITORY https://github.com/Dav1dde/glad
-		GIT_TAG origin/glad2
-		BUILD_ALWAYS OFF
-		SOURCE_SUBDIR cmake
-	)
-
-FetchContent_Declare(glfw
-		GIT_REPOSITORY https://github.com/glfw/glfw.git
-		BUILD_ALWAYS OFF
-	)
-
 FetchContent_Declare(imgui
 		GIT_REPOSITORY https://github.com/ocornut/imgui.git
 		GIT_TAG origin/docking
+		BUILD_ALWAYS OFF
+	)
+
+FetchContent_Declare(raylib
+		GIT_REPOSITORY https://github.com/raysan5/raylib.git
+		BUILD_ALWAYS OFF
+	)
+
+FetchContent_Declare(rlImGui_project
+		GIT_REPOSITORY https://github.com/raylib-extras/rlImGui.git
+		GIT_TAG main
 		BUILD_ALWAYS OFF
 	)
 
@@ -69,27 +68,29 @@ FetchContent_MakeAvailable(spdlog)
 include_directories(${spdlog_SOURCE_DIR}/include)
 section_pass(${spdlog_SOURCE_DIR})
 
-section_start("glad")
-FetchContent_MakeAvailable(glad)
-add_subdirectory(${glad_SOURCE_DIR}/cmake EXCLUDE_FROM_ALL)
-glad_add_library(glad
-	STATIC
-	LOCATION ${glad_BINARY_DIR}/sources
-	API gl:core=4.5
-	)
-include_directories(${glad_BINARY_DIR}/sources/include)
-section_pass(${glad_SOURCE_DIR} ${glad_BINARY_DIR}/sources/include)
-
-section_start("glfw")
-FetchContent_MakeAvailable(glfw)
-include_directories(${glfw_SOURCE_DIR}/include)
-section_pass(${glfw_SOURCE_DIR})
-
 section_start("imgui")
 FetchContent_MakeAvailable(imgui)
 include_directories(${imgui_SOURCE_DIR})
 include_directories(${imgui_SOURCE_DIR}/backends)
 section_pass(${imgui_SOURCE_DIR})
+
+section_start("raylib")
+FetchContent_MakeAvailable(raylib)
+include_directories(${raylib_SOURCE_DIR}/src)
+section_pass(${raylib_SOURCE_DIR})
+
+section_start("rlImGui")
+FetchContent_MakeAvailable(rlImGui_project)
+add_library(rlimgui STATIC
+		${rlimgui_project_SOURCE_DIR}/rlImGui.cpp
+		${imgui_SOURCE_DIR}/imgui.cpp
+		${imgui_SOURCE_DIR}/imgui_draw.cpp
+		${imgui_SOURCE_DIR}/imgui_tables.cpp
+		${imgui_SOURCE_DIR}/imgui_widgets.cpp
+		${imgui_SOURCE_DIR}/imgui_demo.cpp
+	)
+include_directories(${rlimgui_project_SOURCE_DIR})
+section_pass(${rlimgui_project_SOURCE_DIR})
 
 section_start("glm")
 FetchContent_MakeAvailable(glm)

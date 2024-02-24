@@ -1,9 +1,8 @@
 section_start("bin")
 
-add_executable(sage main.cpp)
-add_dependencies(sage shaders textures)
+add_executable(sage raylib.cpp)
 target_include_directories(sage PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_libraries(sage PRIVATE doctest repr log layer_imgui linux_window event)
+target_link_libraries(sage PRIVATE doctest log raylib rlimgui event)
 target_precompile_headers(sage REUSE_FROM std)
 
 cmake_print_properties(TARGETS sage PROPERTIES SOURCES LINK_LIBRARIES)
