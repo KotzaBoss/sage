@@ -33,6 +33,7 @@ cmake --build build
 | Option | Doc |
 |:-|:-|
 |`SAGE_OPT_CCACHE_ENABLED`| Use [`ccache`](https://ccache.dev/) to speedup subsequent compilations|
+|`SAGE_OPT_CUSTOM_IMGUI_CONFIG`| Use src/imgui_config.h|
 |`SAGE_OPT_OBSIDIAN`| Tell SAGE to use Gkiwnis' [.obsidian](https://obsidian.md/)|
 |`SAGE_OPT_VERBOSE`| |
 
@@ -73,7 +74,7 @@ TEST_CASE ("My Module") {
 The test executable will be automatically generated when you configure `cmake` so be sure to run it before testing/commiting. See [test/CMakeLists.txt](test/CMakeLists.txt) for the details.
 
 ## Project Overview
-14M used in 16 directories, 311 files.
+14M used in 16 directories, 312 files.
 ```
 ./
 ├── asset/
@@ -372,6 +373,7 @@ The test executable will be automatically generated when you configure `cmake` s
 │   ├── fmt.hpp
 │   ├── glm.hpp
 │   ├── graphics.hpp
+│   ├── imgui_config.h
 │   ├── input.hpp
 │   ├── layer.hpp
 │   ├── layer_imgui.hpp

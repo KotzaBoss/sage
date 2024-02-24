@@ -1,12 +1,12 @@
 # Overview
 
-43 items to be done.
+44 items to be done.
 
 # Entries
 
 ## TODO
 
-30 items available.
+31 items available.
 
 | Source | Line Number | Description |
 |:-|:-|:-|
@@ -20,7 +20,7 @@
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 312 | if constexpr (build::release) clear index/vertex buffers |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 214 | This could be a range::chunk or range::slide in c++23? |
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 104 | Split dynamic/static vertex_buffer? |
-| [src/perf.hpp](src/perf.hpp) | 233 | Make a specialization that is shorter than fmt's optional(...) |
+| [src/perf.hpp](src/perf.hpp) | 227 | Make a specialization that is shorter than fmt's optional(...) |
 | [src/layer_imgui.hpp](src/layer_imgui.hpp) | 129 | ImGui is abit special but is there a way to integrate this in .render()? |
 | [src/layer.hpp](src/layer.hpp) | 16 | For all concepts add a convenience struct for their many arguments |
 | [src/input.hpp](src/input.hpp) | 38 | OpenGL does not support mouse scroll polling, make the input Concept have a mouse_scroll() -> optional\<Mouse::Scroll\> ? |
@@ -31,14 +31,15 @@
 | [src/graphics.hpp](src/graphics.hpp) | 454 | Proper asset system and asset handles |
 | [src/graphics.hpp](src/graphics.hpp) | 424 | Try to make this a constraint |
 | [src/graphics.hpp](src/graphics.hpp) | 51 | Material system will differentiate set/upload_uniform? |
-| [src/ecs.hpp](src/ecs.hpp) | 334 | FMT_FORMATTER for ECS::Entity, dont forget to print the addresses of the ECS to debug their origin |
-| [src/ecs.hpp](src/ecs.hpp) | 287 | if sizeof...(Cs) == 0 return all |
-| [src/ecs.hpp](src/ecs.hpp) | 49 | Rethink what is returned by components_of, view. |
-| [src/camera.hpp](src/camera.hpp) | 142 | Only use glm:: instead of the ad-hoc math::Size |
-| [src/camera.hpp](src/camera.hpp) | 75 | Make a separete unit::Degrees struct? |
-| [src/camera.hpp](src/camera.hpp) | 19 | Not sure if this API is necessary, maybe have public members? |
-| [src/app.hpp](src/app.hpp) | 122 | Fixed rate updates how to? Hardcode to 144fps for now. |
-| [bin/sandbox.hpp](bin/sandbox.hpp) | 11 | What to encapsulate, player.update(), player knows renderer? |
+| [src/ecs.hpp](src/ecs.hpp) | 404 | FMT_FORMATTER for ECS::Entity, dont forget to print the addresses of the ECS to debug their origin |
+| [src/ecs.hpp](src/ecs.hpp) | 327 | Fix constness of Polymorphic_* containers |
+| [src/ecs.hpp](src/ecs.hpp) | 299 | if sizeof...(Cs) == 0 return all |
+| [src/ecs.hpp](src/ecs.hpp) | 74 | Rethink what is returned by components_of, view. |
+| [src/ecs.hpp](src/ecs.hpp) | 30 | The components need rework to be flexible. The problem is that if the templates |
+| [src/camera.hpp](src/camera.hpp) | 143 | Only use glm:: instead of the ad-hoc math::Size |
+| [src/camera.hpp](src/camera.hpp) | 72 | Make a separete unit::Degrees struct? |
+| [src/app.hpp](src/app.hpp) | 124 | Fixed rate updates how to? Hardcode to 144fps for now. |
+| [bin/sandbox.hpp](bin/sandbox.hpp) | 102 | Fix orientation of map |
 | [bin/editor.hpp](bin/editor.hpp) | 14 | How to "ignore" User_State |
 
 ## FIXME
@@ -71,7 +72,7 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [src/particle.hpp](src/particle.hpp) | 61 | How would this parallel-array conditional transformation work cpu-cache wise? |
-| [src/camera.hpp](src/camera.hpp) | 15 | Look into the details for cameras projection math |
+| [src/camera.hpp](src/camera.hpp) | 14 | Look into the details for cameras projection math |
 
 ## OPTIMIZE
 
@@ -80,7 +81,7 @@
 | Source | Line Number | Description |
 |:-|:-|:-|
 | [src/platform/linux/graphics.hpp](src/platform/linux/graphics.hpp) | 590 | ? |
-| [src/ecs.hpp](src/ecs.hpp) | 143 | If necessary use a more sophisticated method |
+| [src/ecs.hpp](src/ecs.hpp) | 168 | If necessary use a more sophisticated method |
 
 
 
