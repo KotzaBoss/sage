@@ -10,9 +10,9 @@ using The_App = sage::App<
 	oslinux::Input,
 	oslinux::Renderer_2D,
 	Game_State,
+	Editor,
 	Layer_2D,
-	Rocket_Flame,
-	Editor
+	Rocket_Flame
 >;
 
 auto main() -> int {
